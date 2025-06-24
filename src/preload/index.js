@@ -1,16 +1,17 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 
-const api = {}
+const api = {
+  ping: (...args) => ipcRenderer.invoke('ping', ...args),
+}
+
+if (!process.contextIsolated) {
+  throw new Error('Context isolation must be enabled in the browser window')
+}
 
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
     console.error(error)
   }
-} else {
-  window.electron = electronAPI
-  window.api = api
 }

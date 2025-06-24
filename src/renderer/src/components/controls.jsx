@@ -3,16 +3,25 @@ import { useEffect, useState } from 'react'
 export const Controls = () => {
   const [isRecording, setIsRecording] = useState(false)
 
+  const startRecording = async () => {
+    setIsRecording(true)
+    await window.api.ping()
+  }
+
+  const stopRecording = () => {
+    setIsRecording(false)
+  }
+
   return (
     <div className="flex w-full gap-2">
       {!isRecording ? (
-        <button className="grow border rounded cursor-pointer" onClick={() => setIsRecording(true)}>
+        <button className="grow border rounded cursor-pointer" onClick={startRecording}>
           Start
         </button>
       ) : (
         <div className='grow flex'>
           <TimeIndicator />
-          <button className="border rounded cursor-pointer px-3" onClick={() => setIsRecording(false)}>
+          <button className="border rounded cursor-pointer px-3" onClick={stopRecording}>
             Stop
           </button>
         </div>
