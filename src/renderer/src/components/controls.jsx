@@ -1,7 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { IconsTable } from '../constants/iconsTable'
+import { TimeIndicator } from './timeIndicator'
+import { Square, Play, Pause, PencilLine, X, Video } from 'lucide-react';
 
 export const Controls = () => {
   const [isRecording, setIsRecording] = useState(false)
+  const [resume, setResume] = useState(true)
 
   const startRecording = async () => {
     setIsRecording(true)
@@ -10,61 +14,47 @@ export const Controls = () => {
 
   const stopRecording = () => {
     setIsRecording(false)
+    setResume(true)
+  }
+
+  const toggleResuming = () => {
+    setResume((prev) => !prev)
+  }
+
+  const closeApp = () => {
+    window.api.closeApp()
   }
 
   return (
-    <div className="flex w-full gap-2">
-      {!isRecording ? (
-        <button className="grow border rounded cursor-pointer" onClick={startRecording}>
-          Start
-        </button>
-      ) : (
-        <div className='grow flex'>
-          <TimeIndicator />
-          <button className="border rounded cursor-pointer px-3" onClick={stopRecording}>
-            Stop
+    <div className="no-drag flex flex-col w-full gap-2">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-0.5">
+          <button
+            disabled={!isRecording}
+            className="disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            onClick={stopRecording}
+          >
+            <Square />
           </button>
+          <TimeIndicator isRecording={isRecording} resumeRecording={resume} />
         </div>
-      )}
+        <button
+          disabled={!isRecording}
+          className="disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          onClick={toggleResuming}
+        >
+          {resume ? <Pause /> : <Play />}
+        </button>
+      </div>
+      {IconsTable.line}
+      <div className="flex flex-col gap-2">
+        <PencilLine className='cursor-pointer' onClick={() => { }} />
+        <Video className='cursor-pointer' onClick={startRecording} />
+      </div>
+      {IconsTable.line}
+      <div>
+        <X className='cursor-pointer' onClick={closeApp} />
+      </div>
     </div>
-  )
-}
-
-const TimeIndicator = () => {
-  const [time, setTime] = useState({
-    hour: 0,
-    minute: 0,
-    second: 0
-  })
-
-  const padZero = (num) => num < 10 ? `0${num}` : `${num}`
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setTime((prev) => {
-        const updatedSecond = parseInt(prev.second + 1)
-        const updatedMinute = parseInt(prev.minute + 1)
-        const updatedHour = parseInt(prev.hour + 1)
-
-        if (updatedSecond < 60) {
-          return { ...prev, second: updatedSecond }
-        } else if (updatedMinute < 60) {
-          return { ...prev, minute: updatedMinute, second: 0 }
-        } else if (updatedHour < 24) {
-          return { hour: updatedHour, minute: 0, second: 0 }
-        } else {
-          return { hour: 0, minute: 0, second: 0 }
-        }
-      })
-
-    }, 1000)
-
-    return () => clearInterval(intervalId);
-  }, [])
-
-  return (
-    <span className='grow px-3 inline-flex justify-center'>
-      {`${padZero(time.hour)}:${padZero(time.minute)}:${padZero(time.second)}`}
-    </span>
   )
 }

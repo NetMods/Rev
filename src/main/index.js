@@ -6,16 +6,20 @@ import { setupIPC } from './lib'
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 250,
-    height: 30,
+    width: 50,
+    height: 270,
     show: false,
     autoHideMenuBar: true,
+    resizable: false,
+    titleBarStyle: 'customButtonsOnHover',
+    frame: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
   })
+  mainWindow.setWindowButtonVisibility(false)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
