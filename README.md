@@ -7,5 +7,6 @@ Todos:
 - get the video directly on the canvas
 - make zoom in and out effect on the user activity
 - capture the output of canvas, and we will have zoom effects in realtime
+- change face recording to some animated animals
 
 And we are done with the basic functionality
