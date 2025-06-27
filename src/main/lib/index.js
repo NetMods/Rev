@@ -1,8 +1,9 @@
-import { app } from "electron"
+import { startRecording, stopRecording } from "./record"
 
 export function setupIPC(ipcMain) {
   ipcMain.handle('ping', () => console.log('pong'))
-  ipcMain.on('close-app', () => {
-    app.quit()
-  })
+
+  ipcMain.handle('record:start', () => startRecording())
+  ipcMain.handle('record:stop', (_, arrayBuffer) => stopRecording(arrayBuffer))
+  ipcMain.on('close-app', () => app.quit())
 }
