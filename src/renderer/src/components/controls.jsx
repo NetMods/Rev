@@ -1,21 +1,53 @@
 import { useEffect, useState } from 'react'
 
 export const Controls = () => {
+  let recordingChunks = []
   const [isRecording, setIsRecording] = useState(false)
+  const [mediaRecorder, setMediaRecorder] = useState([])
+
+  const options = { mimeType: 'video/webm; codecs=vp9' };
 
   const startRecording = async () => {
     setIsRecording(true)
-    await window.api.ping()
+    await window.api.startRecording()
+
+    const data = await navigator.mediaDevices.getDisplayMedia({
+      audio: false,
+      video: {
+        framerate: 30
+      }
+    })
+
+    const recorder = new MediaRecorder(data, options)
+    recorder.ondataavailable = handleDataAvailable
+    recorder.onstop = handleStop
+    setMediaRecorder(recorder)
+
+    recorder.start()
   }
 
-  const stopRecording = () => {
+  const stopRecording = async () => {
     setIsRecording(false)
+    mediaRecorder.stop()
+  }
+
+  const handleDataAvailable = (e) => {
+    recordingChunks.push(e.data)
+  }
+
+  const handleStop = async () => {
+    const blob = new Blob(recordingChunks, options)
+    const arrayBuffer = await blob.arrayBuffer()
+    await window.api.stopRecording(arrayBuffer)
   }
 
   return (
     <div className="flex w-full gap-2">
       {!isRecording ? (
-        <button className="grow border rounded cursor-pointer" onClick={startRecording}>
+        <button
+          className="grow border rounded cursor-pointer"
+          onClick={startRecording}
+        >
           Start
         </button>
       ) : (
