@@ -5,6 +5,8 @@ const api = {
 
   startRecording: () => ipcRenderer.invoke('record:start'),
   stopRecording: (arrayBuffer) => ipcRenderer.invoke('record:stop', arrayBuffer),
+
+  closeApp: (...args) => ipcRenderer.send('close-app', ...args)
 }
 
 if (!process.contextIsolated) {

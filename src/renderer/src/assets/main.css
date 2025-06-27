@@ -15,3 +15,10 @@ code {
     monospace;
   font-size: 85%;
 }
+
+
+@layer components {
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+}

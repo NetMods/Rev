@@ -5,4 +5,5 @@ export function setupIPC(ipcMain) {
 
   ipcMain.handle('record:start', () => startRecording())
   ipcMain.handle('record:stop', (_, arrayBuffer) => stopRecording(arrayBuffer))
+  ipcMain.on('close-app', () => app.quit())
 }
