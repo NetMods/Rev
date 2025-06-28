@@ -6,7 +6,10 @@ const api = {
   startRecording: () => ipcRenderer.invoke('record:start'),
   stopRecording: (arrayBuffer) => ipcRenderer.invoke('record:stop', arrayBuffer),
 
-  closeApp: (...args) => ipcRenderer.send('close-app', ...args)
+  recordMouse: (...args) => ipcRenderer.send('record:mouse', ...args),
+
+
+  closeApp: (...args) => ipcRenderer.send('close:app', ...args)
 }
 
 if (!process.contextIsolated) {

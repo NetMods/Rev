@@ -23,11 +23,9 @@ export const TimeIndicator = ({ isRecording, resumeRecording }) => {
           second = 0;
           minute += 1;
         }
-
         if (minute >= 9 && second >= 59) {
           return { minute: 9, second: 59 };
         }
-
         return { minute, second };
       });
     }, 1000);

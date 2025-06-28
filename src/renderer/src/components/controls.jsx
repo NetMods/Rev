@@ -27,6 +27,7 @@ export const Controls = () => {
     if (selectedMode !== 'video') return;
 
     setIsRecording(true)
+    window.api.recordMouse()
     await window.api.startRecording()
 
     const data = await navigator.mediaDevices.getDisplayMedia({

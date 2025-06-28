@@ -4,8 +4,10 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.ico?asset'
 import { setupIPC } from './lib'
 
+let mainWindow;
+
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 10,
     height: 260,
     show: false,
@@ -46,9 +48,8 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  setupIPC(ipcMain)
-
   createWindow()
+  setupIPC(ipcMain, mainWindow)
 
   app.on('activate', function() {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

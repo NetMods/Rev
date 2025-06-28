@@ -29,6 +29,9 @@ importers:
       tailwindcss:
         specifier: ^4.1.10
         version: 4.1.10
+      uiohook-napi:
+        specifier: ^1.5.4
+        version: 1.5.4
     devDependencies:
       '@electron-toolkit/eslint-config':
         specifier: ^2.0.0
@@ -2120,6 +2123,10 @@ packages:
   node-api-version@0.2.1:
     resolution: {integrity: sha512-2xP/IGGMmmSQpI1+O/k72jF/ykvZ89JeuKX3TLJAYPDVLUalrshrLHkeVcCCZqG/eEa635cr8IBYzgnDvM2O8Q==}
 
+  node-gyp-build@4.8.4:
+    resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
+    hasBin: true
+
   node-gyp@9.4.1:
     resolution: {integrity: sha512-OQkWKbjQKbGkMf/xqI1jjy3oCTgMKJac58G2+bjZb3fza6gW2YrCSdMQYaoTb70crvE//Gngr4f0AgVHmqHvBQ==}
     engines: {node: ^12.13 || ^14.13 || >=16}
@@ -2657,6 +2664,10 @@ packages:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  uiohook-napi@1.5.4:
+    resolution: {integrity: sha512-7vPVDNwgb6MwTgviA/dnF2MrW0X5xm76fAqaOAC3cEKkswqAZOPw1USu14Sr6383s5qhXegcJaR63CpJOPCNAg==}
+    engines: {node: '>= 16'}
 
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
@@ -5116,6 +5127,8 @@ snapshots:
     dependencies:
       semver: 7.7.2
 
+  node-gyp-build@4.8.4: {}
+
   node-gyp@9.4.1:
     dependencies:
       env-paths: 2.2.1
@@ -5774,6 +5787,10 @@ snapshots:
       reflect.getprototypeof: 1.0.10
 
   typescript@5.8.3: {}
+
+  uiohook-napi@1.5.4:
+    dependencies:
+      node-gyp-build: 4.8.4
 
   unbox-primitive@1.1.0:
     dependencies:
