@@ -6,7 +6,9 @@ import {
   IoCameraOutline as Camera,
   IoVideocamOutline as Video,
   IoClose as Close,
-} from "react-icons/io5";
+} from "react-icons/io5"
+import { useSetAtom, useAtom } from 'jotai'
+import { addMouseTimeStampsAtom, mouseTimeStampsAtom, resetMouseTimeStampsAtom } from '../store'
 import { IoIosPause as Pause } from "react-icons/io";
 import { FiEdit2 as Pencil } from "react-icons/fi";
 
@@ -17,33 +19,60 @@ export const Controls = () => {
   const [selectedMode, setSelectedMode] = useState('video')
   const recordedChunks = []
 
-  const options = { mimeType: 'video/webm; codecs=vp9' };
+
+  // jotai atoms
+  const setMouseTimeStamps = useSetAtom(addMouseTimeStampsAtom)
+  const setResetMouseTimeStamps = useSetAtom(resetMouseTimeStampsAtom)
+  const [mouseRecord,] = useAtom(mouseTimeStampsAtom)
+
+
+  console.log("recorded values for mouse are", mouseRecord)
+
+  const options = { mimeType: 'video/webm; codecs=vp9' }
 
   const startRecording = async () => {
-    if (selectedMode !== 'video') return;
-
+    if (selectedMode !== 'video') return
+    setResetMouseTimeStamps()
     setIsRecording(true)
     window.api.recordMouse()
-    await window.api.startRecording()
 
-    const data = await navigator.mediaDevices.getDisplayMedia({
-      audio: false,
-      video: { framerate: 30 }
-    })
-
-    const mediaRecorder = new MediaRecorder(data, options)
-    mediaRecorder.ondataavailable = handleDataAvailable
-    mediaRecorder.onstop = handleStop
-    setRecorder(mediaRecorder)
-
-    mediaRecorder.start()
+    try {
+      await window.api.startRecording()
+      const data = await navigator.mediaDevices.getDisplayMedia({
+        audio: false,
+        video: { framerate: 30 }
+      })
+      const mediaRecorder = new MediaRecorder(data, options)
+      mediaRecorder.ondataavailable = handleDataAvailable
+      mediaRecorder.onstop = handleStop
+      setRecorder(mediaRecorder)
+      mediaRecorder.start()
+    } catch (error) {
+      console.error('Error starting recording:', error)
+      setIsRecording(false)
+      window.api.stopRecordingMouse()
+    }
   }
 
   const stopRecording = async () => {
+    if (!mediaRecorder || !isRecording) {
+      return
+    }
+
     setIsRecording(false)
     setSelectedMode(null)
-    recorder.stop()
     setIsPaused(false)
+
+    try {
+      const { mouseRecords } = await window.api.saveMouseRecords()
+      // Add each mouse record to the Jotai atom
+      mouseRecords.forEach(record => {
+        setMouseTimeStamps(record)
+      })
+      recorder.stop()
+    } catch (error) {
+      console.error('Error saving mouse records:', error)
+    }
   }
 
   const handleDataAvailable = (e) => {
@@ -53,7 +82,12 @@ export const Controls = () => {
   const handleStop = async () => {
     const blob = new Blob(recordedChunks, options)
     const arrayBuffer = await blob.arrayBuffer()
-    await window.api.stopRecording(arrayBuffer)
+    try {
+      await window.api.stopRecording(arrayBuffer)
+    } catch (error) {
+      console.error('Error stopping recording:', error)
+    }
+    recordingChunks.length = 0
   }
 
   const toggleResuming = () => {

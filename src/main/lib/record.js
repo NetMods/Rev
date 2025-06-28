@@ -11,7 +11,7 @@ export const startRecording = (mainWindow) => {
       setTimeout(() => {
         if (mainWindow) {
           mainWindow.setResizable(false);
-          mainWindow.setSize(50, 270)
+          mainWindow.setSize(50, 291)
         }
       }, 100)
     })
