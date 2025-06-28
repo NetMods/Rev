@@ -1,23 +1,18 @@
 import { useEffect, useState } from 'react';
 
-export const TimeIndicator = ({ isRecording, resumeRecording }) => {
-  const [time, setTime] = useState({
-    minute: 0,
-    second: 0,
-  });
+const padZero = (num) => (num < 10 ? `0${num}` : `${num}`);
 
-  const padZero = (num) => (num < 10 ? `0${num}` : `${num}`);
+export const TimeIndicator = ({ isRecording, resumeRecording }) => {
+  const [time, setTime] = useState({ minute: 0, second: 0 });
 
   useEffect(() => {
     if (!isRecording) {
-      setTime({
-        minute: 0,
-        second: 0
-      })
-      return;
+      setTime({ minute: 0, second: 0 });
     }
+  }, [isRecording]);
 
-    if (!resumeRecording) return;
+  useEffect(() => {
+    if (!isRecording || !resumeRecording) return;
 
     const intervalId = setInterval(() => {
       setTime((prev) => {
@@ -28,7 +23,9 @@ export const TimeIndicator = ({ isRecording, resumeRecording }) => {
           second = 0;
           minute += 1;
         }
-
+        if (minute >= 9 && second >= 59) {
+          return { minute: 9, second: 59 };
+        }
         return { minute, second };
       });
     }, 1000);
@@ -37,8 +34,6 @@ export const TimeIndicator = ({ isRecording, resumeRecording }) => {
   }, [isRecording, resumeRecording]);
 
   return (
-    <span className='grow px-3 inline-flex justify-center'>
-      {`${padZero(time.minute)}:${padZero(time.second)}`}
-    </span>
+    <span className='inline-flex justify-center text-sm'> {`${time.minute}:${padZero(time.second)}`} </span>
   );
 };

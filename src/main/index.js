@@ -8,8 +8,8 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 50,
-    height: 270,
+    width: 10,
+    height: 260,
     show: false,
     autoHideMenuBar: true,
     resizable: false,
@@ -26,6 +26,7 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    mainWindow.setSize(50, 291);
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
