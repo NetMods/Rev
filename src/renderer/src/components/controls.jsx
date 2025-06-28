@@ -3,25 +3,21 @@ import { TimeIndicator } from './time-indicator'
 import {
   IoStop as CircleStopIcon,
   IoPlay as Play,
-  IoPause as Pause,
   IoCameraOutline as Camera,
   IoVideocamOutline as Video,
   IoClose as Close,
 } from "react-icons/io5";
+import { IoIosPause as Pause } from "react-icons/io";
 import { FiEdit2 as Pencil } from "react-icons/fi";
 
 export const Controls = () => {
   const [isRecording, setIsRecording] = useState(false)
-  const [mediaRecorder, setMediaRecorder] = useState(null)
-  const [resume, setResume] = useState(true)
+  const [recorder, setRecorder] = useState(null)
+  const [isPaused, setIsPaused] = useState(false)
   const [selectedMode, setSelectedMode] = useState('video')
-  const recordingChunks = []
+  const recordedChunks = []
 
   const options = { mimeType: 'video/webm; codecs=vp9' };
-
-  const selectVideoMode = () => {
-    setSelectedMode('video')
-  }
 
   const startRecording = async () => {
     if (selectedMode !== 'video') return;
@@ -35,100 +31,65 @@ export const Controls = () => {
       video: { framerate: 30 }
     })
 
-    const recorder = new MediaRecorder(data, options)
-    recorder.ondataavailable = handleDataAvailable
-    recorder.onstop = handleStop
-    setMediaRecorder(recorder)
+    const mediaRecorder = new MediaRecorder(data, options)
+    mediaRecorder.ondataavailable = handleDataAvailable
+    mediaRecorder.onstop = handleStop
+    setRecorder(mediaRecorder)
 
-    recorder.start()
+    mediaRecorder.start()
   }
 
   const stopRecording = async () => {
     setIsRecording(false)
     setSelectedMode(null)
-    mediaRecorder.stop()
-    setResume(true)
+    recorder.stop()
+    setIsPaused(false)
   }
 
   const handleDataAvailable = (e) => {
-    recordingChunks.push(e.data)
+    recordedChunks.push(e.data)
   }
 
   const handleStop = async () => {
-    const blob = new Blob(recordingChunks, options)
+    const blob = new Blob(recordedChunks, options)
     const arrayBuffer = await blob.arrayBuffer()
     await window.api.stopRecording(arrayBuffer)
   }
 
   const toggleResuming = () => {
-    if (mediaRecorder && isRecording) {
-      if (resume) {
-        mediaRecorder.pause()
+    if (recorder && isRecording) {
+      if (!isPaused) {
+        recorder.pause()
       } else {
-        mediaRecorder.resume()
+        recorder.resume()
       }
-      setResume((prev) => !prev)
+      setIsPaused((prev) => !prev)
     }
-  }
-
-  const takeScreenshot = async () => {
-    if (selectedMode !== 'screenshot') {
-      setSelectedMode('screenshot')
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false
-      })
-      const track = stream.getVideoTracks()[0]
-      const imageCapture = new ImageCapture(track)
-      const bitmap = await imageCapture.grabFrame()
-      track.stop()
-
-      const canvas = document.createElement('canvas')
-      canvas.width = bitmap.width
-      canvas.height = bitmap.height
-      const context = canvas.getContext('2d')
-      context.drawImage(bitmap, 0, 0)
-      const arrayBuffer = await new Promise(resolve => {
-        canvas.toBlob(blob => blob.arrayBuffer().then(resolve))
-      })
-      await window.api.saveScreenshot(arrayBuffer)
-      setSelectedMode(null)
-    } catch (error) {
-      console.error('Error capturing screenshot:', error)
-    }
-  }
-
-  const selectAnnotationMode = () => {
-    setSelectedMode('annotation')
-  }
-
-  const closeApp = () => {
-    window.api.closeApp()
   }
 
   return (
-    <div className="no-drag flex flex-col gap-3">
-      <div className="inline-flex flex-col gap-3">
-        <div className="inline-flex flex-col">
+    <div className="flex flex-col gap-3">
+      <div className="inline-flex flex-col gap-2">
+        <div className="inline-flex flex-col gap-1">
           <button
             disabled={!isRecording}
-            className="disabled:opacity-50 py-1 inline-flex justify-center disabled:cursor-not-allowed cursor-pointer rounded hover:bg-neutral-800"
+            className={`disabled:opacity-50 py-1 no-drag ${isRecording && "bg-red-500/50"} inline-flex justify-center disabled:cursor-not-allowed cursor-pointer rounded transition-all ease-in-out ${isRecording ? 'hover:shadow-md shadow-red-600/40' : 'hover:bg-neutral-800'}`}
             onClick={stopRecording}
           >
             <CircleStopIcon size={20} />
           </button>
-          <TimeIndicator isRecording={isRecording} resumeRecording={resume} />
+          <TimeIndicator
+            isRecording={isRecording}
+            isPaused={isPaused}
+            onTimeLimitExceeds={stopRecording}
+          />
         </div>
         <button
           disabled={selectedMode !== 'video'}
-          className={`disabled:opacity-50 py-1 inline-flex justify-center disabled:cursor-not-allowed cursor-pointer rounded hover:bg-neutral-800 ${isRecording && resume ? 'bg-red-100' : ''}`}
+          className={`disabled:opacity-50 py-1 no-drag inline-flex justify-center disabled:cursor-not-allowed cursor-pointer rounded hover:bg-neutral-800`}
           onClick={isRecording ? toggleResuming : startRecording}
         >
-          {isRecording && resume ? <Pause size={23} /> : <Play size={20} />}
+          {isRecording && !isPaused ? <Pause size={23} /> : <Play size={20} />}
         </button>
       </div>
 
@@ -136,20 +97,20 @@ export const Controls = () => {
 
       <div className="flex flex-col gap-3">
         <button
-          className={`rounded cursor-pointer py-1 inline-flex justify-center ${selectedMode === 'video' ? 'bg-neutral-700/60' : 'hover:bg-neutral-800'}`}
-          onClick={selectVideoMode}
+          className={`rounded cursor-pointer py-1 no-drag inline-flex justify-center ${selectedMode === 'video' ? 'bg-neutral-700/60' : 'hover:bg-neutral-800'}`}
+          onClick={() => setSelectedMode('video')}
         >
           <Video size={23} />
         </button>
         <button
-          className={`rounded cursor-pointer py-1 inline-flex justify-center ${selectedMode === 'screenshot' ? 'bg-neutral-700/60' : 'hover:bg-neutral-800'}`}
-          onClick={takeScreenshot}
+          className={`rounded cursor-pointer py-1 no-drag inline-flex justify-center ${selectedMode === 'screenshot' ? 'bg-neutral-700/60' : 'hover:bg-neutral-800'}`}
+          onClick={() => setSelectedMode('screenshot')}
         >
           <Camera size={23} />
         </button>
         <button
-          className={`rounded cursor-pointer py-1 inline-flex justify-center ${selectedMode === 'annotation' ? 'bg-neutral-700/60' : 'hover:bg-neutral-800'}`}
-          onClick={selectAnnotationMode}
+          className={`rounded cursor-pointer py-1 no-drag inline-flex justify-center ${selectedMode === 'annotation' ? 'bg-neutral-700/60' : 'hover:bg-neutral-800'}`}
+          onClick={() => setSelectedMode('annotation')}
         >
           <Pencil size={20} />
         </button>
@@ -157,8 +118,8 @@ export const Controls = () => {
 
       <hr className="text-white/30" />
 
-      <button className="rounded cursor-pointer py-1 inline-flex justify-center hover:bg-neutral-800">
-        <Close onClick={closeApp} size={23} />
+      <button className="rounded cursor-pointer no-drag py-1 inline-flex justify-center hover:bg-neutral-800">
+        <Close onClick={() => window.api.closeApp()} size={23} />
       </button>
     </div>
   )
