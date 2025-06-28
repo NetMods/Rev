@@ -1,5 +1,6 @@
 import { uIOhook } from 'uiohook-napi'
 
+
 let timestampsRecords = []
 let mouseDownHandler = null
 let startTime = null // nanoseconds (BigInt)

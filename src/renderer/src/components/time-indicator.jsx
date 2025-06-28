@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const padZero = (num) => (num < 10 ? `0${num}` : `${num}`);
 
-export const TimeIndicator = ({ isRecording, resumeRecording }) => {
+export const TimeIndicator = ({ isRecording, isPaused, onTimeLimitExceeds }) => {
   const [time, setTime] = useState({ minute: 0, second: 0 });
 
   useEffect(() => {
@@ -12,7 +12,7 @@ export const TimeIndicator = ({ isRecording, resumeRecording }) => {
   }, [isRecording]);
 
   useEffect(() => {
-    if (!isRecording || !resumeRecording) return;
+    if (!isRecording || isPaused) return;
 
     const intervalId = setInterval(() => {
       setTime((prev) => {
@@ -24,16 +24,17 @@ export const TimeIndicator = ({ isRecording, resumeRecording }) => {
           minute += 1;
         }
         if (minute >= 9 && second >= 59) {
-          return { minute: 9, second: 59 };
+          onTimeLimitExceeds()
+          return { minute: 0, second: 0 };
         }
         return { minute, second };
       });
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [isRecording, resumeRecording]);
+  }, [isRecording, isPaused, onTimeLimitExceeds]);
 
   return (
-    <span className='inline-flex justify-center text-sm'> {`${time.minute}:${padZero(time.second)}`} </span>
+    <span className='inline-flex justify-center text-sm'>{`${time.minute}:${padZero(time.second)}`} </span>
   );
 };

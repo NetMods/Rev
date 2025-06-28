@@ -26,7 +26,7 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
-    mainWindow.setSize(50, 291);
+    mainWindow.setSize(50, 299);
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
