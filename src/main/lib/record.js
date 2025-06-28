@@ -2,12 +2,20 @@ import { dialog, session } from "electron"
 import { desktopCapturer } from "electron/main"
 import { writeFile } from "fs-extra"
 
-export const startRecording = () => {
+export const startRecording = (mainWindow) => {
   session.defaultSession.setDisplayMediaRequestHandler((_, callback) => {
     desktopCapturer.getSources({ types: ["screen"] }).then((sources) => {
       callback({ video: sources[0], audio: 'loopback' })
+
+      // macOs: setting the resize again false as useSystemPicker is set false which cause native OS to mess things a bit
+      setTimeout(() => {
+        if (mainWindow) {
+          mainWindow.setResizable(false);
+          mainWindow.setSize(50, 270)
+        }
+      }, 100)
     })
-  }, { useSystemPicker: true })
+  }, { useSystemPicker: false })
   console.log("Started Recording")
 }
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { IconsTable } from '../constants/iconsTable'
-import { TimeIndicator } from './timeIndicator'
+import { TimeIndicator } from './time-indicator'
 import { Square, Play, Pause, PencilLine, X, Video } from 'lucide-react';
 
 export const Controls = () => {
@@ -14,6 +14,7 @@ export const Controls = () => {
 
   const startRecording = async () => {
     setIsRecording(true)
+    window.api.recordMouse()
     await window.api.startRecording()
 
     const data = await navigator.mediaDevices.getDisplayMedia({
