@@ -1,5 +1,14 @@
+@font-face {
+  font-family: digital;
+  src: url('./fonts/digital-7.regular.ttf')
+}
+
 @import "tailwindcss";
 @import './base.css';
+
+@theme {
+  --font-digital: digital, "sans-serif"
+}
 
 code {
   font-weight: 600;
