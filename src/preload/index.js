@@ -14,6 +14,11 @@ const api = {
   saveMouseRecords: (...args) => ipcRenderer.invoke('save:mouseRecord', ...args),
 
 
+  // api for anotate Screen
+
+  startAnotatingScreen: (...args) => ipcRenderer.send('anotate:screen', ...args),
+
+
   closeApp: (...args) => ipcRenderer.send('close:app', ...args)
 }
 

@@ -12,11 +12,18 @@ import { FiEdit2 as Pencil } from 'react-icons/fi';
 import { useRecording } from '@renderer/hooks/use-recording';
 
 export const Controls = () => {
-  const { startRecording, stopRecording, togglePause, mouseRecord, isRecording, isPaused } = useRecording()
+  const { startRecording, stopRecording, togglePause, isRecording, isPaused } = useRecording()
+  // const {mouseRecord} = useRecording()
 
   const [selectedMode, setSelectedMode] = useState('video');
 
-  console.log("mouse coords:", mouseRecord)
+  const handleAnotateScreen = () => {
+    setSelectedMode('annotation')
+    window.api.startAnotatingScreen()
+  }
+
+
+  // console.log("mouse coords:", mouseRecord)
 
   return (
     <div className="flex flex-col gap-3">
@@ -61,7 +68,7 @@ export const Controls = () => {
         </button>
         <button
           className={`rounded cursor-pointer py-1 no-drag inline-flex justify-center ${selectedMode === 'annotation' ? 'bg-neutral-700/60' : 'hover:bg-neutral-800'}`}
-          onClick={() => setSelectedMode('annotation')}
+          onClick={handleAnotateScreen}
         >
           <Pencil size={20} />
         </button>
@@ -74,4 +81,4 @@ export const Controls = () => {
       </button>
     </div>
   );
-};
+}
