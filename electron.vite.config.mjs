@@ -16,6 +16,15 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
+    build: {
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'src/renderer/index.html'),
+          anotate: resolve(__dirname, 'src/renderer/anotatePanel.html'),
+          background: resolve(__dirname, 'src/renderer/background.html')
+        }
+      }
+    },
     plugins: [react(), tailwindcss()]
-  }
+  },
 })
