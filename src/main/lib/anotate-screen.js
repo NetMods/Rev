@@ -4,10 +4,15 @@ import { join } from 'path'
 // import { is } from "@electron-toolkit/utils"
 
 
-const createPanel = () => {
+
+let anotateSidePanel = null
+let backgroundwindow = null
+
+
+const createPanel = (mainWindow) => {
   const anotateSidePanel = new BrowserWindow({
-    width: 500,
-    height: 500,
+    width: 50,
+    height: 50,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
     frame: false,
@@ -22,7 +27,7 @@ const createPanel = () => {
   if (process.platform === "darwin") anotateSidePanel.setWindowButtonVisibility(false)
 
   anotateSidePanel.on('ready-to-show', () => {
-    // mainWindow.hide()
+    mainWindow.hide()
     anotateSidePanel.show()
   })
 
@@ -60,7 +65,7 @@ const createBackgroundScreen = (mainWindow) => {
     }
   })
 
-  backgroundwindow.setIgnoreMouseEvents(true, { forward: true })
+  // backgroundwindow.setIgnoreMouseEvents(true, { forward: true })
 
   backgroundwindow.on('ready-to-show', () => {
     mainWindow.hide()
@@ -69,7 +74,7 @@ const createBackgroundScreen = (mainWindow) => {
 
 
   // TODO : find a way to make get hot reloads like mainWindow
-  backgroundwindow.loadFile(join(__dirname, '../../renderer/background.html'))
+  backgroundwindow.loadFile(join(__dirname, '../renderer/background.html'))
 
 
 
@@ -86,6 +91,18 @@ const createBackgroundScreen = (mainWindow) => {
 
 
 export const anotateScreen = (mainWindow) => {
-  createBackgroundScreen(mainWindow)
-  createPanel()
+  backgroundwindow = createBackgroundScreen(mainWindow)
+  anotateSidePanel = createPanel(mainWindow)
 }
+
+
+export const stopAnotating = (mainWindow) => {
+  if (!backgroundwindow && !anotateSidePanel) {
+    console.log('Either backgroundwindow or sidepanel is missing')
+    return;
+  }
+  backgroundwindow.close()
+  anotateSidePanel.close()
+  mainWindow.show()
+}
+

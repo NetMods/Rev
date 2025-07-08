@@ -2,6 +2,7 @@ import { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
   main: {
@@ -13,7 +14,8 @@ export default defineConfig({
   renderer: {
     resolve: {
       alias: {
-        '@renderer': resolve('src/renderer/src')
+        '@renderer': resolve('src/renderer/src'),
+        '@': resolve(__dirname, './src')
       }
     },
     build: {
@@ -25,6 +27,17 @@ export default defineConfig({
         }
       }
     },
-    plugins: [react(), tailwindcss()]
+    plugins: [
+      react(),
+      tailwindcss(),
+      viteStaticCopy({
+        targets: [
+          {
+            src: resolve(__dirname, 'src/renderer/canvas.js'),
+            dest: '.', // Copies canvas.js to out/renderer/
+          },
+        ],
+      }),
+    ]
   },
 })

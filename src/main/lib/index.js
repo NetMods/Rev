@@ -1,7 +1,7 @@
 import { startRecording, stopRecording } from "./record"
 import { closeApp } from "./utils"
 import { recordGlobalMouse, recordGlobalMouseStop, saveMouseRecords } from "./mouse-record"
-import { anotateScreen } from "./anotate-screen"
+import { anotateScreen, stopAnotating } from "./anotate-screen"
 
 export function setupIPC(ipcMain, mainWindow) {
   // handle - invokes
@@ -15,5 +15,6 @@ export function setupIPC(ipcMain, mainWindow) {
   ipcMain.on('close:app', () => closeApp())
   ipcMain.on('record:mouse', () => recordGlobalMouse())
   ipcMain.on('record:mouse.stop', () => recordGlobalMouseStop())
-  ipcMain.on('anotate:screen', () => anotateScreen(mainWindow))
+  ipcMain.on('anotate:start', () => anotateScreen(mainWindow))
+  ipcMain.on('anotate:stop', () => stopAnotating(mainWindow))
 }

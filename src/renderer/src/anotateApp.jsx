@@ -1,8 +1,14 @@
 const AnotateApp = () => {
+  console.log('inside anoatate')
+
+  const handelStopAnotating = () => {
+    console.log('clicked on stop')
+    window.api.stopAnotatingScreen()
+  }
+
+
   return (
-    <div>
-      Hello World
-    </div>
+    <button onClick={handelStopAnotating} className="border border-black no-drag" >Done</button>
   )
 }
 
