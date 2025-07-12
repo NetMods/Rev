@@ -25,14 +25,14 @@ export const Controls = () => {
           <button
             disabled={!isRecording}
             className={`disabled:opacity-50 py-1 no-drag ${isRecording && 'bg-red-500/50'} inline-flex justify-center disabled:cursor-not-allowed cursor-pointer rounded transition-all ease-in-out ${isRecording ? 'hover:shadow-md shadow-red-600/40' : 'hover:bg-neutral-800'}`}
-            onClick={() => stopRecording(() => setSelectedMode(null))}
+            onClick={() => stopRecording(() => setSelectedMode('video'))}
           >
             <CircleStopIcon size={20} />
           </button>
           <TimeIndicator
             isRecording={isRecording}
             isPaused={isPaused}
-            onTimeLimitExceeds={() => stopRecording(() => setSelectedMode(null))}
+            onTimeLimitExceeds={() => stopRecording(() => setSelectedMode('video'))}
           />
         </div>
         <button

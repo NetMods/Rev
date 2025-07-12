@@ -1,20 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
 const api = {
-  ping: (...args) => ipcRenderer.invoke('ping', ...args),
+  // health check
+  ping: (...args) => ipcRenderer.send('ping', ...args),
 
-  // api for recording
-  startRecording: () => ipcRenderer.invoke('record:start'),
-  stopRecording: (arrayBuffer) => ipcRenderer.invoke('record:stop', arrayBuffer),
+  // api for video recording
+  startVideoRecording: () => ipcRenderer.send('video-record:start'),
+  stopVideoRecording: (arrayBuffer) => ipcRenderer.send('video-record:stop', arrayBuffer),
 
+  // api for mouse tracking
+  startMouseTracking: (...args) => ipcRenderer.send('mouse-track:start', ...args),
+  stopMouseTracking: (...args) => ipcRenderer.invoke('mouse-track:stop', ...args),
 
-  // api for recording mouse
-  recordMouse: (...args) => ipcRenderer.send('record:mouse', ...args),
-  stopRecordingMouse: (...args) => ipcRenderer.send('record:mouse.stop', ...args),
-  saveMouseRecords: (...args) => ipcRenderer.invoke('save:mouseRecord', ...args),
-
-
-  closeApp: (...args) => ipcRenderer.send('close:app', ...args)
+  closeApp: (...args) => ipcRenderer.send('app:close', ...args)
 }
 
 if (!process.contextIsolated) {

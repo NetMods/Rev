@@ -1,17 +1,17 @@
-import { startRecording, stopRecording } from "./record"
+import { startMouseTracking, stopMouseTracking } from "./mouse-record"
 import { closeApp } from "./utils"
-import { recordGlobalMouse, recordGlobalMouseStop, saveMouseRecords } from "./mouse-record"
+import { startVideoRecording, stopVideoRecording } from "./video-record"
 
 export function setupIPC(ipcMain, mainWindow) {
-  // handle - invokes
-  ipcMain.handle('ping', () => console.log('pong'))
-  ipcMain.handle('record:start', () => startRecording(mainWindow))
-  ipcMain.handle('record:stop', (_, arrayBuffer) => stopRecording(arrayBuffer))
-  ipcMain.handle('save:mouseRecord', () => saveMouseRecords())
+  // handle-invoke,  on-send
 
+  ipcMain.on('ping', () => console.log('pong'))
 
-  // on - send
-  ipcMain.on('close:app', () => closeApp())
-  ipcMain.on('record:mouse', () => recordGlobalMouse())
-  ipcMain.on('record:mouse.stop', () => recordGlobalMouseStop())
+  ipcMain.on('video-record:start', () => startVideoRecording(mainWindow))
+  ipcMain.on('video-record:stop', (_, arrayBuffer) => stopVideoRecording(arrayBuffer))
+
+  ipcMain.on('mouse-track:start', () => startMouseTracking())
+  ipcMain.handle('mouse-track:stop', () => stopMouseTracking())
+
+  ipcMain.on('app:close', () => closeApp())
 }
