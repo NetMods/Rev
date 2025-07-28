@@ -3,6 +3,10 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.ico?asset'
 import { setupIPC } from './lib'
+import log from 'electron-log/main'
+
+
+log.initialize()
 
 let mainWindow;
 
@@ -27,6 +31,10 @@ function createWindow() {
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
     mainWindow.setSize(50, 299);
+
+    // so that the window comes in all the workSpaces and on top of all the apps
+    mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
