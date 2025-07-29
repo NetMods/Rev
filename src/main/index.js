@@ -8,12 +8,11 @@ import log from 'electron-log/main';
 
 
 log.initialize();
-let controlsWindow;
 
 async function createMainWindow() {
   if (isDev) await installExtensions()
 
-  controlsWindow = new BrowserWindow({
+  const controlsWindow = new BrowserWindow({
     width: 10,
     height: 260,
     show: false,
@@ -57,16 +56,18 @@ async function createMainWindow() {
   } else {
     controlsWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return controlsWindow
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.electron')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  createMainWindow()
+  const controlsWindow = await createMainWindow()
   log.info('Created Main window');
 
   setupIPC(ipcMain, controlsWindow)

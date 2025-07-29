@@ -1,8 +1,8 @@
-import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
-import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { viteStaticCopy } from 'vite-plugin-static-copy';
+import react from '@vitejs/plugin-react'
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import { resolve } from 'path'
+// import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
   main: {
@@ -22,22 +22,26 @@ export default defineConfig({
       rollupOptions: {
         input: {
           main: resolve(__dirname, 'src/renderer/index.html'),
-          anotate: resolve(__dirname, 'src/renderer/anotatePanel.html'),
-          background: resolve(__dirname, 'src/renderer/background.html')
+          anotate: resolve(__dirname, 'src/renderer/src/windows/anotatePanel/index.html'),
+          background: resolve(
+            __dirname,
+            'src/renderer/src/windows/anotateBackground/index.html'
+          )
         }
       }
     },
     plugins: [
       react(),
-      tailwindcss(),
-      viteStaticCopy({
-        targets: [
-          {
-            src: resolve(__dirname, 'src/renderer/canvas.js'),
-            dest: '.', // Copies canvas.js to out/renderer/
-          },
-        ],
-      }),
+      tailwindcss()
+      // this was done for using canvas.js a static file
+      // viteStaticCopy({
+      //   targets: [
+      //     {
+      //       src: resolve(__dirname, 'src/renderer/canvas.js'),
+      //       dest: '.' // Copies canvas.js to out/renderer/
+      //     }
+      //   ]
+      // })
     ]
-  },
+  }
 })

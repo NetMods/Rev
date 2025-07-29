@@ -7,7 +7,6 @@ export default function App() {
 
   return (
     <div className="w-screen h-screen overflow-hidden no-drag">
-      hello world
       <Canvas
         ref={canvasRef}
         penColor="#ff0000"

@@ -1,13 +1,10 @@
-import { BrowserWindow, screen } from "electron/main"
-import icon from '../../../resources/icon.ico?asset'
+import { BrowserWindow, screen } from 'electron/main'
 import { join } from 'path'
+import icon from '../../../resources/icon.ico?asset'
 // import { is } from "@electron-toolkit/utils"
-
-
 
 let anotateSidePanel = null
 let backgroundwindow = null
-
 
 const createPanel = (mainWindow) => {
   const anotateSidePanel = new BrowserWindow({
@@ -24,19 +21,18 @@ const createPanel = (mainWindow) => {
     }
   })
 
-  if (process.platform === "darwin") anotateSidePanel.setWindowButtonVisibility(false)
+  if (process.platform === 'darwin') anotateSidePanel.setWindowButtonVisibility(false)
 
   anotateSidePanel.on('ready-to-show', () => {
     mainWindow.hide()
     anotateSidePanel.show()
   })
 
-
   // TODO : find a way to make get hot reloads like mainWindow
 
-
-
-  anotateSidePanel.loadFile(join(__dirname, '../renderer/anotatePanel.html'))
+  anotateSidePanel.loadFile(
+    join(__dirname, '../renderer/src/windows/anotatePanel/index.html')
+  )
   // if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
   //   anotateSidePanel.loadURL(process.env['ELECTRON_RENDERER_URL'])
   // } else {
@@ -45,7 +41,6 @@ const createPanel = (mainWindow) => {
 
   return anotateSidePanel
 }
-
 
 const createBackgroundScreen = (mainWindow) => {
   const primaryDisplayinfo = screen.getPrimaryDisplay()
@@ -72,11 +67,10 @@ const createBackgroundScreen = (mainWindow) => {
     backgroundwindow.show()
   })
 
-
   // TODO : find a way to make get hot reloads like mainWindow
-  backgroundwindow.loadFile(join(__dirname, '../renderer/background.html'))
-
-
+  backgroundwindow.loadFile(
+    join(__dirname, '../renderer/src/windows/anotateBackground/index.html')
+  )
 
   // if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
   //   anotateSidePanel.loadURL(process.env['ELECTRON_RENDERER_URL'])
@@ -89,20 +83,17 @@ const createBackgroundScreen = (mainWindow) => {
   return backgroundwindow
 }
 
-
 export const anotateScreen = (mainWindow) => {
   backgroundwindow = createBackgroundScreen(mainWindow)
   anotateSidePanel = createPanel(mainWindow)
 }
 
-
 export const stopAnotating = (mainWindow) => {
   if (!backgroundwindow && !anotateSidePanel) {
     console.log('Either backgroundwindow or sidepanel is missing')
-    return;
+    return
   }
   backgroundwindow.close()
   anotateSidePanel.close()
   mainWindow.show()
 }
-
