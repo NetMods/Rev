@@ -1,6 +1,4 @@
 import { app } from "electron"
 
-export const closeApp = () => {
-  app.quit()
-}
+export const closeApp = () => app.quit()
 

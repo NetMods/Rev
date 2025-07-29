@@ -1,50 +1,47 @@
 import { uIOhook } from 'uiohook-napi'
 
+let mouseClickRecords = []
+let mouseDownListener = null
+let trackingStartTime = null // nanoseconds (BigInt)
 
-let timestampsRecords = []
-let mouseDownHandler = null
-let startTime = null // nanoseconds (BigInt)
-
-export const recordGlobalMouse = () => {
+export const startMouseTracking = () => {
   // Clean up any previous listeners
-  if (mouseDownHandler) {
-    uIOhook.off('mousedown', mouseDownHandler)
+  if (mouseDownListener) {
+    uIOhook.off('mousedown', mouseDownListener)
   }
 
   // Record the start time in nanoseconds
-  startTime = process.hrtime.bigint()
+  trackingStartTime = process.hrtime.bigint()
 
-  // Define mouse down handler
-  mouseDownHandler = (e) => {
-    const now = process.hrtime.bigint()
-    const elapsedNs = now - startTime
-    const elapsedSeconds = Number(elapsedNs) / 1_000_000_000
+  // Define mouse down listener
+  mouseDownListener = (event) => {
+    const currentTime = process.hrtime.bigint()
+    const elapsedNanoseconds = currentTime - trackingStartTime
+    const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
 
-    timestampsRecords.push({
-      elapsed: elapsedSeconds.toFixed(3), // round to milliseconds
-      x: e.x,
-      y: e.y
+    mouseClickRecords.push({
+      elapsedTime: elapsedSeconds.toFixed(3), // round to milliseconds
+      x: event.x,
+      y: event.y
     })
   }
 
-  uIOhook.on('mousedown', mouseDownHandler)
+  uIOhook.on('mousedown', mouseDownListener)
   uIOhook.start()
 }
 
-export const recordGlobalMouseStop = () => {
-  if (mouseDownHandler) {
-    uIOhook.off('mousedown', mouseDownHandler)
-    mouseDownHandler = null
+export const stopMouseTracking = () => {
+  if (mouseDownListener) {
+    uIOhook.off('mousedown', mouseDownListener)
+    mouseDownListener = null
   }
-  uIOhook.stop()
-}
 
-export const saveMouseRecords = () => {
+  const records = [...mouseClickRecords]
+
+  mouseClickRecords = []
+  trackingStartTime = null
+
   uIOhook.stop()
-  const temp = timestampsRecords
-  timestampsRecords = []
-  startTime = null
-  return {
-    mouseRecords: temp
-  }
+
+  return { mouseClickRecords: records }
 }
