@@ -6,6 +6,7 @@ import { setupIPC } from './lib'
 import { closeApp, installExtensions, isDev, openWindows } from './lib/utils'
 import log from 'electron-log/main';
 
+
 log.initialize();
 let controlsWindow;
 
@@ -33,6 +34,10 @@ async function createMainWindow() {
     controlsWindow.show()
     controlsWindow.setSize(50, 299);
     controlsWindow.focus()
+
+    // so that the window comes in all the workSpaces and on top of all the apps
+    controlsWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+    controlsWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   })
 
   openWindows.add(controlsWindow)

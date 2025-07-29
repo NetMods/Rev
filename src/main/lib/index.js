@@ -3,6 +3,7 @@ import { closeApp } from "./utils"
 import { setupVideoRecording, saveVideoRecording } from "./video-record"
 import { createProjectWithData } from "./project"
 import { createNewWindow, closeWindow } from "./window"
+import { anotateScreen, stopAnotating } from "./anotate-screen"
 
 export function setupIPC(ipcMain, mainWindow) {
   // handle-invoke,  on-send
@@ -11,6 +12,9 @@ export function setupIPC(ipcMain, mainWindow) {
 
   ipcMain.on('video-record:setup', () => setupVideoRecording(mainWindow))
   ipcMain.on('video-record:save', (_, arrayBuffer) => saveVideoRecording(arrayBuffer))
+
+  ipcMain.on('anotate:start', () => anotateScreen(mainWindow))
+  ipcMain.on('anotate:stop', () => stopAnotating(mainWindow))
 
   ipcMain.on('mouse-track:start', () => startMouseTracking())
   ipcMain.handle('mouse-track:stop', () => stopMouseTracking())

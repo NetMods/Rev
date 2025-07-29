@@ -17,6 +17,11 @@ export default function Page() {
 
   const [selectedMode, setSelectedMode] = useState(OperatingMode.VIDEO);
 
+  const handleAnotateScreen = () => {
+    setSelectedMode(OperatingMode.ANNOTATE)
+    window.api.startAnotatingScreen()
+  }
+
   return (
     <div className="p-2 bg-black/90 text-white/70 max-w-[5rem]">
       <div className="flex flex-col gap-3">
@@ -61,7 +66,7 @@ export default function Page() {
           </button>
           <button
             className={`rounded cursor-pointer py-1 no-drag inline-flex justify-center ${selectedMode === OperatingMode.ANNOTATE ? 'bg-neutral-700/60' : 'hover:bg-neutral-800'}`}
-            onClick={() => setSelectedMode(OperatingMode.ANNOTATE)}
+            onClick={handleAnotateScreen}
           >
             <Pencil size={20} />
           </button>

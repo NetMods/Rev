@@ -19,6 +19,10 @@ const api = {
   createNewWindow: (...args) => ipcRenderer.send('window:create', ...args),
   closeWindow: (...args) => ipcRenderer.send('window:close', ...args),
 
+  // api for anotate Screen
+  startAnotatingScreen: (...args) => ipcRenderer.send('anotate:start', ...args),
+  stopAnotatingScreen: (...args) => ipcRenderer.send('anotate:stop', ...args),
+
   closeApp: (...args) => ipcRenderer.send('app:close', ...args)
 }
 
