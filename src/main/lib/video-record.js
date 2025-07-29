@@ -1,8 +1,11 @@
 import { dialog, session } from "electron"
 import { desktopCapturer } from "electron/main"
+import log from "electron-log/main"
 import { writeFile } from "fs-extra"
 
-export const startVideoRecording = (mainWindow) => {
+export const setupVideoRecording = (mainWindow) => {
+  const width = 50, height = 291
+
   session.defaultSession.setDisplayMediaRequestHandler((_, callback) => {
     desktopCapturer.getSources({ types: ["screen"] }).then((sources) => {
       callback({ video: sources[0], audio: 'loopback' })
@@ -11,26 +14,29 @@ export const startVideoRecording = (mainWindow) => {
       setTimeout(() => {
         if (mainWindow) {
           mainWindow.setResizable(false);
-          mainWindow.setSize(50, 291)
+          mainWindow.setSize(width, height)
         }
       }, 100)
     })
   }, { useSystemPicker: false })
-  console.log("Started Recording")
+  log.verbose("Setted screen 0 as default for getDisplayMedia")
 }
 
-export const stopVideoRecording = async (arrayBuffer) => {
+export const saveVideoRecording = async (arrayBuffer) => {
+  log.verbose(`Getting raw buffer data to Nodejs Buffer object`)
   const buffer = Buffer.from(arrayBuffer)
 
+  log.verbose(`Showing dialog to user to select video location`)
   const { canceled, filePath } = await dialog.showSaveDialog({
     buttonLabel: 'Save video',
     defaultPath: `rec-${Date.now()}.webm`,
   });
 
   if (canceled || !filePath) {
-    console.log('Save dialog was canceled or no file path selected');
+    log.warn('Save dialog was canceled or no video path selected');
     return;
   }
 
+  log.verbose(`Writing video to ${filePath}`)
   await writeFile(filePath, buffer)
 }

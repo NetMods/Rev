@@ -1,10 +1,15 @@
-import { Controls } from './components/controls'
+import Controls from './pages/controls'
+import Editor from './pages/editor'
+import { createBrowserRouter, RouterProvider } from "react-router";
 
 function App() {
+  const router = createBrowserRouter([
+    { path: "/", index: true, element: <Controls /> },
+    { path: "/editor", element: <Editor /> }
+  ]);
+
   return (
-    <div className="p-2 bg-black/90 text-white/70">
-      <Controls />
-    </div>
+    <RouterProvider router={router} />
   )
 }
 

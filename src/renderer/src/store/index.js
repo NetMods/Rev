@@ -4,11 +4,6 @@ import { atom } from "jotai"
 export const mouseTimeStampsAtom = atom([])
 
 // WRITE ONLY ATOM (avoids unnecessary re-rendering) for mouseRecording
-export const addMouseTimeStampsAtom = atom(null, (_, set, newMouseRecording) => {
-  set(mouseTimeStampsAtom, (prev) => [...prev, newMouseRecording])
-})
-
-// WRITE ONLY ATOM reseting the mousetimestamps
-export const resetMouseTimeStampsAtom = atom(null, (_, set) => {
-  set(mouseTimeStampsAtom, [])
+export const setMouseTimeStampsAtom = atom(null, (_, set, mouseRecordings) => {
+  set(mouseTimeStampsAtom, mouseRecordings)
 })

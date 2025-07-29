@@ -5,12 +5,19 @@ const api = {
   ping: (...args) => ipcRenderer.send('ping', ...args),
 
   // api for video recording
-  startVideoRecording: () => ipcRenderer.send('video-record:start'),
-  stopVideoRecording: (arrayBuffer) => ipcRenderer.send('video-record:stop', arrayBuffer),
+  setupVideoRecording: () => ipcRenderer.send('video-record:setup'),
+  saveVideoRecording: (...args) => ipcRenderer.send('video-record:save', ...args),
 
   // api for mouse tracking
   startMouseTracking: (...args) => ipcRenderer.send('mouse-track:start', ...args),
   stopMouseTracking: (...args) => ipcRenderer.invoke('mouse-track:stop', ...args),
+
+  // api for project
+  createProjectWithData: (...args) => ipcRenderer.invoke('project:create', ...args),
+
+  // api for window
+  createNewWindow: (...args) => ipcRenderer.send('window:create', ...args),
+  closeWindow: (...args) => ipcRenderer.send('window:close', ...args),
 
   closeApp: (...args) => ipcRenderer.send('app:close', ...args)
 }

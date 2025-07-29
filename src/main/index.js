@@ -1,13 +1,18 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.ico?asset'
 import { setupIPC } from './lib'
+import { closeApp, installExtensions, isDev, openWindows } from './lib/utils'
+import log from 'electron-log/main';
 
-let mainWindow;
+log.initialize();
+let controlsWindow;
 
-function createWindow() {
-  mainWindow = new BrowserWindow({
+async function createMainWindow() {
+  if (isDev) await installExtensions()
+
+  controlsWindow = new BrowserWindow({
     width: 10,
     height: 260,
     show: false,
@@ -22,22 +27,30 @@ function createWindow() {
     }
   })
 
-  if (process.platform === "darwin") mainWindow.setWindowButtonVisibility(false)
+  if (process.platform === "darwin") controlsWindow.setWindowButtonVisibility(false)
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-    mainWindow.setSize(50, 299);
+  controlsWindow.on('ready-to-show', () => {
+    controlsWindow.show()
+    controlsWindow.setSize(50, 299);
+    controlsWindow.focus()
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
+  openWindows.add(controlsWindow)
+
+  controlsWindow.on('closed', () => {
+    openWindows.delete(controlsWindow);
+    if (openWindows.size === 0) closeApp()
+  });
+
+  controlsWindow.webContents.setWindowOpenHandler((details) => {
+    log.warn(`Denied opening window with url ${details.url}`)
+    return { action: 'deny' };
   })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    controlsWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    controlsWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
 
@@ -48,11 +61,14 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  createWindow()
-  setupIPC(ipcMain, mainWindow)
+  createMainWindow()
+  log.info('Created Main window');
+
+  setupIPC(ipcMain, controlsWindow)
+  log.info('Setuped IPC');
 
   app.on('activate', function() {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
   })
 })
 

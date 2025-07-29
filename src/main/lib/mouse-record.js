@@ -38,6 +38,8 @@ export const stopMouseTracking = () => {
 
   const records = [...mouseClickRecords]
 
+  // TODO: remove the clicks that are inside the our recorder
+
   mouseClickRecords = []
   trackingStartTime = null
 

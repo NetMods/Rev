@@ -1,15 +1,14 @@
-import { useSetAtom, useAtom } from 'jotai';
-import { addMouseTimeStampsAtom, mouseTimeStampsAtom, resetMouseTimeStampsAtom } from '@renderer/store';
+import { useSetAtom } from 'jotai';
+import { setMouseTimeStampsAtom } from '@renderer/store';
 import { useRef, useState } from "react";
+import log from 'electron-log/renderer'
 
 export const useRecording = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recorder, setRecorder] = useState(null);
 
-  const setMouseTimeStamps = useSetAtom(addMouseTimeStampsAtom);
-  const setResetMouseTimeStamps = useSetAtom(resetMouseTimeStampsAtom);
-  const [mouseRecord] = useAtom(mouseTimeStampsAtom);
+  const setMouseTimeStamps = useSetAtom(setMouseTimeStampsAtom);
 
   const streamRef = useRef(null);
   const recordedChunks = useRef([]);
@@ -17,18 +16,17 @@ export const useRecording = () => {
   const options = { mimeType: 'video/webm; codecs=vp9' };
 
   const startRecording = async () => {
-    setResetMouseTimeStamps();
+    setMouseTimeStamps([]);
     setIsRecording(true);
 
     try {
-      await window.api.startVideoRecording();
+      await window.api.setupVideoRecording();
       window.api.startMouseTracking();
 
       const stream = await navigator.mediaDevices.getDisplayMedia({
         audio: false,
         video: { framerate: 30 },
       });
-
       streamRef.current = stream;
 
       const mediaRecorder = new MediaRecorder(stream, options);
@@ -76,12 +74,30 @@ export const useRecording = () => {
 
   const handleStop = async () => {
     const blob = new Blob(recordedChunks.current, options);
-    const arrayBuffer = await blob.arrayBuffer();
 
     try {
-      await window.api.stopVideoRecording(arrayBuffer);
       const { mouseClickRecords } = await window.api.stopMouseTracking();
-      mouseClickRecords?.forEach(record => setMouseTimeStamps(record));
+      setMouseTimeStamps(mouseClickRecords)
+
+      const arrayBuffer = await blob.arrayBuffer();
+
+      const data = {
+        arrayBuffer,
+        mouseClickRecords,
+        timestamp: new Date().toISOString()
+      }
+
+      const projectId = await window.api.createProjectWithData(data)
+      log.verbose("Got project with id:", projectId)
+
+      await window.api.createNewWindow({
+        width: 3 * window.screen.width / 4,
+        height: 3 * window.screen.height / 4,
+        frame: false,
+        alwaysOnTop: true,
+        path: `/editor?id=${projectId}`,
+        backgroundColor: '#2e2c29'
+      })
     } catch (error) {
       console.error('Error saving recording:', error);
     }
@@ -89,10 +105,5 @@ export const useRecording = () => {
     recordedChunks.current = [];
   }
 
-
-  const applyEffectsOnVideo = () => {
-    // Add any post-processing logic here if needed
-  };
-
-  return { startRecording, stopRecording, togglePause, mouseRecord, isRecording, isPaused };
+  return { startRecording, stopRecording, togglePause, isRecording, isPaused };
 };
