@@ -21,3 +21,14 @@ export const fileEncoding = "utf-8"
 
 // Keep track of all open windows
 export const openWindows = new Set();
+
+
+export const openDrawer = (window) => {
+  const [width, height] = window.getSize()
+  window.setSize(100, height)
+}
+
+export const closeDrawer = (window) => {
+  const [width, height] = window.getSize()
+  window.setSize(50, height)
+}

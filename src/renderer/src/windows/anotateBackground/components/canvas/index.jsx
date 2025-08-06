@@ -1,7 +1,6 @@
 import { useEffect, useRef, useImperativeHandle } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import { getRelativePointerPosition } from "./utils";
-import log from 'electron-log/renderer'
 
 export default function Canvas({
   penColor,
@@ -25,7 +24,6 @@ export default function Canvas({
 
   useEffect(() => {
     const stage = stageRef.current;
-    log.info(stage)
     const handlePointerDown = () => {
       isDrawing.current = true;
       const pos = getRelativePointerPosition(stage);

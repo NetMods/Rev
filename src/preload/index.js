@@ -23,6 +23,9 @@ const api = {
   startAnotatingScreen: (...args) => ipcRenderer.send('anotate:start', ...args),
   stopAnotatingScreen: (...args) => ipcRenderer.send('anotate:stop', ...args),
 
+  openDrawer: (...args) => ipcRenderer.send('openDrawer', ...args),
+  closeDrawer: (...args) => ipcRenderer.send('closeDrawer', ...args),
+
   closeApp: (...args) => ipcRenderer.send('app:close', ...args)
 }
 

@@ -1,6 +1,7 @@
 import { BrowserWindow, screen } from 'electron/main'
 import { join } from 'path'
 import icon from '../../../resources/icon.ico?asset'
+import log from 'electron-log/main'
 // import { is } from "@electron-toolkit/utils"
 
 let anotateSidePanel = null
@@ -9,11 +10,13 @@ let backgroundwindow = null
 const createPanel = (mainWindow) => {
   const anotateSidePanel = new BrowserWindow({
     width: 50,
-    height: 50,
+    height: 250,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
     frame: false,
     alwaysOnTop: true,
+    resizable: false,
+    backgroundColor: '#2e2c29',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -26,6 +29,7 @@ const createPanel = (mainWindow) => {
   anotateSidePanel.on('ready-to-show', () => {
     mainWindow.hide()
     anotateSidePanel.show()
+    anotateSidePanel.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   })
 
   // TODO : find a way to make get hot reloads like mainWindow
@@ -65,6 +69,7 @@ const createBackgroundScreen = (mainWindow) => {
   backgroundwindow.on('ready-to-show', () => {
     mainWindow.hide()
     backgroundwindow.show()
+    backgroundwindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   })
 
   // TODO : find a way to make get hot reloads like mainWindow
@@ -86,6 +91,10 @@ const createBackgroundScreen = (mainWindow) => {
 export const anotateScreen = (mainWindow) => {
   backgroundwindow = createBackgroundScreen(mainWindow)
   anotateSidePanel = createPanel(mainWindow)
+  log.info("annoate-screen is : ", backgroundwindow, anotateSidePanel)
+  return {
+    backgroundwindow, anotateSidePanel
+  }
 }
 
 export const stopAnotating = (mainWindow) => {
