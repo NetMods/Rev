@@ -15,8 +15,6 @@ export const installExtensions = async () => {
     .catch(console.log);
 };
 
-export const isDev = !app.isPackaged
-
 export const fileEncoding = "utf-8"
 
 // Keep track of all open windows

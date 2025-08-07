@@ -1,9 +1,9 @@
 import Controls from './pages/controls'
 import Editor from './pages/editor'
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createHashRouter, RouterProvider } from "react-router";
 
 function App() {
-  const router = createBrowserRouter([
+  const router = createHashRouter([
     { path: "/", index: true, element: <Controls /> },
     { path: "/editor", element: <Editor /> }
   ]);

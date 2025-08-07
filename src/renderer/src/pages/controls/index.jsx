@@ -23,7 +23,7 @@ export default function Page() {
   }
 
   return (
-    <div className="p-2 bg-black/90 text-white/70 max-w-[5rem]">
+    <div className="p-2 bg-black/90 text-white/70 max-w-[3.1rem]">
       <div className="flex flex-col gap-3">
         <div className="inline-flex flex-col gap-2">
           <div className="inline-flex flex-col gap-1">
