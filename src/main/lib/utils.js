@@ -22,11 +22,11 @@ export const openWindows = new Set();
 
 
 export const openDrawer = (window) => {
-  const [width, height] = window.getSize()
+  const [, height] = window.getSize()
   window.setSize(100, height)
 }
 
 export const closeDrawer = (window) => {
-  const [width, height] = window.getSize()
+  const [, height] = window.getSize()
   window.setSize(50, height)
 }

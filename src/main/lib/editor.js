@@ -11,7 +11,6 @@ export const createEditorWindow = async ({ projectId }) => {
   const options = {
     width: 3 * width / 4,
     height: 3 * height / 4,
-    frame: false,
     alwaysOnTop: true,
     path: `/editor?id=${projectId}`,
     backgroundColor: '#2e2c29'

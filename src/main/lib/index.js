@@ -16,9 +16,9 @@ export function setupIPC(ipcMain, mainWindow) {
   ipcMain.on('video-record:save', (_, arrayBuffer) => saveVideoRecording(arrayBuffer));
 
 
-  ipcMain.on('anotate:start', () => {
-    const windows = annotateScreen(mainWindow);
-    anotatepanelWindow = windows.anotateSidePanel;
+  ipcMain.on('anotate:start', async () => {
+    const windows = await annotateScreen(mainWindow);
+    anotatepanelWindow = windows.annotationPanel;
     log.info('anotaePanelWindow is : ', anotatepanelWindow)
   });
   ipcMain.on('anotate:stop', () => stopAnnotating(mainWindow));
