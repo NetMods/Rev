@@ -10,7 +10,7 @@ let backgroundwindow = null
 const createPanel = (mainWindow) => {
   const anotateSidePanel = new BrowserWindow({
     width: 50,
-    height: 250,
+    height: 360,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
     frame: false,
