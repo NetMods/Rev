@@ -1,10 +1,10 @@
 import { app } from 'electron';
 import { statSync } from 'fs';
-import { isDev } from "./utils"
 import { ensureFile, ensureDir } from 'fs-extra';
 import { homedir, version } from 'os';
 import { resolve, join } from 'path';
 import log from "electron-log/main"
+import { is } from '@electron-toolkit/utils';
 
 const homeDirectory = homedir();
 
@@ -26,7 +26,7 @@ let devDirectory = resolve(__dirname, '../..');
 let devProjectsDirectory = join(devDirectory, projectFolderName);
 let devConfigFile = join(devDirectory, configFileName);
 
-if (isDev) {
+if (is.dev) {
   try {
     statSync(devConfigFile);
     statSync(devProjectsDirectory);

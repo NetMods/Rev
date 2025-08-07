@@ -1,13 +1,15 @@
-import { BrowserWindow, screen } from 'electron/main'
-import { join } from 'path'
-import icon from '../../../resources/icon.ico?asset'
-// import { is } from "@electron-toolkit/utils"
+import { screen } from 'electron';
+import { createNewWindow } from './window-manager';
+import { join } from 'path';
+import icon from '../../../resources/icon.ico?asset';
+import log from "electron-log/main"
 
-let anotateSidePanel = null
-let backgroundwindow = null
+// Global variables to track annotation windows
+let annotationPanel = null;
+let annotationBackground = null;
 
-const createPanel = (mainWindow) => {
-  const anotateSidePanel = new BrowserWindow({
+const createAnnotationPanel = async (mainWindow) => {
+  const options = {
     width: 50,
     height: 50,
     autoHideMenuBar: true,
@@ -17,35 +19,31 @@ const createPanel = (mainWindow) => {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
-  })
+      sandbox: false,
+    },
+  };
 
-  if (process.platform === 'darwin') anotateSidePanel.setWindowButtonVisibility(false)
+  const panelWindow = await createNewWindow(options);
+  log.info("annotate panel created")
 
-  anotateSidePanel.on('ready-to-show', () => {
-    mainWindow.hide()
-    anotateSidePanel.show()
-  })
+  if (process.platform === 'darwin') panelWindow.setWindowButtonVisibility(false);
 
-  // TODO : find a way to make get hot reloads like mainWindow
+  panelWindow.on('ready-to-show', () => {
+    mainWindow.hide();
+    panelWindow.show();
+  });
 
-  anotateSidePanel.loadFile(
+  // Load the annotation panel HTML file
+  panelWindow.loadFile(
     join(__dirname, '../renderer/src/windows/anotatePanel/index.html')
   )
-  // if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-  //   anotateSidePanel.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  // } else {
-  //   anotateSidePanel.loadFile(join(__dirname, '../../renderer/anotatePanel.html'))
-  // }
 
-  return anotateSidePanel
-}
+  return panelWindow;
+};
 
-const createBackgroundScreen = (mainWindow) => {
-  const primaryDisplayinfo = screen.getPrimaryDisplay()
-  const { width, height } = primaryDisplayinfo.workAreaSize
-  const backgroundwindow = new BrowserWindow({
+const createAnnotationBackground = async (mainWindow) => {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const options = {
     width,
     height,
     autoHideMenuBar: true,
@@ -56,44 +54,49 @@ const createBackgroundScreen = (mainWindow) => {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
-  })
+      sandbox: false,
+    },
+  };
 
-  // backgroundwindow.setIgnoreMouseEvents(true, { forward: true })
+  const backgroundWindow = await createNewWindow(options);
+  log.info("annotate background panel created")
 
-  backgroundwindow.on('ready-to-show', () => {
-    mainWindow.hide()
-    backgroundwindow.show()
-  })
+  // backgroundWindow.setIgnoreMouseEvents(true, { forward: true });
 
-  // TODO : find a way to make get hot reloads like mainWindow
-  backgroundwindow.loadFile(
+  backgroundWindow.on('ready-to-show', () => {
+    mainWindow.hide();
+    backgroundWindow.show();
+  });
+
+  backgroundWindow.loadFile(
     join(__dirname, '../renderer/src/windows/anotateBackground/index.html')
   )
 
-  // if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-  //   anotateSidePanel.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  // } else {
-  //   anotateSidePanel.loadFile(join(__dirname, '../../renderer/anotatePanel.html'))
-  // }
+  backgroundWindow.maximize();
 
-  backgroundwindow.maximize()
+  return backgroundWindow;
+};
 
-  return backgroundwindow
-}
-
-export const anotateScreen = (mainWindow) => {
-  backgroundwindow = createBackgroundScreen(mainWindow)
-  anotateSidePanel = createPanel(mainWindow)
-}
-
-export const stopAnotating = (mainWindow) => {
-  if (!backgroundwindow && !anotateSidePanel) {
-    console.log('Either backgroundwindow or sidepanel is missing')
-    return
+export const annotateScreen = async (mainWindow) => {
+  if (annotationBackground || annotationPanel) {
+    console.log('Annotation windows already exist. Closing existing ones.');
+    stopAnnotating(mainWindow);
   }
-  backgroundwindow.close()
-  anotateSidePanel.close()
-  mainWindow.show()
-}
+
+  annotationBackground = await createAnnotationBackground(mainWindow);
+  annotationPanel = await createAnnotationPanel(mainWindow);
+};
+
+export const stopAnnotating = (mainWindow) => {
+  if (annotationBackground && !annotationBackground.isDestroyed()) {
+    annotationBackground.close();
+    annotationBackground = null;
+  }
+  if (annotationPanel && !annotationPanel.isDestroyed()) {
+    annotationPanel.close();
+    annotationPanel = null;
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show();
+  }
+};
