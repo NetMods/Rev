@@ -16,7 +16,7 @@ const createPanel = (mainWindow) => {
     frame: false,
     alwaysOnTop: true,
     resizable: false,
-    backgroundColor: '#2e2c29',
+    backgroundColor: '#000000',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

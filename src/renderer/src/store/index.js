@@ -7,11 +7,3 @@ export const mouseTimeStampsAtom = atom([])
 export const setMouseTimeStampsAtom = atom(null, (_, set, mouseRecordings) => {
   set(mouseTimeStampsAtom, mouseRecordings)
 })
-
-
-export const currentColor = atom("#FF3B30")
-export const currentSize = atom(5)
-
-
-export const getCurrentColor = atom((get) => get(currentColor))
-export const getCurrentSize = atom((get) => get(currentSize))

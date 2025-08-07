@@ -45,7 +45,7 @@ const AnotateApp = () => {
 
 
   return (
-    <div className="m-1 h-screen bg-black/70 text-white flex gap-1">
+    <div className="m-1 h-screen text-white flex gap-1">
       <div className="h-screen w-[50px] flex flex-col items-center justify-center">
         <MainPanel />
         <BsDashLg size={23} />
