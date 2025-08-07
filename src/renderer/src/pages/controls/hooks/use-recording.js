@@ -90,16 +90,9 @@ export const useRecording = () => {
       const projectId = await window.api.createProjectWithData(data)
       log.verbose("Got project with id:", projectId)
 
-      await window.api.createNewWindow({
-        width: 3 * window.screen.width / 4,
-        height: 3 * window.screen.height / 4,
-        frame: false,
-        alwaysOnTop: true,
-        path: `/editor?id=${projectId}`,
-        backgroundColor: '#2e2c29'
-      })
+      await window.api.createEditorWindow({ projectId })
     } catch (error) {
-      console.error('Error saving recording:', error);
+      log.error('Error saving recording:', error);
     }
 
     recordedChunks.current = [];

@@ -12,17 +12,18 @@ const api = {
   startMouseTracking: (...args) => ipcRenderer.send('mouse-track:start', ...args),
   stopMouseTracking: (...args) => ipcRenderer.invoke('mouse-track:stop', ...args),
 
+  // api for editor window
+  createEditorWindow: (...args) => ipcRenderer.send('editor-window:create', ...args),
+
   // api for project
   createProjectWithData: (...args) => ipcRenderer.invoke('project:create', ...args),
-
-  // api for window
-  createNewWindow: (...args) => ipcRenderer.send('window:create', ...args),
-  closeWindow: (...args) => ipcRenderer.send('window:close', ...args),
 
   // api for anotate Screen
   startAnotatingScreen: (...args) => ipcRenderer.send('anotate:start', ...args),
   stopAnotatingScreen: (...args) => ipcRenderer.send('anotate:stop', ...args),
 
+  // close
+  closeWindow: (...args) => ipcRenderer.send('window:close', ...args),
   closeApp: (...args) => ipcRenderer.send('app:close', ...args)
 }
 

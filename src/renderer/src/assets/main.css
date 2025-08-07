@@ -3,11 +3,17 @@
   src: url('./fonts/digital-7.regular.ttf')
 }
 
+@font-face {
+  font-family: funnel;
+  src: url('./fonts/FunnelDisplay.ttf')
+}
+
 @import "tailwindcss";
 @import './base.css';
 
 @theme {
-  --font-digital: digital, "sans-serif"
+  --font-digital: digital, "sans-serif";
+  --font-sans: funnel, "sans-serif"
 }
 
 code {
