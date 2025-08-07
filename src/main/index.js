@@ -17,6 +17,7 @@ async function createMainWindow() {
     resizable: false,
     titleBarStyle: 'customButtonsOnHover',
     frame: false,
+    backgroundColor: '#2e2c29',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

@@ -11,11 +11,13 @@ let annotationBackground = null;
 const createAnnotationPanel = async (mainWindow) => {
   const options = {
     width: 50,
-    height: 50,
+    height: 360,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
     frame: false,
     alwaysOnTop: true,
+    resizable: false,
+    backgroundColor: '#000000',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -25,13 +27,14 @@ const createAnnotationPanel = async (mainWindow) => {
 
   const panelWindow = await createNewWindow(options);
   log.info("annotate panel created")
-
-  if (process.platform === 'darwin') panelWindow.setWindowButtonVisibility(false);
-
+  
   panelWindow.on('ready-to-show', () => {
     mainWindow.hide();
     panelWindow.show();
+    panelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   });
+  
+  if (process.platform === 'darwin') panelWindow.setWindowButtonVisibility(false);
 
   // Load the annotation panel HTML file
   panelWindow.loadFile(
@@ -61,11 +64,10 @@ const createAnnotationBackground = async (mainWindow) => {
   const backgroundWindow = await createNewWindow(options);
   log.info("annotate background panel created")
 
-  // backgroundWindow.setIgnoreMouseEvents(true, { forward: true });
-
   backgroundWindow.on('ready-to-show', () => {
     mainWindow.hide();
     backgroundWindow.show();
+    backgroundWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   });
 
   backgroundWindow.loadFile(
@@ -82,10 +84,12 @@ export const annotateScreen = async (mainWindow) => {
     console.log('Annotation windows already exist. Closing existing ones.');
     stopAnnotating(mainWindow);
   }
-
   annotationBackground = await createAnnotationBackground(mainWindow);
   annotationPanel = await createAnnotationPanel(mainWindow);
-};
+  return {
+    annotationBackground, annotationPanel
+  }
+}
 
 export const stopAnnotating = (mainWindow) => {
   if (annotationBackground && !annotationBackground.isDestroyed()) {
