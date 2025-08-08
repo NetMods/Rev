@@ -113,7 +113,7 @@ export const updateAnotationStyle = (...args) => {
       msg: 'failed'
     }
   }
-  window.webContents.send('set:anotationstyle', { color: style.color, size: style.size });
+  window.webContents.send('set:anotationstyle', { color: style.color, size: style.size, freeze: style.freeze, freezeTime: style.freezeTime });
   return {
     msg: 'success'
   }

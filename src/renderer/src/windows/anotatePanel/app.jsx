@@ -44,11 +44,25 @@ const AnotateApp = () => {
     setOpenSizeDrawer((prev) => !prev)
   }
 
-  const handleAnotationTimer = () => {
+  const handleAnotationTimer = async () => {
     if (anotationTimer === 3) {
       setAnotatioTimer(0)
+      await window.api.updateAnnotaionStyle({
+        color: null,
+        size: null,
+        freeze: true,
+        freezeTime: 0
+      })
+
     } else {
       setAnotatioTimer((prev) => prev + 1)
+      await window.api.updateAnnotaionStyle({
+        color: null,
+        size: null,
+        freeze: false,
+        freezeTime: parseInt((anotationTimer + 1) * 3000)
+      })
+
     }
   }
 

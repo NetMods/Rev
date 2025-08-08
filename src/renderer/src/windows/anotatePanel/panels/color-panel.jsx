@@ -18,7 +18,7 @@ const ColorPanel = () => {
       <button onClick={() => handleColorChange(PENCOLORS.GREEN)} className="p-1 hover:bg-neutral-800 no-drag rounded text-[#34C759]"><FaCircle size={24} /></button>
       <button onClick={() => handleColorChange(PENCOLORS.BLUE)} className="p-1 hover:bg-neutral-800 no-drag rounded text-[#007AFF]"><FaCircle size={24} /></button>
       <button onClick={() => handleColorChange(PENCOLORS.PURPLE)} className="p-1 hover:bg-neutral-800 no-drag rounded text-[#AF52DE]"><FaCircle size={24} /></button>
-      <button onClick={() => handleColorChange(PENCOLORS.PURPLE)} className="p-1 hover:bg-neutral-800 no-drag rounded text-[#FF9500]"><FaCircle size={24} /></button>
+      <button onClick={() => handleColorChange(PENCOLORS.ORANGE)} className="p-1 hover:bg-neutral-800 no-drag rounded text-[#FF9500]"><FaCircle size={24} /></button>
       <button onClick={() => handleColorChange(PENCOLORS.BLACK)} className="p-1 hover:bg-neutral-800 no-drag rounded text-[#333333]"><FaCircle size={24} /></button>
     </div>
   )
