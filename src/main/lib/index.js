@@ -4,11 +4,12 @@ import { setupVideoRecording, saveVideoRecording } from "./video-record";
 import { createProjectWithData } from "./project";
 import log from 'electron-log/main'
 import { closeWindow } from "./window-manager"
-import { annotateScreen, stopAnnotating } from "./anotate-screen"
+import { annotateScreen, stopAnnotating, updateAnotationStyle } from "./anotate-screen"
 import { createEditorWindow } from "./editor"
 
 export function setupIPC(ipcMain, mainWindow) {
   let anotatepanelWindow;
+  let anotateBackgroundWindow;
 
   ipcMain.on('ping', () => console.log('pong'));
 
@@ -19,9 +20,11 @@ export function setupIPC(ipcMain, mainWindow) {
   ipcMain.on('anotate:start', async () => {
     const windows = await annotateScreen(mainWindow);
     anotatepanelWindow = windows.annotationPanel;
+    anotateBackgroundWindow = windows.annotationBackground
     log.info('anotaePanelWindow is : ', anotatepanelWindow)
   });
   ipcMain.on('anotate:stop', () => stopAnnotating(mainWindow));
+  ipcMain.handle('update:anotationstyle', async (_, ...args) => updateAnotationStyle(...args, anotateBackgroundWindow))
 
   ipcMain.on('mouse-track:start', () => startMouseTracking());
   ipcMain.handle('mouse-track:stop', () => stopMouseTracking());
