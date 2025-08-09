@@ -23,3 +23,11 @@ export const PENTIMER = Object.freeze({
   T2: 6000,
   T3: 9000
 })
+
+export const MainAnotationControls = Object.freeze({
+  LINE: 'line',
+  ARROW: 'arrow',
+  OVAL: 'oval',
+  TEXT: 'text'
+})
+

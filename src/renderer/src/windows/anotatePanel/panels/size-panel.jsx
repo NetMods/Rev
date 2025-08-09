@@ -1,29 +1,44 @@
+import { useState } from "react";
 import { FaCircle } from "react-icons/fa";
 import { PENSIZE } from "../constants";
 
-
 const SizePanel = () => {
+  const [selectedSize, setSelectedSize] = useState(PENSIZE.W1); // default selected
 
   const handleSizeChange = async (size) => {
+    setSelectedSize(size); // update UI highlight
+
     await window.api.updateAnnotaionStyle({
       color: null,
-      size: size
-    })
-  }
+      size: size,
+    });
+  };
 
-
+  const sizes = [
+    PENSIZE.W1,
+    PENSIZE.W2,
+    PENSIZE.W3,
+    PENSIZE.W4,
+    PENSIZE.W5,
+    PENSIZE.W6,
+    PENSIZE.W7,
+  ];
 
   return (
     <div className="h-screen w-[50px] flex flex-col items-center justify-evenly">
-      <button onClick={() => handleSizeChange(PENSIZE.W1)} className="p-1 hover:bg-neutral-800 no-drag rounded"><FaCircle size={PENSIZE.W1} /></button>
-      <button onClick={() => handleSizeChange(PENSIZE.W2)} className="p-1 hover:bg-neutral-800 no-drag rounded"><FaCircle size={PENSIZE.W2} /></button>
-      <button onClick={() => handleSizeChange(PENSIZE.W3)} className="p-1 hover:bg-neutral-800 no-drag rounded"><FaCircle size={PENSIZE.W3} /></button>
-      <button onClick={() => handleSizeChange(PENSIZE.W4)} className="p-1 hover:bg-neutral-800 no-drag rounded"><FaCircle size={PENSIZE.W4} /></button>
-      <button onClick={() => handleSizeChange(PENSIZE.W5)} className="p-1 hover:bg-neutral-800 no-drag rounded"><FaCircle size={PENSIZE.W5} /></button>
-      <button onClick={() => handleSizeChange(PENSIZE.W6)} className="p-1 hover:bg-neutral-800 no-drag rounded"><FaCircle size={PENSIZE.W6} /></button>
-      <button onClick={() => handleSizeChange(PENSIZE.W7)} className="p-1 hover:bg-neutral-800 no-drag rounded"><FaCircle size={PENSIZE.W7} /></button>
+      {sizes.map((size) => (
+        <button
+          key={size}
+          onClick={() => handleSizeChange(size)}
+          className={`p-1 no-drag rounded
+            hover:bg-neutral-800
+            ${selectedSize === size ? "bg-neutral-700" : ""}`}
+        >
+          <FaCircle size={size} />
+        </button>
+      ))}
     </div>
-  )
-}
+  );
+};
 
-export default SizePanel
+export default SizePanel;
