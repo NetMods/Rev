@@ -21,10 +21,12 @@ const api = {
   // api for anotate Screen
   startAnotatingScreen: (...args) => ipcRenderer.send('anotate:start', ...args),
   stopAnotatingScreen: (...args) => ipcRenderer.send('anotate:stop', ...args),
+  setAnnotationStyle: (cb) => ipcRenderer.on('set:anotationstyle', cb),
+  updateAnnotaionStyle: (...args) => ipcRenderer.invoke('update:anotationstyle', ...args),
 
   openDrawer: (...args) => ipcRenderer.send('openDrawer', ...args),
   closeDrawer: (...args) => ipcRenderer.send('closeDrawer', ...args),
-  
+
   // close
   closeWindow: (...args) => ipcRenderer.send('window:close', ...args),
   closeApp: (...args) => ipcRenderer.send('app:close', ...args)
