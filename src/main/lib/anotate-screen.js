@@ -27,13 +27,13 @@ const createAnnotationPanel = async (mainWindow) => {
 
   const panelWindow = await createNewWindow(options);
   log.info("annotate panel created")
-  
+
   panelWindow.on('ready-to-show', () => {
     mainWindow.hide();
     panelWindow.show();
     panelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   });
-  
+
   if (process.platform === 'darwin') panelWindow.setWindowButtonVisibility(false);
 
   // Load the annotation panel HTML file
@@ -81,7 +81,6 @@ const createAnnotationBackground = async (mainWindow) => {
 
 export const annotateScreen = async (mainWindow) => {
   if (annotationBackground || annotationPanel) {
-    console.log('Annotation windows already exist. Closing existing ones.');
     stopAnnotating(mainWindow);
   }
   annotationBackground = await createAnnotationBackground(mainWindow);
@@ -104,3 +103,18 @@ export const stopAnnotating = (mainWindow) => {
     mainWindow.show();
   }
 };
+
+
+export const updateAnotationStyle = (...args) => {
+  const [style, window] = args
+  if (!window) {
+    log.warn("window not found")
+    return {
+      msg: 'failed'
+    }
+  }
+  window.webContents.send('set:anotationstyle', { color: style.color, size: style.size, freeze: style.freeze, freezeTime: style.freezeTime });
+  return {
+    msg: 'success'
+  }
+}

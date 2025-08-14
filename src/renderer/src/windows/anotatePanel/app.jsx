@@ -13,6 +13,7 @@ const AnotateApp = () => {
 
   const [openColorDrawer, setOpenColorDrawer] = useState(false)
   const [openSizeDrawer, setOpenSizeDrawer] = useState(false)
+  const [anotationTimer, setAnotatioTimer] = useState(0)
 
   const handelStopAnotating = () => {
     log.info('clicked on stop');
@@ -43,6 +44,28 @@ const AnotateApp = () => {
     setOpenSizeDrawer((prev) => !prev)
   }
 
+  const handleAnotationTimer = async () => {
+    if (anotationTimer === 3) {
+      setAnotatioTimer(0)
+      await window.api.updateAnnotaionStyle({
+        color: null,
+        size: null,
+        freeze: true,
+        freezeTime: 0
+      })
+
+    } else {
+      setAnotatioTimer((prev) => prev + 1)
+      await window.api.updateAnnotaionStyle({
+        color: null,
+        size: null,
+        freeze: false,
+        freezeTime: parseInt((anotationTimer + 1) * 3000)
+      })
+
+    }
+  }
+
 
   return (
     <div className="m-1 h-screen text-white flex gap-1">
@@ -53,11 +76,11 @@ const AnotateApp = () => {
         <button onClick={handleColorPanel} className="p-1 hover:bg-neutral-800 no-drag rounded"><IoColorPaletteOutline size={23} /></button>
         <BsDashLg size={23} />
         <div className="flex flex-col items-center justify-center">
-          <button className="p-1 hover:bg-neutral-800 no-drag rounded"><IoIosTimer size={23} /></button>
+          <button onClick={handleAnotationTimer} className="p-1 hover:bg-neutral-800 no-drag rounded"><IoIosTimer size={23} /></button>
           <div className="flex">
-            <GoDash size={7} />
-            <GoDash size={7} />
-            <GoDash size={7} />
+            <GoDash className={`${anotationTimer > 0 ? 'text-[#00FFFF]' : ''}`} size={10} />
+            <GoDash className={`${anotationTimer > 1 ? 'text-[#00FFFF]' : ''}`} size={10} />
+            <GoDash className={`${anotationTimer > 2 ? 'text-[#00FFFF]' : ''}`} size={10} />
           </div>
         </div>
         <BsDashLg size={23} />

@@ -9,7 +9,9 @@ export default function Canvas({
   height,
   foregroundAnnotation,
   onForegroundAnnotationChange,
-  ref: canvasRefProp
+  ref: canvasRefProp,
+  freeze,
+  freezeTime
 }) {
   const stageRef = useRef(null);
   const layerRef = useRef(null);
@@ -62,6 +64,10 @@ export default function Canvas({
 
   useEffect(() => {
     // Clear any existing timer
+
+    if (freeze) return
+
+
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
@@ -70,7 +76,7 @@ export default function Canvas({
     if (foregroundAnnotation.length > 0) {
       timerRef.current = setTimeout(() => {
         onForegroundAnnotationChange([]);
-      }, 3000);
+      }, freezeTime);
     }
 
     // Cleanup timer on component unmount or when foregroundAnnotation changes
@@ -79,7 +85,7 @@ export default function Canvas({
         clearTimeout(timerRef.current);
       }
     };
-  }, [foregroundAnnotation, onForegroundAnnotationChange]);
+  }, [foregroundAnnotation, onForegroundAnnotationChange, freeze, freezeTime]);
 
   return (
     <Stage ref={stageRef} width={width} height={height}>
