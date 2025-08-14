@@ -14,6 +14,7 @@ const api = {
 
   // api for editor window
   createEditorWindow: (...args) => ipcRenderer.send('editor-window:create', ...args),
+  getProjectVideoBlob: (...args) => ipcRenderer.invoke('editor:get-video-blob', ...args),
 
   // api for project
   createProjectWithData: (...args) => ipcRenderer.invoke('project:create', ...args),

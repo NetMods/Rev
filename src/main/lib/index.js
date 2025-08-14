@@ -4,8 +4,8 @@ import { setupVideoRecording, saveVideoRecording } from "./video-record";
 import { createProjectWithData } from "./project";
 import log from 'electron-log/main'
 import { closeWindow } from "./window-manager"
+import { createEditorWindow, getProjectVideoBlob } from "./editor"
 import { annotateScreen, stopAnnotating, updateAnotationStyle } from "./anotate-screen"
-import { createEditorWindow } from "./editor"
 
 export function setupIPC(ipcMain, mainWindow) {
   let anotatepanelWindow;
@@ -15,7 +15,6 @@ export function setupIPC(ipcMain, mainWindow) {
 
   ipcMain.on('video-record:setup', () => setupVideoRecording(mainWindow));
   ipcMain.on('video-record:save', (_, arrayBuffer) => saveVideoRecording(arrayBuffer));
-
 
   ipcMain.on('anotate:start', async () => {
     const windows = await annotateScreen(mainWindow);
@@ -32,6 +31,7 @@ export function setupIPC(ipcMain, mainWindow) {
   ipcMain.on('openDrawer', () => openDrawer(anotatepanelWindow))
   ipcMain.on('closeDrawer', () => closeDrawer(anotatepanelWindow))
   ipcMain.on('editor-window:create', (_, data) => createEditorWindow(data))
+  ipcMain.handle('editor:get-video-blob', (_, projectId) => getProjectVideoBlob(projectId))
 
   ipcMain.handle('project:create', (_, data) => createProjectWithData(data))
 
