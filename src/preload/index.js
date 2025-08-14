@@ -14,6 +14,7 @@ const api = {
 
   // api for editor window
   createEditorWindow: (...args) => ipcRenderer.send('editor-window:create', ...args),
+  getProjectVideoBlob: (...args) => ipcRenderer.invoke('editor:get-video-blob', ...args),
 
   // api for project
   createProjectWithData: (...args) => ipcRenderer.invoke('project:create', ...args),
@@ -24,7 +25,7 @@ const api = {
 
   openDrawer: (...args) => ipcRenderer.send('openDrawer', ...args),
   closeDrawer: (...args) => ipcRenderer.send('closeDrawer', ...args),
-  
+
   // close
   closeWindow: (...args) => ipcRenderer.send('window:close', ...args),
   closeApp: (...args) => ipcRenderer.send('app:close', ...args)
