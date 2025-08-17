@@ -6,3 +6,4 @@ out
 *.log*
 projects
 config.json
+Session.vim

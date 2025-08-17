@@ -1,46 +1,29 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron';
 
-const api = {
-  // health check
-  ping: (...args) => ipcRenderer.send('ping', ...args),
+contextBridge.exposeInMainWorld('api', {
+  recording: {
+    start: () => ipcRenderer.send('recording:setup'),
+    stop: (...args) => ipcRenderer.invoke('recording:save', ...args),
+    startMouse: () => ipcRenderer.send('mouse-track:start'),
+    stopMouse: () => ipcRenderer.invoke('mouse-track:stop'),
+  },
 
-  // api for video recording
-  setupVideoRecording: () => ipcRenderer.send('video-record:setup'),
-  saveVideoRecording: (...args) => ipcRenderer.send('video-record:save', ...args),
+  annotation: {
+    start: () => ipcRenderer.invoke('annotation:start'),
+    stop: () => ipcRenderer.send('annotation:stop'),
+    setConfig: (...args) => ipcRenderer.on('annotation-config:set', ...args),
+    updateConfig: (...args) => ipcRenderer.invoke('annotation-config:update', ...args),
+  },
 
-  // api for mouse tracking
-  startMouseTracking: (...args) => ipcRenderer.send('mouse-track:start', ...args),
-  stopMouseTracking: (...args) => ipcRenderer.invoke('mouse-track:stop', ...args),
+  project: {
+    create: (...args) => ipcRenderer.invoke('project:create', ...args),
+  },
 
-  // api for editor window
-  createEditorWindow: (...args) => ipcRenderer.send('editor-window:create', ...args),
-  getProjectVideoBlob: (...args) => ipcRenderer.invoke('editor:get-video-blob', ...args),
+  editor: {
+    create: (...args) => ipcRenderer.send('editor:create', ...args),
+  },
 
-  // api for project
-  createProjectWithData: (...args) => ipcRenderer.invoke('project:create', ...args),
-
-  // api for anotate Screen
-  startAnotatingScreen: (...args) => ipcRenderer.send('anotate:start', ...args),
-  stopAnotatingScreen: (...args) => ipcRenderer.send('anotate:stop', ...args),
-  setAnnotationStyle: (cb) => ipcRenderer.on('set:anotationstyle', cb),
-  updateAnnotaionStyle: (...args) => ipcRenderer.invoke('update:anotationstyle', ...args),
-
-  openDrawer: (...args) => ipcRenderer.send('openDrawer', ...args),
-  closeDrawer: (...args) => ipcRenderer.send('closeDrawer', ...args),
-
-  // close
-  closeWindow: (...args) => ipcRenderer.send('window:close', ...args),
-  closeApp: (...args) => ipcRenderer.send('app:close', ...args)
-}
-
-if (!process.contextIsolated) {
-  throw new Error('Context isolation must be enabled in the browser window')
-}
-
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
-  }
-}
+  core: {
+    closeWindow: () => ipcRenderer.send('window:close'),
+  },
+});
