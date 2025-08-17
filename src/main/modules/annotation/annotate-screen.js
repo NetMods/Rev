@@ -57,24 +57,23 @@ const createAnnotationBackground = async (core) => {
     height,
     autoHideMenuBar: true,
     frame: false,
-    fullscreen: true,
-    fullscreenable: true,
-    path: "/annotation-background",
+    path: '/annotation-background',
     transparent: true,
     resizable: false,
     hasShadow: false,
-  };
+    skipTaskbar: true,
+    focusable: false,
+    webPreferences: {
+      backgroundThrottling: false
+    }
+  }
 
   const backgroundWindow = await core.window.createWindow(options, "Annotation Background");
 
   backgroundWindow.on('ready-to-show', () => {
     backgroundWindow.show();
-    backgroundWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+    backgroundWindow.setAlwaysOnTop(true, 'normal', 1);
     backgroundWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  });
-
-  backgroundWindow.on('leave-full-screen', () => {
-    backgroundWindow.setFullScreen(true);
   });
 
   return backgroundWindow;
@@ -96,6 +95,5 @@ export const stopAnnotating = (mainWindow, { annotationBackground, annotationPan
 export const updateAnnotationConfig = (...args) => {
   const [style, window] = args
   if (!window) log.warn("window not found")
-
   window.webContents.send('annotation-config:set', { color: style.color, size: style.size, freeze: style.freeze, freezeTime: style.freezeTime });
 }
