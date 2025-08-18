@@ -97,7 +97,6 @@ export async function createMainWindow() {
       backgroundThrottling: false
     }
   }
-
   const recorderWindow = await createWindow(options, 'Recorder')
 
 

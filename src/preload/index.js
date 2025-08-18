@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('api', {
     stop: () => ipcRenderer.send('annotation:stop'),
     setConfig: (...args) => ipcRenderer.on('annotation-config:set', ...args),
     updateConfig: (...args) => ipcRenderer.invoke('annotation-config:update', ...args),
+    getConfig: (...args) => ipcRenderer.invoke('annotation-config:get', ...args),
   },
 
   project: {

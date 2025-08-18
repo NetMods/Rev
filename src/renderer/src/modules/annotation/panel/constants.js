@@ -31,3 +31,11 @@ export const MainAnnotationControls = Object.freeze({
   TEXT: 'text'
 })
 
+export const ANNOTATION_CONFIG = {
+  color: null,
+  size: null,
+  freeze: null,
+  freezeTime: null
+}
+
+

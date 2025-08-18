@@ -7,10 +7,14 @@ import ColorPanel from "./components/color-panel";
 import SizePanel from "./components/size-panel";
 import { BrushSize } from "../../../shared/constants/icons-table";
 import { cn } from "../../../shared/utils";
+import useAnnotationConfig from "../shared/useAnnotation";
 
 const AnnotateApp = () => {
   const [annotationTimer, setAnnotationTimer] = useState(0);
   const [openDrawer, setOpenDrawer] = useState(null);
+  const [config, setConfig] = useAnnotationConfig()
+
+
 
   const toggleDrawer = (drawer) => {
     setOpenDrawer(prev => (prev === drawer ? null : drawer));
@@ -19,20 +23,20 @@ const AnnotateApp = () => {
   const handleAnnotationTimer = async () => {
     if (annotationTimer === 3) {
       setAnnotationTimer(0);
-      await window.api.annotation.updateConfig({
+      setConfig({
         color: null,
         size: null,
         freeze: true,
-        freezeTime: 0,
-      });
+        freezeTime: 0
+      })
     } else {
       setAnnotationTimer((prev) => prev + 1);
-      await window.api.annotation.updateConfig({
+      setConfig({
         color: null,
         size: null,
         freeze: false,
-        freezeTime: parseInt((annotationTimer + 1) * 3000),
-      });
+        freezeTime: parseInt((annotationTimer + 1) * 3000)
+      })
     }
   };
 
@@ -96,7 +100,7 @@ const AnnotateApp = () => {
           openDrawer === "color" ? "translate-x-[-50px]" : "translate-x-0"
         )}
       >
-        <ColorPanel close={() => setOpenDrawer(null)} />
+        <ColorPanel config={config} setConfig={setConfig} close={() => setOpenDrawer(null)} />
       </div>
 
       <div
@@ -105,7 +109,7 @@ const AnnotateApp = () => {
           openDrawer === "size" ? "translate-x-[-50px]" : "translate-x-0"
         )}
       >
-        <SizePanel close={() => setOpenDrawer(null)} />
+        <SizePanel config={config} setConfig={setConfig} close={() => setOpenDrawer(null)} />
       </div>
     </div>
   );

@@ -1,18 +1,17 @@
-import { useState } from "react";
 import { FaCircle } from "react-icons/fa";
 import { PENSIZE } from "../constants";
 import { HiArrowNarrowLeft as LeftArrow } from "react-icons/hi";
 import { cn } from "../../../../shared/utils";
 
-const SizePanel = ({ close }) => {
-  const [selectedSize, setSelectedSize] = useState(PENSIZE.W1);
+const SizePanel = ({ config, setConfig, close }) => {
 
   const handleSizeChange = async (size) => {
-    setSelectedSize(size);
-    await window.api.annotation.updateConfig({
+    setConfig({
       color: null,
-      size,
-    });
+      size: size,
+      freeze: null,
+      freezeTime: 0
+    })
   };
 
   const sizes = [
@@ -33,7 +32,7 @@ const SizePanel = ({ close }) => {
             onClick={() => handleSizeChange(size)}
             className={cn(
               "hover:bg-button-hover p-1 no-drag w-full rounded flex justify-center items-center h-11 ",
-              selectedSize === size && "bg-button-hover"
+              config.size === size && "bg-button-hover"
             )}
           >
             <FaCircle size={size} />

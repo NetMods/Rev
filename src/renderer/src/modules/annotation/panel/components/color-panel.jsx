@@ -1,18 +1,17 @@
 import { FaCircle } from "react-icons/fa";
 import { PENCOLORS } from "../constants";
-import { useState } from "react";
 import { HiArrowNarrowLeft as LeftArrow } from "react-icons/hi";
 import { cn } from "../../../../shared/utils";
 
-const ColorPanel = ({ close }) => {
-  const [currentColor, setCurrentColor] = useState(PENCOLORS.RED);
+const ColorPanel = ({ config, setConfig, close }) => {
 
   const handleColorChange = async (Hexcolor) => {
-    setCurrentColor(Hexcolor);
-    await window.api.annotation.updateConfig({
+    setConfig({
       color: Hexcolor,
       size: null,
-    });
+      freeze: null,
+      freezeTime: 0
+    })
   };
 
   const colorButtons = [
@@ -34,7 +33,7 @@ const ColorPanel = ({ close }) => {
             className={cn(
               "hover:bg-button-hover p-1 no-drag w-full rounded flex justify-center items-center h-11 ",
               colorClass,
-              currentColor === hex ? "bg-button-hover" : "hover:bg-button-hover"
+              config.color === hex ? "bg-button-hover" : "hover:bg-button-hover"
             )}
           >
             <FaCircle size={24} />
