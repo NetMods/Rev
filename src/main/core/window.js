@@ -81,7 +81,7 @@ export const createWindow = async (options, name = 'unnamed') => {
 export async function createMainWindow() {
   const options = {
     width: 50,
-    height: 266,
+    height: 265,
     show: false,
     autoHideMenuBar: true,
     resizable: false,
