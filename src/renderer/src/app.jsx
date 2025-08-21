@@ -1,11 +1,15 @@
-import Controls from './pages/controls'
-import Editor from './pages/editor'
 import { createHashRouter, RouterProvider } from "react-router";
+import Recording from "./modules/recorder"
+import Editor from "./modules/editor"
+import AnnotatePanel from "./modules/annotation/panel"
+import AnnotateBackground from "./modules/annotation/background"
 
 function App() {
   const router = createHashRouter([
-    { path: "/", index: true, element: <Controls /> },
-    { path: "/editor", element: <Editor /> }
+    { path: "/", index: true, element: <Recording /> },
+    { path: "/editor", element: <Editor /> },
+    { path: "/annotation-panel", element: <AnnotatePanel /> },
+    { path: "/annotation-background", element: <AnnotateBackground /> }
   ]);
 
   return (
