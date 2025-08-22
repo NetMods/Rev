@@ -5,12 +5,13 @@ export const createEditorWindow = async ({ projectId }, core) => {
   const { width, height } = primaryDisplay.workAreaSize
 
   const options = {
-    width: 3 * width / 4,
-    height: 3 * height / 4,
+    width: width,
+    height: height,
     frame: false,
     alwaysOnTop: true,
     path: `/editor?id=${projectId}`,
   }
 
-  await core.window.createWindow(options, "Editor")
+  const editor = await core.window.createWindow(options, "Editor")
+  editor.on("ready-to-show", () => editor.maximize())
 }

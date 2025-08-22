@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('api', {
 
   project: {
     create: (...args) => ipcRenderer.invoke('project:create', ...args),
+    get: (...args) => ipcRenderer.invoke('project:get', ...args),
   },
 
   editor: {
