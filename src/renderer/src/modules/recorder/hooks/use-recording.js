@@ -13,7 +13,16 @@ export const useRecording = () => {
   const streamRef = useRef(null);
   const recordedChunks = useRef([]);
 
-  const options = { mimeType: 'video/webm; codecs=vp9' };
+  const getSupportedMimeType = () => {
+    const types = [
+      'video/mp4; codecs=avc1.42001E',
+      'video/mp4; codecs=avc1.4D401F',
+      'video/webm; codecs=vp9',
+    ];
+    return types.find((type) => MediaRecorder.isTypeSupported(type)) || null;
+  };
+
+  const options = { mimeType: getSupportedMimeType() };
 
   const startRecording = async () => {
     setMouseTimeStamps([]);
@@ -74,6 +83,7 @@ export const useRecording = () => {
 
   const handleStop = async () => {
     const blob = new Blob(recordedChunks.current, options);
+    const extension = options.mimeType.includes('mp4') ? 'mp4' : 'webm';
 
     try {
       const { mouseClickRecords } = await window.api.recording.stopMouse();
@@ -84,7 +94,8 @@ export const useRecording = () => {
       const data = {
         arrayBuffer,
         mouseClickRecords,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        extension
       }
 
       const projectId = await window.api.project.create(data)

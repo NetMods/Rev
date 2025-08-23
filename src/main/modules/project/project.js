@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync } from 'fs';
 export const fileEncoding = "utf-8"
 
 export const createProjectWithData = async (data, core) => {
-  const { arrayBuffer, mouseClickRecords, timestamp } = data
+  const { arrayBuffer, mouseClickRecords, timestamp, extension } = data
   const projectsDirectory = core.paths.projectsDirectory
 
   try {
@@ -16,7 +16,7 @@ export const createProjectWithData = async (data, core) => {
     const projectDir = join(projectsDirectory, projectId)
     mkdirSync(projectDir, { recursive: true });
 
-    const videoPath = join(projectDir, "raw.webm")
+    const videoPath = join(projectDir, `raw.${extension}`)
     writeFileSync(videoPath, Buffer.from(arrayBuffer))
 
     const configFilePath = join(projectDir, "data.json")
