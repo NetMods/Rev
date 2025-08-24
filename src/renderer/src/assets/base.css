@@ -58,4 +58,13 @@ code {
   .no-drag {
     -webkit-app-region: no-drag;
   }
+
+  .grain-overlay {
+    background: var(--grain);
+  }
+
+  .noscrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

@@ -6,9 +6,12 @@ export class VideoPreview {
 
     this.currentTime = 0;
     this.isPlaying = false;
+    this.isDragging = false;
 
     this.onTimeUpdate = null;
     this.resizeObserver = null;
+
+    this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
   init(canvasElement, videoPath, onTimeUpdate) {
@@ -20,7 +23,11 @@ export class VideoPreview {
 
     this.setupCanvas();
     this.loadVideo(videoPath);
+
+    document.addEventListener('keydown', this.handleKeyDown);
   }
+
+  handleKeyDown(event) { console.log("handle me", event) }
 
   setupCanvas() {
     if (!this.canvas || !this.canvas.parentElement) return;
@@ -111,6 +118,17 @@ export class VideoPreview {
     this.video.addEventListener("pause", () => {
       this.isPlaying = false;
     });
+
+    // Add seeking event listeners for smoother playhead updates
+    this.video.addEventListener("seeking", () => {
+      this.currentTime = this.video.currentTime;
+      this.drawFrame();
+    });
+
+    this.video.addEventListener("seeked", () => {
+      this.currentTime = this.video.currentTime;
+      this.drawFrame();
+    });
   }
 
   drawFrame() {
@@ -144,6 +162,7 @@ export class VideoPreview {
     const render = () => {
       this.drawFrame();
       if (this.isPlaying) {
+        // Only update time if not dragging
         if (!this.isDragging && this.onTimeUpdate) {
           this.currentTime = this.video.currentTime;
           this.onTimeUpdate(this.currentTime, this.duration);
@@ -171,6 +190,10 @@ export class VideoPreview {
     this.onTimeUpdate(this.currentTime, this.duration);
   }
 
+  setDragging(isDragging) {
+    this.isDragging = isDragging;
+  }
+
   toggleFullscreen() {
     if (!this.canvas) return;
 
@@ -191,5 +214,19 @@ export class VideoPreview {
         document.msExitFullscreen();
       }
     }
+  }
+
+  destroy() {
+    document.removeEventListener('keydown', this.handleKeyDown);
+
+    if (this.video) {
+      this.video.remove();
+    }
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    this.canvas = null;
+    this.ctx = null;
+    this.onTimeUpdate = null;
   }
 }

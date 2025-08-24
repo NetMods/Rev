@@ -12,6 +12,7 @@ export function useVideoPreview({ canvasRef, videoPath, handleTimeUpdate }) {
       preview.current = new VideoPreview();
       preview.current.init(canvasRef.current, videoPath, handleTimeUpdate);
     }
+
     const videoElement = preview.current.video;
     if (videoElement) {
       const onPlay = () => setIsPlaying(true);
@@ -33,6 +34,7 @@ export function useVideoPreview({ canvasRef, videoPath, handleTimeUpdate }) {
       };
     }
 
+    return () => preview.destroy();
   }, [videoPath]);
 
   return { preview, isPlaying, isFullscreen };

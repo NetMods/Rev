@@ -8,6 +8,7 @@ export const Editor = ({ data }) => {
   const { videoPath } = data
   const [currentTime, setCurrentTime] = useState(0)
   const [videoDuration, setVideoDuration] = useState(0)
+  const [zoomLevel, setZoomLevel] = useState(4);
 
   const handleTimeUpdate = (time, duration) => {
     setCurrentTime(time);
@@ -27,12 +28,13 @@ export const Editor = ({ data }) => {
       />
 
       <Controls
-        className="flex justify-between items-center h-9"
-        data={{ preview, isPlaying, isFullscreen, currentTime, videoDuration }}
+        className="flex justify-between items-center h-8"
+        data={{ preview, isPlaying, isFullscreen, currentTime, videoDuration, setZoomLevel }}
       />
 
       <Timeline
         className="h-1/3 flex justify-center"
+        data={{ videoDuration, preview, currentTime, setCurrentTime, zoomLevel }}
       />
     </div>
   )
