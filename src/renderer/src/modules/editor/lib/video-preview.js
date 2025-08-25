@@ -8,18 +8,22 @@ export class VideoPreview {
     this.isPlaying = false;
     this.isDragging = false;
 
+    this.effects = []
+
     this.onTimeUpdate = null;
     this.resizeObserver = null;
 
     this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
-  init(canvasElement, videoPath, onTimeUpdate) {
+  init(canvasElement, videoPath, onTimeUpdate, effects) {
     this.canvas = canvasElement;
     this.ctx = this.canvas.getContext("2d");
     this.ctx.imageSmoothingEnabled = true;
     this.ctx.imageSmoothingQuality = 'high';
     this.onTimeUpdate = onTimeUpdate;
+
+    this.effects = effects
 
     this.setupCanvas();
     this.loadVideo(videoPath);
@@ -119,7 +123,6 @@ export class VideoPreview {
       this.isPlaying = false;
     });
 
-    // Add seeking event listeners for smoother playhead updates
     this.video.addEventListener("seeking", () => {
       this.currentTime = this.video.currentTime;
       this.drawFrame();
@@ -154,8 +157,65 @@ export class VideoPreview {
         offsetY = 0;
       }
 
+      this.applyEffects()
       this.ctx.drawImage(this.video, offsetX, offsetY, drawWidth, drawHeight);
+      this.ctx.restore()
     }
+  }
+
+  applyEffects() {
+    if (!this.video || !this.ctx) return;
+
+    this.ctx.save();
+
+    const activeEffects = this.getActiveEffectsAtTime(this.currentTime);
+
+    activeEffects.forEach(effect => {
+      if (effect.type === 'zoom') {
+        this.applyZoomEffect(effect);
+      }
+    });
+  }
+
+  updateEffects(newEffects) {
+    this.effects = newEffects || [];
+    if (this.video && this.video.readyState >= 2) {
+      this.drawFrame();
+    }
+  }
+
+  getActiveEffectsAtTime(currentTime) {
+    return this.effects.filter(effect => {
+      return currentTime >= effect.startTime && currentTime <= effect.endTime;
+    });
+  }
+
+  applyZoomEffect(effect) {
+    if (!effect.center || typeof effect.level !== 'number') return;
+
+    const { x, y } = effect.center;
+    const zoomLevel = effect.level;
+
+    // Calculate progress through the effect (0 to 1)
+    const progress = Math.min(1, Math.max(0,
+      (this.currentTime - effect.startTime) / (effect.endTime - effect.startTime)
+    ));
+
+    // Calculate zoom factor using sine for smooth in and out
+    const zoomFactor = Math.sin(progress * Math.PI);
+
+    // Interpolate zoom level (peaks at zoomLevel in the middle, back to 1 at ends)
+    const currentZoom = 1 + (zoomLevel - 1) * zoomFactor;
+
+    // Convert center coordinates to canvas space
+    // Assuming center coordinates are in video pixel space
+    const canvasX = (x / this.video.videoWidth) * this.video.videoWidth;
+    const canvasY = (y / this.video.videoHeight) * this.video.videoHeight;
+
+    // Apply zoom transformation
+    this.ctx.translate(canvasX, canvasY);
+    this.ctx.scale(currentZoom, currentZoom);
+    this.ctx.translate(-canvasX, -canvasY);
   }
 
   startRenderLoop() {

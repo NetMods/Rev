@@ -2,15 +2,16 @@ import { useLayoutEffect, useRef } from "react";
 import { VideoPreview } from "../lib/video-preview";
 import { useState } from "react";
 
-export function useVideoPreview({ canvasRef, videoPath, handleTimeUpdate }) {
+export function useVideoPreview({ videoPath, handleTimeUpdate, effects }) {
   const preview = useRef(null);
+  const canvasRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useLayoutEffect(() => {
     if (canvasRef.current) {
       preview.current = new VideoPreview();
-      preview.current.init(canvasRef.current, videoPath, handleTimeUpdate);
+      preview.current.init(canvasRef.current, videoPath, handleTimeUpdate, effects);
     }
 
     const videoElement = preview.current.video;
@@ -34,5 +35,5 @@ export function useVideoPreview({ canvasRef, videoPath, handleTimeUpdate }) {
     return () => preview.destroy();
   }, [videoPath]);
 
-  return { preview, isPlaying, isFullscreen };
+  return { preview, canvasRef, isPlaying, isFullscreen };
 }

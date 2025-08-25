@@ -4,7 +4,7 @@ import { useTimeline } from "../hooks/use-timeline/index";
 import { cn } from "../../../shared/utils";
 
 const Timeline = ({ className, data }) => {
-  const { videoDuration, preview, currentTime, setCurrentTime, zoomLevel } = data;
+  const { videoDuration, preview, currentTime, setCurrentTime, zoomLevel, effects } = data;
   const timelineContainer = useRef(null);
   const playheadRef = useRef(null);
   const effectsRowRef = useRef(null);
@@ -23,6 +23,8 @@ const Timeline = ({ className, data }) => {
     currentTime,
     setCurrentTime,
     playheadRef,
+    effects,
+    effectsRowRef
   });
 
   return (
