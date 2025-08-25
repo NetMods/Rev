@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import VideoPreview from "./video-preview"
+import Preview from "./preview"
 import { useVideoPreview } from "../hooks/use-video-preview";
 import { Controls } from "./controls";
 import Timeline from "./timeline";
@@ -22,7 +22,7 @@ export const Editor = ({ data }) => {
 
   return (
     <div className='flex flex-col h-full gap-2'>
-      <VideoPreview
+      <Preview
         className="h-2/3 flex justify-center"
         data={{ canvasRef }}
       />

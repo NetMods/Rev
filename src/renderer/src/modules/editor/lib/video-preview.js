@@ -27,7 +27,7 @@ export class VideoPreview {
     document.addEventListener('keydown', this.handleKeyDown);
   }
 
-  handleKeyDown(event) { console.log("handle me", event) }
+  handleKeyDown() { }
 
   setupCanvas() {
     if (!this.canvas || !this.canvas.parentElement) return;

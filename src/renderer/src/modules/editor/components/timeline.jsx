@@ -1,12 +1,13 @@
 import { useRef } from "react";
-import { LiaFileVideoSolid as Clip } from "react-icons/lia";
-import { useTimeline } from "../hooks/use-timeline";
+import { LiaFileVideoSolid as ClipIcon } from "react-icons/lia";
+import { useTimeline } from "../hooks/use-timeline/index";
 import { cn } from "../../../shared/utils";
 
 const Timeline = ({ className, data }) => {
   const { videoDuration, preview, currentTime, setCurrentTime, zoomLevel } = data;
   const timelineContainer = useRef(null);
   const playheadRef = useRef(null);
+  const effectsRowRef = useRef(null);
 
   const {
     ticks,
@@ -31,7 +32,7 @@ const Timeline = ({ className, data }) => {
         ref={timelineContainer}
         onClick={handleTimelineClick}
       >
-        {/*Playhead*/}
+        {/* Play head */}
         <div
           ref={playheadRef}
           className="absolute bottom-0 top-4 z-50 w-px rounded-full bg-foreground cursor-ew-resize"
@@ -73,7 +74,7 @@ const Timeline = ({ className, data }) => {
         >
           <div style={{ width: `${videoWidth}px` }} className="rounded">
             <div className="flex size-full rounded items-center justify-center bg-[#458588] grain-overlay">
-              <Clip />
+              <ClipIcon />
               <span className="pl-1"> Clip </span>
             </div>
           </div>
@@ -81,9 +82,10 @@ const Timeline = ({ className, data }) => {
 
         {/*Effects row*/}
         <div
+          ref={effectsRowRef}
           className="w-full h-1/2 bg-muted rounded relative flex overflow-hidden"
           style={{ width: `${videoWidth > containerWidth ? videoWidth : containerWidth}px` }}
-        />
+        ></div>
       </div>
     </div>
   );
