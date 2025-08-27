@@ -7,10 +7,7 @@ const SizePanel = ({ config, setConfig, close }) => {
 
   const handleSizeChange = async (size) => {
     setConfig({
-      color: null,
       size: size,
-      freeze: null,
-      freezeTime: 0
     })
   };
 

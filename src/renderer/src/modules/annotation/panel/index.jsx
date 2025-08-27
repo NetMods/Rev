@@ -24,16 +24,12 @@ const AnnotateApp = () => {
     if (annotationTimer === 3) {
       setAnnotationTimer(0);
       setConfig({
-        color: null,
-        size: null,
         freeze: true,
         freezeTime: 0
       })
     } else {
       setAnnotationTimer((prev) => prev + 1);
       setConfig({
-        color: null,
-        size: null,
         freeze: false,
         freezeTime: parseInt((annotationTimer + 1) * 3000)
       })
@@ -50,7 +46,7 @@ const AnnotateApp = () => {
           openDrawer ? "translate-x-[-50px]" : "translate-x-0"
         )}
       >
-        <MainPanel />
+        <MainPanel config={config} setConfig={setConfig} />
 
         {breaker}
 

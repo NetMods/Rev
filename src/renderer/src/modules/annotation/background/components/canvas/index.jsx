@@ -11,7 +11,8 @@ export default function Canvas({
   onForegroundAnnotationChange,
   ref: canvasRefProp,
   freeze,
-  freezeTime
+  freezeTime,
+  tool
 }) {
   const stageRef = useRef(null)
   const layerRef = useRef(null)
@@ -35,7 +36,7 @@ export default function Canvas({
         points: [pos.x, pos.y],
         color: penColor,
         width: penWidth,
-        type: 'source-over'
+        type: tool === 'eraser' ? 'destination-out' : 'source-over'
       }
       onForegroundAnnotationChange([...foregroundAnnotation, newLine])
     }
@@ -62,7 +63,7 @@ export default function Canvas({
       stage.container().removeEventListener('pointermove', handlePointerMove)
       stage.container().removeEventListener('pointerup', handlePointerUp)
     }
-  }, [penColor, penWidth, foregroundAnnotation, onForegroundAnnotationChange])
+  }, [penColor, penWidth, foregroundAnnotation, onForegroundAnnotationChange, tool])
 
   useEffect(() => {
     // Clear any existing timer
