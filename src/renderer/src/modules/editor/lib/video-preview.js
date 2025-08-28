@@ -1,231 +1,85 @@
+import { CanvasRenderer } from "./canvas-renderer";
+import { VideoController } from "./video-controller";
+
 export class VideoPreview {
   constructor() {
-    this.canvas = null;
-    this.ctx = null;
-    this.video = null;
+    this.videoController = new VideoController();
+    this.canvasRenderer = new CanvasRenderer();
 
-    this.currentTime = 0;
-    this.isPlaying = false;
     this.isDragging = false;
-
-    this.effects = []
+    this.isFullscreen = false;
+    this.isPlaying = false;
 
     this.onTimeUpdate = null;
+    this.onPreviewStateUpdate = null;
     this.resizeObserver = null;
 
     this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
-  init(canvasElement, videoPath, onTimeUpdate, effects) {
-    this.canvas = canvasElement;
-    this.ctx = this.canvas.getContext("2d");
-    this.ctx.imageSmoothingEnabled = true;
-    this.ctx.imageSmoothingQuality = 'high';
+  init(canvasElement, videoPath, onTimeUpdate, onPreviewStateUpdate, effects) {
+    this.canvasRenderer.init(canvasElement);
+    this.canvasRenderer.updateEffects(effects);
+
     this.onTimeUpdate = onTimeUpdate;
+    this.onPreviewStateUpdate = onPreviewStateUpdate;
 
-    this.effects = effects
-
-    this.setupCanvas();
+    this.setupEventListeners();
     this.loadVideo(videoPath);
+  }
+
+  setupEventListeners() {
+    this.videoController.onLoadedData = () => {
+      const video = this.videoController.video;
+      this.canvasRenderer.resizeCanvas(video.videoWidth, video.videoHeight);
+
+      this.resizeObserver = new ResizeObserver(() => {
+        this.canvasRenderer.resizeCanvas(video.videoWidth, video.videoHeight);
+        this.drawFrame();
+      });
+
+      this.resizeObserver.observe(this.canvasRenderer.canvas?.parentElement);
+
+      this.isPlaying = false;
+      this.onTimeUpdate(this.videoController.currentTime, this.videoController.duration);
+    };
+
+    this.videoController.onPlayStateChange = (isPlaying) => {
+      this.isPlaying = isPlaying;
+      this.onPreviewStateUpdate({ isPlaying: this.isPlaying, isFullscreen: this.isFullscreen });
+      if (isPlaying) {
+        this.startRenderLoop();
+      }
+    };
 
     document.addEventListener('keydown', this.handleKeyDown);
+
+    document.addEventListener("fullscreenchange", () => {
+      this.isFullscreen = !!document.fullscreenElement;
+      this.onPreviewStateUpdate({ isPlaying: this.isPlaying, isFullscreen: this.isFullscreen });
+    });
   }
 
   handleKeyDown() { }
 
-  setupCanvas() {
-    if (!this.canvas || !this.canvas.parentElement) return;
-
-    const parent = this.canvas.parentElement;
-    this.canvas.width = parent.offsetWidth;
-    this.canvas.height = parent.offsetHeight;
-
-    this.ctx.fillStyle = "#111111";
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.fillStyle = "#666666";
-    this.ctx.font = "24px Arial";
-    this.ctx.textAlign = "center";
-    this.ctx.fillText("Load a video file to start", this.canvas.width / 2, this.canvas.height / 2);
-  }
-
-  resizeCanvas(videoWidth, videoHeight) {
-    if (!this.canvas || !this.canvas.parentElement) return;
-
-    const dpi = window.devicePixelRatio || 1;
-
-    // Canvas internal resolution
-    this.canvas.width = videoWidth * dpi;
-    this.canvas.height = videoHeight * dpi;
-
-    // CSS size to fit parent
-    const parent = this.canvas.parentElement;
-    const parentAspect = parent.offsetWidth / parent.offsetHeight;
-    const videoAspect = videoWidth / videoHeight;
-    let displayWidth, displayHeight;
-
-    if (videoAspect > parentAspect) {
-      // Fit width
-      displayWidth = parent.offsetWidth;
-      displayHeight = parent.offsetWidth / videoAspect;
-    } else {
-      // Fit height
-      displayHeight = parent.offsetHeight;
-      displayWidth = parent.offsetHeight * videoAspect;
-    }
-
-    this.canvas.style.width = `${displayWidth}px`;
-    this.canvas.style.height = `${displayHeight}px`;
-
-    // Reset transform and apply DPI scaling
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    this.ctx.scale(dpi, dpi);
-  }
-
   loadVideo(path) {
-    if (this.video) {
-      this.video.remove();
-      if (this.resizeObserver) {
-        this.resizeObserver.disconnect();
-        this.resizeObserver = null;
-      }
-    }
-
-    this.video = document.createElement("video");
-    this.video.style.display = "none";
-    this.video.crossOrigin = "anonymous";
-    this.video.preload = "auto";
-
-    document.body.appendChild(this.video);
-    this.video.src = path;
-
-    this.video.addEventListener("loadeddata", () => {
-      this.resizeCanvas(this.video.videoWidth, this.video.videoHeight);
-
-      this.resizeObserver = new ResizeObserver(() => {
-        this.resizeCanvas(this.video.videoWidth, this.video.videoHeight);
-        this.drawFrame();
-      });
-      this.resizeObserver.observe(this.canvas.parentElement);
-
-      this.isPlaying = false;
-      this.duration = this.video.duration;
-      this.currentTime = 0;
-      this.drawFrame();
-      this.onTimeUpdate(this.currentTime, this.duration);
-    });
-
-    this.video.addEventListener("play", () => {
-      this.isPlaying = true;
-      this.startRenderLoop();
-    });
-
-    this.video.addEventListener("pause", () => {
-      this.isPlaying = false;
-    });
-
-    this.video.addEventListener("seeking", () => {
-      this.currentTime = this.video.currentTime;
-      this.drawFrame();
-    });
-
-    this.video.addEventListener("seeked", () => {
-      this.currentTime = this.video.currentTime;
-      this.drawFrame();
-    });
+    this.videoController.loadVideo(path);
   }
 
   drawFrame() {
-    if (this.video && this.video.readyState >= 2 && this.ctx) {
-      this.ctx.fillStyle = "#111111";
-      this.ctx.fillRect(0, 0, this.video.videoWidth, this.video.videoHeight);
-
-      const videoAspect = this.video.videoWidth / this.video.videoHeight;
-      const canvasDisplayAspect = parseFloat(this.canvas.style.width) / parseFloat(this.canvas.style.height);
-      let drawWidth, drawHeight, offsetX, offsetY;
-
-      if (videoAspect > canvasDisplayAspect) {
-        // Fit width
-        drawWidth = this.video.videoWidth;
-        drawHeight = this.video.videoWidth / canvasDisplayAspect;
-        offsetX = 0;
-        offsetY = (this.video.videoHeight - drawHeight) / 2;
-      } else {
-        // Fit height
-        drawHeight = this.video.videoHeight;
-        drawWidth = this.video.videoHeight * canvasDisplayAspect;
-        offsetX = (this.video.videoWidth - drawWidth) / 2;
-        offsetY = 0;
-      }
-
-      this.applyEffects()
-      this.ctx.drawImage(this.video, offsetX, offsetY, drawWidth, drawHeight);
-      this.ctx.restore()
-    }
-  }
-
-  applyEffects() {
-    if (!this.video || !this.ctx) return;
-
-    this.ctx.save();
-
-    const activeEffects = this.getActiveEffectsAtTime(this.currentTime);
-
-    activeEffects.forEach(effect => {
-      if (effect.type === 'zoom') {
-        this.applyZoomEffect(effect);
-      }
-    });
-  }
-
-  updateEffects(newEffects) {
-    this.effects = newEffects || [];
-    if (this.video && this.video.readyState >= 2) {
-      this.drawFrame();
-    }
-  }
-
-  getActiveEffectsAtTime(currentTime) {
-    return this.effects.filter(effect => {
-      return currentTime >= effect.startTime && currentTime <= effect.endTime;
-    });
-  }
-
-  applyZoomEffect(effect) {
-    if (!effect.center || typeof effect.level !== 'number') return;
-
-    const { x, y } = effect.center;
-    const zoomLevel = effect.level;
-
-    // Calculate progress through the effect (0 to 1)
-    const progress = Math.min(1, Math.max(0,
-      (this.currentTime - effect.startTime) / (effect.endTime - effect.startTime)
-    ));
-
-    // Calculate zoom factor using sine for smooth in and out
-    const zoomFactor = Math.sin(progress * Math.PI);
-
-    // Interpolate zoom level (peaks at zoomLevel in the middle, back to 1 at ends)
-    const currentZoom = 1 + (zoomLevel - 1) * zoomFactor;
-
-    // Convert center coordinates to canvas space
-    // Assuming center coordinates are in video pixel space
-    const canvasX = (x / this.video.videoWidth) * this.video.videoWidth;
-    const canvasY = (y / this.video.videoHeight) * this.video.videoHeight;
-
-    // Apply zoom transformation
-    this.ctx.translate(canvasX, canvasY);
-    this.ctx.scale(currentZoom, currentZoom);
-    this.ctx.translate(-canvasX, -canvasY);
+    this.canvasRenderer.drawFrame(
+      this.videoController.video,
+      this.videoController.currentTime
+    );
   }
 
   startRenderLoop() {
     const render = () => {
       this.drawFrame();
       if (this.isPlaying) {
-        // Only update time if not dragging
         if (!this.isDragging && this.onTimeUpdate) {
-          this.currentTime = this.video.currentTime;
-          this.onTimeUpdate(this.currentTime, this.duration);
+          this.videoController.currentTime = this.videoController.video.currentTime;
+          this.onTimeUpdate(this.videoController.currentTime, this.videoController.duration);
         }
         requestAnimationFrame(render);
       }
@@ -234,20 +88,12 @@ export class VideoPreview {
   }
 
   togglePlayPause() {
-    if (!this.video) return;
-    if (this.video.paused || this.video.ended) {
-      this.video.play();
-    } else {
-      this.video.pause();
-    }
+    this.videoController.togglePlayPause();
   }
 
   seekTo(time) {
-    if (!this.video) return;
-    time = Math.max(0, Math.min(time, this.video.duration));
-    this.video.currentTime = time;
-    this.currentTime = time;
-    this.onTimeUpdate(this.currentTime, this.duration);
+    this.videoController.seekTo(time);
+    this.onTimeUpdate(this.videoController.currentTime, this.videoController.duration);
   }
 
   setDragging(isDragging) {
@@ -255,38 +101,43 @@ export class VideoPreview {
   }
 
   toggleFullscreen() {
-    if (!this.canvas) return;
+    if (!this.canvasRenderer.canvas) return;
 
     if (!document.fullscreenElement) {
-      if (this.canvas.requestFullscreen) {
-        this.canvas.requestFullscreen();
-      } else if (this.canvas.webkitRequestFullscreen) {
-        this.canvas.webkitRequestFullscreen();
-      } else if (this.canvas.msRequestFullscreen) {
-        this.canvas.msRequestFullscreen();
-      }
+      const req =
+        this.canvasRenderer.canvas.requestFullscreen ||
+        this.canvasRenderer.canvas.webkitRequestFullscreen ||
+        this.canvasRenderer.canvas.msRequestFullscreen;
+
+      req?.call(this.canvasRenderer.canvas);
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
-      }
+      const exit =
+        document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.msExitFullscreen;
+
+      exit?.call(document);
+    }
+  }
+
+  updateEffects(newEffects) {
+    this.canvasRenderer.updateEffects(newEffects);
+    if (this.videoController.video && this.videoController.video.readyState >= 2) {
+      this.drawFrame();
     }
   }
 
   destroy() {
     document.removeEventListener('keydown', this.handleKeyDown);
 
-    if (this.video) {
-      this.video.remove();
-    }
+    this.videoController.destroy();
+    this.canvasRenderer.destroy();
+
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
-    this.canvas = null;
-    this.ctx = null;
+
     this.onTimeUpdate = null;
+    this.onPreviewStateUpdate = null;
   }
 }

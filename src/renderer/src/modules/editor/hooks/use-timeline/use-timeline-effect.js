@@ -4,11 +4,11 @@ const createEffectDiv = (width, xShift, effect, onDelete) => {
   const effectDiv = document.createElement("div");
   effectDiv.style.width = `${width}px`;
   effectDiv.style.transform = `translateX(${xShift}px)`;
-  effectDiv.className = "rounded absolute top-0 h-full";
+  effectDiv.className = "rounded absolute top-0 h-full border-1 border-foreground/30";
 
   const inner = document.createElement("div");
   inner.className = "flex size-full rounded items-center justify-center bg-muted grain-overlay";
-  inner.textContent = effect.type; // Display effect type (e.g., "zoom")
+  inner.textContent = effect.type.slice(0, 1).toUpperCase();
 
   const deleteBtn = document.createElement("button");
   deleteBtn.textContent = "×";

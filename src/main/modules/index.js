@@ -22,5 +22,5 @@ export async function loadModules(core) {
     }
   })
 
-  return modules;
+  return modulesList
 }

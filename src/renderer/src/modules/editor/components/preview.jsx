@@ -1,7 +1,10 @@
 import { cn } from "../../../shared/utils"
+import { useVideoPreview } from "../hooks/use-video-preview";
 
 const VideoPreview = ({ className, data }) => {
-  const { canvasRef } = data
+  const { videoPreviewInstance, videoPath, handleTimeUpdate, handlePreviewState, effects } = data
+
+  const { canvasRef } = useVideoPreview({ videoPreviewInstance, videoPath, handleTimeUpdate, handlePreviewState, effects });
 
   return (
     <div className={cn("bg-card rounded border py-1", className)}>

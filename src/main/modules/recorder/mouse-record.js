@@ -1,51 +1,149 @@
 import { uIOhook } from 'uiohook-napi'
 import log from "electron-log/main"
 
-let mouseClickRecords = []
-let mouseDownListener = null
-let trackingStartTime = null // nanoseconds (bigint)
+export class MouseTracker {
+  constructor() {
+    this.clicks = []
+    this.drags = []
 
-export const startMouseTracking = () => {
-  // Clean up any previous listeners
-  if (mouseDownListener) {
-    uIOhook.off('mousedown', mouseDownListener)
+    this.onMouseDown = null
+    this.onMouseMove = null
+    this.onMouseUp = null
+
+    this.startTime = null
+    this.dragging = false
+    this.activeDrag = null
+    this.isTracking = false
   }
 
-  // Record the start time in nanoseconds
-  trackingStartTime = process.hrtime.bigint()
+  start() {
+    if (this.isTracking) {
+      log.warn("Mouse tracking is already active")
+      return
+    }
 
-  // Define mouse down listener
-  mouseDownListener = (event) => {
-    const currentTime = process.hrtime.bigint()
-    const elapsedNanoseconds = currentTime - trackingStartTime
-    const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
+    this.cleanup()
+    this.startTime = process.hrtime.bigint()
 
-    mouseClickRecords.push({
-      elapsedTime: elapsedSeconds.toFixed(3), // round to milliseconds
-      x: event.x,
-      y: event.y
-    })
+    this.onMouseDown = (event) => {
+      const currentTime = process.hrtime.bigint()
+      const elapsedNanoseconds = currentTime - this.startTime
+      const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
+
+      this.clicks.push({
+        type: 'click',
+        elapsedTime: elapsedSeconds.toFixed(3),
+        x: event.x,
+        y: event.y
+      })
+
+      this.dragging = false
+      this.activeDrag = {
+        startTime: elapsedSeconds.toFixed(3),
+        startX: event.x,
+        startY: event.y,
+        path: [{ x: event.x, y: event.y, time: elapsedSeconds.toFixed(3) }]
+      }
+    }
+
+    this.onMouseMove = (event) => {
+      if (this.activeDrag) {
+        const currentTime = process.hrtime.bigint()
+        const elapsedNanoseconds = currentTime - this.startTime
+        const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
+
+        this.dragging = true
+        this.activeDrag.path.push({
+          x: event.x,
+          y: event.y,
+          time: elapsedSeconds.toFixed(3)
+        })
+      }
+    }
+
+    this.onMouseUp = (event) => {
+      if (this.activeDrag) {
+        const currentTime = process.hrtime.bigint()
+        const elapsedNanoseconds = currentTime - this.startTime
+        const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
+
+        if (this.dragging) {
+          this.activeDrag.endTime = elapsedSeconds.toFixed(3)
+          this.activeDrag.endX = event.x
+          this.activeDrag.endY = event.y
+          this.activeDrag.duration = (parseFloat(this.activeDrag.endTime) - parseFloat(this.activeDrag.startTime)).toFixed(3)
+
+          const duration = parseFloat(elapsedSeconds.toFixed(3)) - parseFloat(this.activeDrag.startTime)
+          if (duration <= 1) return;
+
+          this.drags.push({
+            type: 'drag',
+            startTime: this.activeDrag.startTime,
+            endTime: this.activeDrag.endTime,
+            duration: this.activeDrag.duration,
+            startX: this.activeDrag.startX,
+            startY: this.activeDrag.startY,
+            endX: this.activeDrag.endX,
+            endY: this.activeDrag.endY,
+            path: this.activeDrag.path
+          })
+        }
+
+        this.activeDrag = null
+        this.dragging = false
+      }
+    }
+
+    log.verbose("Adding mouse event listeners on uIOhook")
+    uIOhook.on('mousedown', this.onMouseDown)
+    uIOhook.on('mousemove', this.onMouseMove)
+    uIOhook.on('mouseup', this.onMouseUp)
+    uIOhook.start()
+    this.isTracking = true
   }
 
-  log.verbose("Adding mousedown event listener on uIOhook")
-  uIOhook.on('mousedown', mouseDownListener)
-  uIOhook.start()
-}
+  stop() {
+    if (!this.isTracking) {
+      log.warn("Mouse tracking is not active")
+      return { mouseClickRecords: [], mouseDragRecords: [] }
+    }
 
-export const stopMouseTracking = () => {
-  if (mouseDownListener) {
-    log.verbose("Removing mouse down event listener on uIOhook")
-    uIOhook.off('mousedown', mouseDownListener)
-    mouseDownListener = null
+    this.cleanup()
+
+    const clickRecords = [...this.clicks]
+    const dragRecords = [...this.drags]
+
+    this.reset()
+    uIOhook.stop()
+
+    return {
+      clicks: clickRecords,
+      drags: dragRecords
+    }
   }
 
-  const records = [...mouseClickRecords]
+  cleanup() {
+    log.verbose("Removing mouse event listeners on uIOhook")
+    if (this.onMouseDown) {
+      uIOhook.off('mousedown', this.onMouseDown)
+      this.onMouseDown = null
+    }
+    if (this.onMouseMove) {
+      uIOhook.off('mousemove', this.onMouseMove)
+      this.onMouseMove = null
+    }
+    if (this.onMouseUp) {
+      uIOhook.off('mouseup', this.onMouseUp)
+      this.onMouseUp = null
+    }
+  }
 
-  // TODO: remove the clicks that are inside the our recorder
-
-  mouseClickRecords = []
-  trackingStartTime = null
-  uIOhook.stop()
-
-  return { mouseClickRecords: records }
+  reset() {
+    this.clicks = []
+    this.drags = []
+    this.startTime = null
+    this.dragging = false
+    this.activeDrag = null
+    this.isTracking = false
+  }
 }

@@ -5,7 +5,7 @@ import { formatTime } from "../utils";
 import { cn } from "../../../shared/utils";
 
 export const Controls = ({ className, data }) => {
-  const { preview, isPlaying, isFullscreen, currentTime, videoDuration, setZoomLevel } = data
+  const { preview, isPlaying, isFullscreen, currentTime, videoDuration, increaseZoom, decreaseZoom } = data
 
   return (
     <div className={cn(" px-4 bg-card border rounded", className)}>
@@ -16,7 +16,7 @@ export const Controls = ({ className, data }) => {
       </div>
 
       <button
-        onClick={() => preview.current.togglePlayPause()}
+        onClick={() => preview.togglePlayPause()}
         className="z-50 cursor-pointer bg-muted hover:bg-foreground/20 p-1 inline-flex items-center justify-center transition-colors"
         aria-label={isPlaying ? "Pause video" : "Play video"}
       >
@@ -25,19 +25,19 @@ export const Controls = ({ className, data }) => {
 
       <div className="flex gap-2">
         <button
-          onClick={() => setZoomLevel(prev => Math.max(1, prev - 1))}
+          onClick={decreaseZoom}
           className="z-50 cursor-pointer bg-muted hover:bg-foreground/20 p-1 inline-flex items-center justify-center transition-colors"
         >
           <Minus size={20} />
         </button>
         <button
-          onClick={() => setZoomLevel(prev => Math.min(8, prev + 1))}
+          onClick={increaseZoom}
           className="z-50 cursor-pointer bg-muted hover:bg-foreground/20 p-1 inline-flex items-center justify-center transition-colors"
         >
           <Plus size={20} />
         </button>
         <button
-          onClick={() => preview.current.toggleFullscreen()}
+          onClick={() => preview.toggleFullscreen()}
           className="z-50 cursor-pointer bg-muted hover:bg-foreground/20 p-1 inline-flex items-center justify-center transition-colors"
           aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
         >

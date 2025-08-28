@@ -1,31 +1,20 @@
-import { useRef } from "react";
 import { LiaFileVideoSolid as ClipIcon } from "react-icons/lia";
 import { useTimeline } from "../hooks/use-timeline/index";
 import { cn } from "../../../shared/utils";
 
 const Timeline = ({ className, data }) => {
   const { videoDuration, preview, currentTime, setCurrentTime, zoomLevel, effects } = data;
-  const timelineContainer = useRef(null);
-  const playheadRef = useRef(null);
-  const effectsRowRef = useRef(null);
 
   const {
     ticks,
-    videoWidth = 0,
-    containerWidth = 0,
+    videoWidth,
+    containerWidth,
     handlePlayheadMouseDown,
     handleTimelineClick,
-  } = useTimeline({
-    zoomLevel,
     timelineContainer,
-    videoDuration,
-    preview,
-    currentTime,
-    setCurrentTime,
     playheadRef,
-    effects,
     effectsRowRef
-  });
+  } = useTimeline({ preview, videoDuration, currentTime, setCurrentTime, effects, zoomLevel });
 
   return (
     <div className={cn("bg-card rounded border", className)}>

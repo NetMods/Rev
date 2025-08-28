@@ -13,7 +13,7 @@ export function useTimelineClick(timelineContainer, videoDuration, videoWidth, p
     const clampedTime = Math.max(0, Math.min(clickedTime, videoDuration));
 
     setCurrentTime(clampedTime);
-    if (preview?.current) preview.current.seekTo(clampedTime);
+    if (preview) preview.seekTo(clampedTime);
   };
 
   return handleTimelineClick;

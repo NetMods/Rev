@@ -1,5 +1,3 @@
-import { useSetAtom } from 'jotai';
-import { setMouseTimeStampsAtom } from '@renderer/store';
 import { useRef, useState } from "react";
 import log from 'electron-log/renderer'
 
@@ -8,7 +6,6 @@ export const useRecording = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [recorder, setRecorder] = useState(null);
 
-  const setMouseTimeStamps = useSetAtom(setMouseTimeStampsAtom);
 
   const streamRef = useRef(null);
   const recordedChunks = useRef([]);
@@ -25,12 +22,10 @@ export const useRecording = () => {
   const options = { mimeType: getSupportedMimeType() };
 
   const startRecording = async () => {
-    setMouseTimeStamps([]);
     setIsRecording(true);
 
     try {
       await window.api.recording.start();
-      window.api.recording.startMouse();
 
       const stream = await navigator.mediaDevices.getDisplayMedia({
         audio: false,
@@ -47,7 +42,6 @@ export const useRecording = () => {
     } catch (error) {
       console.error('Error starting recording:', error);
       setIsRecording(false);
-      await window.api.recording.stopMouse();
     }
   };
 
@@ -86,22 +80,9 @@ export const useRecording = () => {
     const extension = options.mimeType.includes('mp4') ? 'mp4' : 'webm';
 
     try {
-      const { mouseClickRecords } = await window.api.recording.stopMouse();
-      setMouseTimeStamps(mouseClickRecords)
-
       const arrayBuffer = await blob.arrayBuffer();
 
-      const data = {
-        arrayBuffer,
-        mouseClickRecords,
-        timestamp: new Date().toISOString(),
-        extension
-      }
-
-      const projectId = await window.api.project.create(data)
-      log.verbose("Got project with id:", projectId)
-
-      await window.api.editor.create({ projectId })
+      await window.api.recording.stop(arrayBuffer, extension)
     } catch (error) {
       log.error('Error saving recording:', error);
     }

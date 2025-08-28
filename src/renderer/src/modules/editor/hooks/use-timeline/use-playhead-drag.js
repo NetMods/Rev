@@ -29,8 +29,8 @@ export function usePlayheadDrag(
     dragStartXRef.current = e.clientX;
     dragStartTimeRef.current = currentTime;
 
-    if (preview?.current?.video && !preview.current.video.paused) {
-      preview.current.video.pause();
+    if (preview?.video && !preview.video.paused) {
+      preview.video.pause();
     }
   };
 
@@ -49,8 +49,8 @@ export function usePlayheadDrag(
           const px = (t / videoDuration) * videoWidth;
           applyPlayheadTransform(px);
 
-          if (preview?.current) {
-            preview.current.seekTo(t);
+          if (preview) {
+            preview.seekTo(t);
           }
 
           const now = Date.now();
@@ -79,7 +79,7 @@ export function usePlayheadDrag(
       applyPlayheadTransform(finalPx);
 
       setCurrentTime(finalTime);
-      if (preview?.current) preview.current.seekTo(finalTime);
+      if (preview) preview.seekTo(finalTime);
 
       pendingTimeRef.current = null;
     };

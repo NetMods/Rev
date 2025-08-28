@@ -3,9 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('api', {
   recording: {
     start: () => ipcRenderer.send('recording:setup'),
-    stop: (...args) => ipcRenderer.invoke('recording:save', ...args),
-    startMouse: () => ipcRenderer.send('mouse-track:start'),
-    stopMouse: () => ipcRenderer.invoke('mouse-track:stop'),
+    stop: (...args) => ipcRenderer.invoke('recording:stop', ...args),
   },
 
   annotation: {
