@@ -8,7 +8,6 @@ const MainPanel = ({ config, setConfig }) => {
 
 
   const handleToolChange = (tool) => {
-    console.log("handle the tool change : ", tool)
     setConfig({
       tool: tool
     })
@@ -44,7 +43,6 @@ const MainPanel = ({ config, setConfig }) => {
         onClick={() => {
           handleToolChange(MainAnnotationControls.ARROW)
         }}
-        disabled
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
           config.tool === "arrow" ? "" : ""
