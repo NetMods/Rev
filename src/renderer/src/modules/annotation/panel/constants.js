@@ -27,7 +27,7 @@ export const PENTIMER = Object.freeze({
 export const MainAnnotationControls = Object.freeze({
   PEN: 'pen',
   ARROW: 'arrow',
-  OVAL: 'oval',
+  TEXT: 'text',
   ERASER: 'eraser'
 })
 

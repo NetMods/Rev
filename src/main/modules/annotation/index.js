@@ -32,10 +32,17 @@ export default {
     return this.config
   },
 
+  clearAnnotation() {
+    log.info("clearing the annoation background")
+    const backgroundWindow = this.annotationWindows.annotationBackground
+    backgroundWindow.webContents.send("annotation:onClear", { status: 200 })
+  },
+
   getIPCHandlers() {
     return {
       'annotation:start': async () => this.startAnnotate(),
       'annotation:stop': () => this.stopAnnotate(),
+      'annotation:clear': () => this.clearAnnotation(),
       'annotation-config:update': async (_, ...args) => {
         const [partialConfig] = args
         this.config = {

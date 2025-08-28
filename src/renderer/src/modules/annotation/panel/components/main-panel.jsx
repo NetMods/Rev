@@ -1,6 +1,6 @@
 import { LuBrush as Brush, LuArrowUpRight as Arrow } from "react-icons/lu";
-import { TbOvalVertical as Oval } from "react-icons/tb";
 import { CiEraser as Eraser } from "react-icons/ci";
+import { MdOutlineFormatColorText as Text } from "react-icons/md";
 import { cn } from "../../../../shared/utils";
 import { MainAnnotationControls } from "../constants";
 
@@ -32,6 +32,9 @@ const MainPanel = ({ config, setConfig }) => {
         onClick={() => {
           handleToolChange(MainAnnotationControls.ERASER)
         }}
+        onDoubleClick={() => {
+          window.api.annotation.clear()
+        }}
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
           config.tool === "eraser" ? "" : "hover")}
@@ -53,15 +56,14 @@ const MainPanel = ({ config, setConfig }) => {
 
       <button
         onClick={() => {
-          handleToolChange(MainAnnotationControls.OVAL)
+          handleToolChange(MainAnnotationControls.TEXT)
         }}
-        disabled
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "oval" ? "" : ""
+          config.tool === "text" ? "" : ""
         )}
       >
-        <Oval size={23} />
+        <Text size={23} />
       </button>
     </div>
   );

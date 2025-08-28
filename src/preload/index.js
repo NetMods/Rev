@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('api', {
   annotation: {
     start: () => ipcRenderer.invoke('annotation:start'),
     stop: () => ipcRenderer.send('annotation:stop'),
+    clear: () => ipcRenderer.send("annotation:clear"),
+    onClear: (cb) => ipcRenderer.on("annotation:onClear", (_, data) => cb(data)),
     setConfig: (...args) => ipcRenderer.on('annotation-config:set', ...args),
     updateConfig: (...args) => ipcRenderer.invoke('annotation-config:update', ...args),
     getConfig: (...args) => ipcRenderer.invoke('annotation-config:get', ...args),

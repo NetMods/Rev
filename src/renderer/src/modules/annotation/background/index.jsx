@@ -28,12 +28,18 @@ export default function App() {
     if (config.tool) {
       setTool(config.tool)
     }
+  }
 
-
+  const handleAnnotationClear = (data) => {
+    if (data.status === 200) {
+      log.info("clearing")
+      canvasRef.current.clear()
+    }
   }
 
   useEffect(() => {
     window.api.annotation.setConfig(handleAnnotationConfigChange)
+    window.api.annotation.onClear(handleAnnotationClear)
   }, [])
 
   return (

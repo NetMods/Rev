@@ -21,10 +21,14 @@ export default function Canvas({
   const originRef = useRef({ x: undefined, y: undefined })
   const [drawnArrows, setDrawnArrows] = useState([])
   const [tempEnd, setTempEnd] = useState(null)
+  const [isEditingtext, setidEditingText] = useState(false)
+  const [text, setText] = useState("All Yours")
+  const [drawnText, setDrawnText] = useState([])
 
   useImperativeHandle(canvasRefProp, () => ({
     clear: () => {
       onForegroundAnnotationChange([])
+      setDrawnArrows([])
     }
   }))
 
