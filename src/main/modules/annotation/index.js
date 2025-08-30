@@ -33,7 +33,6 @@ export default {
   },
 
   clearAnnotation() {
-    log.info("clearing the annoation background")
     const backgroundWindow = this.annotationWindows.annotationBackground
     backgroundWindow.webContents.send("annotation:onClear", { status: 200 })
   },

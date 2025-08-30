@@ -1,5 +1,6 @@
 import { useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { Layer, Line, Stage, Arrow } from 'react-konva'
+import { Layer, Line, Stage, Arrow, Rect } from 'react-konva'
+import { Html } from 'react-konva-utils'
 import { getRelativePointerPosition } from './utils'
 
 export default function Canvas({
@@ -18,25 +19,35 @@ export default function Canvas({
   const layerRef = useRef(null)
   const isDrawing = useRef(false)
   const timerRef = useRef(null)
-  const originRef = useRef({ x: undefined, y: undefined })
+  const originRef = useRef({ x: null, y: null })
   const [drawnArrows, setDrawnArrows] = useState([])
-  const [tempEnd, setTempEnd] = useState(null)
-  const [isEditingtext, setidEditingText] = useState(false)
-  const [text, setText] = useState("All Yours")
-  const [drawnText, setDrawnText] = useState([])
+  const [tempEnd, setTempEnd] = useState({ x: null, y: null })
+  const [textArea, settextArea] = useState([])
 
   useImperativeHandle(canvasRefProp, () => ({
     clear: () => {
       onForegroundAnnotationChange([])
       setDrawnArrows([])
+      settextArea([])
     }
   }))
+
+  // Clean up temporary states when tool changes
+  useEffect(() => {
+    // Reset drawing state when tool changes
+    isDrawing.current = false
+    originRef.current = { x: null, y: null }
+    setTempEnd({ x: null, y: null })
+  }, [tool])
 
   useEffect(() => {
     const stage = stageRef.current
     if (!stage) return
 
-    const handlePointerDown = () => {
+    const handlePointerDown = (e) => {
+      // Prevent event bubbling issues
+      e.cancelBubble = true
+
       isDrawing.current = true
       const pos = getRelativePointerPosition(stage)
 
@@ -54,45 +65,81 @@ export default function Canvas({
         }
         onForegroundAnnotationChange([...foregroundAnnotation, newLine])
       }
-
     }
 
-    const handlePointerMove = () => {
+    const handlePointerMove = (e) => {
       if (!isDrawing.current) return
+
+      // Prevent event bubbling
+      e.cancelBubble = true
+
       const pos = getRelativePointerPosition(stage)
+
       if (tool === 'pen' || tool === "eraser") {
         const lines = foregroundAnnotation.slice()
         const lastLine = lines[lines.length - 1]
-        lastLine.points = lastLine.points.concat([pos.x, pos.y])
-        onForegroundAnnotationChange(lines)
-      } else if (tool === "arrow") {
+        if (lastLine) {
+          lastLine.points = lastLine.points.concat([pos.x, pos.y])
+          onForegroundAnnotationChange(lines)
+        }
+      } else if (tool === "arrow" || tool === "text") {
         setTempEnd({ x: pos.x, y: pos.y })
       }
     }
 
-    const handlePointerUp = () => {
+    const handlePointerUp = (e) => {
+      if (!isDrawing.current) return
+
+      // Prevent event bubbling
+      e.cancelBubble = true
+
+      const pos = getRelativePointerPosition(stage)
+
       if (tool === "arrow") {
-        const pos = stage.getPointerPosition()
-        const newArrowPoints = {
-          points: [originRef.current.x, originRef.current.y, pos.x, pos.y],
-          color: penColor
+        // Only create arrow if we have valid start and end points
+        if (originRef.current.x !== null && pos) {
+          const newArrowPoints = {
+            points: [originRef.current.x, originRef.current.y, pos.x, pos.y],
+            color: penColor
+          }
+          setDrawnArrows(prevArrows => [...prevArrows, newArrowPoints])
         }
-        setDrawnArrows(prevArrows => [...prevArrows, newArrowPoints])
-        setTempEnd(null)
+        setTempEnd({ x: null, y: null })
+      } else if (tool === "text") {
+        // Only create text area if we have valid dimensions
+        if (originRef.current.x !== null && tempEnd.x !== null) {
+          const x = Math.min(originRef.current.x, tempEnd.x)
+          const y = Math.min(originRef.current.y, tempEnd.y)
+          const width = Math.abs(tempEnd.x - originRef.current.x)
+          const height = Math.abs(tempEnd.y - originRef.current.y)
+
+          if (width >= 10 && height >= 10) {
+            settextArea((prev) => [
+              ...prev,
+              { x, y, width, height, id: Date.now() }
+            ])
+          }
+        }
+        setTempEnd({ x: null, y: null })
       }
+
       isDrawing.current = false
+      originRef.current = { x: null, y: null }
     }
 
-    stage.container().addEventListener('pointerdown', handlePointerDown)
-    stage.container().addEventListener('pointermove', handlePointerMove)
-    stage.container().addEventListener('pointerup', handlePointerUp)
+    // Use passive: false to prevent default browser behaviors
+    const options = { passive: false }
+
+    stage.container().addEventListener('pointerdown', handlePointerDown, options)
+    stage.container().addEventListener('pointermove', handlePointerMove, options)
+    stage.container().addEventListener('pointerup', handlePointerUp, options)
 
     return () => {
-      stage.container().removeEventListener('pointerdown', handlePointerDown)
-      stage.container().removeEventListener('pointermove', handlePointerMove)
-      stage.container().removeEventListener('pointerup', handlePointerUp)
+      stage.container().removeEventListener('pointerdown', handlePointerDown, options)
+      stage.container().removeEventListener('pointermove', handlePointerMove, options)
+      stage.container().removeEventListener('pointerup', handlePointerUp, options)
     }
-  }, [penColor, penWidth, foregroundAnnotation, onForegroundAnnotationChange, tool])
+  }, [penColor, penWidth, foregroundAnnotation, onForegroundAnnotationChange, tool, tempEnd])
 
   useEffect(() => {
     // Clear any existing timer
@@ -102,11 +149,12 @@ export default function Canvas({
       clearTimeout(timerRef.current)
     }
 
-    // Set a new timer to clear annotations after 5 seconds
-    if (foregroundAnnotation.length > 0) {
+    // Set a new timer to clear annotations after freezeTime
+    if (foregroundAnnotation.length > 0 || drawnArrows.length > 0) {
       timerRef.current = setTimeout(() => {
         onForegroundAnnotationChange([])
         setDrawnArrows([])
+        settextArea([])
       }, freezeTime)
     }
 
@@ -115,7 +163,7 @@ export default function Canvas({
         clearTimeout(timerRef.current)
       }
     }
-  }, [foregroundAnnotation, onForegroundAnnotationChange, freeze, freezeTime])
+  }, [foregroundAnnotation, drawnArrows, onForegroundAnnotationChange, freeze, freezeTime])
 
   useEffect(() => {
     if (stageRef.current) {
@@ -139,23 +187,18 @@ export default function Canvas({
       }}
     >
       <Layer ref={layerRef}>
-
-
-        {
-          foregroundAnnotation.map((line, idx) => (
-            <Line
-              key={idx}
-              points={line.points}
-              stroke={line.color}
-              strokeWidth={line.width}
-              tension={0.5}
-              lineCap="round"
-              globalCompositeOperation={line.type}
-              draggable={false}
-            />
-          ))}
-
-
+        {foregroundAnnotation.map((line, idx) => (
+          <Line
+            key={idx}
+            points={line.points}
+            stroke={line.color}
+            strokeWidth={line.width}
+            tension={0.5}
+            lineCap="round"
+            globalCompositeOperation={line.type}
+            draggable={false}
+          />
+        ))}
 
         {drawnArrows.length > 0 && drawnArrows.map((arrowPoints, index) => (
           <Arrow
@@ -170,7 +213,33 @@ export default function Canvas({
         ))}
 
 
-        {isDrawing && tempEnd && (
+        {textArea.map((vec) => (
+          <Html key={vec.id} groupProps={{ x: vec.x, y: vec.y }}>
+            <textarea
+              value={vec.text || ""}   // controlled value
+              onChange={(e) => {
+                settextArea((prev) =>
+                  prev.map((t) =>
+                    t.id === vec.id ? { ...t, text: e.target.value } : t
+                  )
+                )
+              }}
+              style={{
+                width: vec.width,
+                height: vec.height,
+                resize: 'none',
+                border: '1px solid red',
+                background: 'rgba(255,255,255,0.7)',
+                fontSize: '14px',
+                outline: 'none',
+              }}
+              placeholder="Type here..."
+            />
+          </Html>
+        ))}
+
+        {/* Preview arrow while drawing */}
+        {isDrawing.current && tool === "arrow" && tempEnd.x !== null && originRef.current.x !== null && (
           <Arrow
             points={[originRef.current.x, originRef.current.y, tempEnd.x, tempEnd.y]}
             pointerLength={10}
@@ -178,10 +247,21 @@ export default function Canvas({
             fill="gray"
             stroke="gray"
             strokeWidth={10}
+            opacity={0.7}
           />
         )}
 
-
+        {/* Preview rectangle while drawing text area */}
+        {isDrawing.current && tool === "text" && tempEnd.x !== null && originRef.current.x !== null && (
+          <Rect
+            x={Math.min(originRef.current.x, tempEnd.x)}
+            y={Math.min(originRef.current.y, tempEnd.y)}
+            width={Math.abs(tempEnd.x - originRef.current.x)}
+            height={Math.abs(tempEnd.y - originRef.current.y)}
+            fill="red"
+            opacity={0.3}
+          />
+        )}
       </Layer>
     </Stage>
   )
