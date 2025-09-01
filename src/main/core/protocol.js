@@ -22,7 +22,7 @@ export function handleProtocolRequests(name) {
     try {
       const filePath = request.url.slice(`${name}:/`.length);
 
-      log.info(`Handling ${name}:// request for: ${filePath}`);
+      log.verbose(`Handling ${name}:// request for: ${filePath}`);
 
       if (!existsSync(filePath)) {
         log.error(`File not found: ${filePath}`);

@@ -27,7 +27,7 @@ export function useTimeline({
   const { ticks, pixelsPerSecond, videoWidth } = useTimelineScale(zoomLevel, videoDuration, containerWidth);
 
   {/*Enabling playhead dragging*/ }
-  const { isDragging, handlePlayheadMouseDown } = usePlayheadDrag(playheadRef, preview, currentTime, setCurrentTime, videoDuration, videoWidth, pixelsPerSecond);
+  const { isDragging } = usePlayheadDrag(playheadRef, preview, currentTime, setCurrentTime, videoDuration, videoWidth, pixelsPerSecond);
 
   {/*Move playhead as video plays*/ }
   usePlayheadPosition(playheadRef, currentTime, videoDuration, videoWidth, isDragging);
@@ -51,7 +51,6 @@ export function useTimeline({
     videoWidth,
     containerWidth,
     isDragging,
-    handlePlayheadMouseDown,
     handleTimelineClick,
     timelineContainer,
     playheadRef,

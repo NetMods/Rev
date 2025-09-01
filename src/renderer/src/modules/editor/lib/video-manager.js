@@ -1,4 +1,4 @@
-export class VideoController {
+export class VideoManager {
   constructor() {
     this.video = null;
     this.currentTime = 0;
@@ -10,7 +10,7 @@ export class VideoController {
     this.onLoadedData = null;
   }
 
-  loadVideo(path) {
+  init(path) {
     if (this.video) {
       this.video.remove();
     }
@@ -19,6 +19,7 @@ export class VideoController {
     this.video.style.display = "none";
     this.video.crossOrigin = "anonymous";
     this.video.preload = "auto";
+
     document.body.appendChild(this.video);
     this.video.src = path;
 

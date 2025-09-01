@@ -1,50 +1,51 @@
 import { CanvasRenderer } from "./canvas-renderer";
-import { VideoController } from "./video-controller";
+import { EffectsManager } from "./effect-manager";
+import { VideoManager } from "./video-manager";
 
 export class VideoPreview {
   constructor() {
-    this.videoController = new VideoController();
+    this.videoManager = new VideoManager();
+    this.effectsManager = new EffectsManager();
     this.canvasRenderer = new CanvasRenderer();
 
-    this.isDragging = false;
     this.isFullscreen = false;
     this.isPlaying = false;
 
     this.onTimeUpdate = null;
     this.onPreviewStateUpdate = null;
     this.resizeObserver = null;
-
-    this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
   init(canvasElement, videoPath, onTimeUpdate, onPreviewStateUpdate, effects) {
-    this.canvasRenderer.init(canvasElement);
-    this.canvasRenderer.updateEffects(effects);
+    this.videoManager.init(videoPath);
+    this.effectsManager.init(effects);
+    this.canvasRenderer.init(canvasElement, this.effectsManager);
 
     this.onTimeUpdate = onTimeUpdate;
     this.onPreviewStateUpdate = onPreviewStateUpdate;
 
     this.setupEventListeners();
-    this.loadVideo(videoPath);
   }
 
   setupEventListeners() {
-    this.videoController.onLoadedData = () => {
-      const video = this.videoController.video;
+    this.videoManager.onLoadedData = () => {
+      const video = this.videoManager.video;
+
       this.canvasRenderer.resizeCanvas(video.videoWidth, video.videoHeight);
 
       this.resizeObserver = new ResizeObserver(() => {
         this.canvasRenderer.resizeCanvas(video.videoWidth, video.videoHeight);
-        this.drawFrame();
+        this.canvasRenderer.drawFrame(video, this.videoManager.currentTime);
       });
 
-      this.resizeObserver.observe(this.canvasRenderer.canvas?.parentElement);
+      this.canvasRenderer.canvas?.parentElement &&
+        this.resizeObserver.observe(this.canvasRenderer.canvas.parentElement);
 
       this.isPlaying = false;
-      this.onTimeUpdate(this.videoController.currentTime, this.videoController.duration);
+      this.onTimeUpdate && this.onTimeUpdate(this.videoManager.currentTime, this.videoManager.duration);
     };
 
-    this.videoController.onPlayStateChange = (isPlaying) => {
+    this.videoManager.onPlayStateChange = (isPlaying) => {
       this.isPlaying = isPlaying;
       this.onPreviewStateUpdate({ isPlaying: this.isPlaying, isFullscreen: this.isFullscreen });
       if (isPlaying) {
@@ -52,52 +53,36 @@ export class VideoPreview {
       }
     };
 
-    document.addEventListener('keydown', this.handleKeyDown);
-
     document.addEventListener("fullscreenchange", () => {
       this.isFullscreen = !!document.fullscreenElement;
       this.onPreviewStateUpdate({ isPlaying: this.isPlaying, isFullscreen: this.isFullscreen });
     });
   }
 
-  handleKeyDown() { }
-
-  loadVideo(path) {
-    this.videoController.loadVideo(path);
-  }
-
-  drawFrame() {
-    this.canvasRenderer.drawFrame(
-      this.videoController.video,
-      this.videoController.currentTime
-    );
-  }
-
   startRenderLoop() {
     const render = () => {
-      this.drawFrame();
+      this.canvasRenderer.drawFrame(this.videoManager.video, this.videoManager.currentTime);
+
       if (this.isPlaying) {
-        if (!this.isDragging && this.onTimeUpdate) {
-          this.videoController.currentTime = this.videoController.video.currentTime;
-          this.onTimeUpdate(this.videoController.currentTime, this.videoController.duration);
+        if (this.onTimeUpdate) {
+          this.videoManager.currentTime = this.videoManager.video.currentTime;
+          this.onTimeUpdate(this.videoManager.currentTime, this.videoManager.duration);
         }
+
         requestAnimationFrame(render);
       }
     };
+
     requestAnimationFrame(render);
   }
 
   togglePlayPause() {
-    this.videoController.togglePlayPause();
+    this.videoManager.togglePlayPause();
   }
 
   seekTo(time) {
-    this.videoController.seekTo(time);
-    this.onTimeUpdate(this.videoController.currentTime, this.videoController.duration);
-  }
-
-  setDragging(isDragging) {
-    this.isDragging = isDragging;
+    this.videoManager.seekTo(time);
+    this.onTimeUpdate(this.videoManager.currentTime, this.videoManager.duration);
   }
 
   toggleFullscreen() {
@@ -121,17 +106,17 @@ export class VideoPreview {
   }
 
   updateEffects(newEffects) {
-    this.canvasRenderer.updateEffects(newEffects);
-    if (this.videoController.video && this.videoController.video.readyState >= 2) {
-      this.drawFrame();
+    this.effectsManager.updateEffects(newEffects);
+
+    if (this.videoManager.video && this.videoManager.video.readyState >= 2) {
+      this.canvasRenderer.drawFrame(this.videoManager.video, this.videoManager.currentTime);
     }
   }
 
   destroy() {
-    document.removeEventListener('keydown', this.handleKeyDown);
-
-    this.videoController.destroy();
+    this.videoManager.destroy();
     this.canvasRenderer.destroy();
+    this.effectsManager.destroy();
 
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();

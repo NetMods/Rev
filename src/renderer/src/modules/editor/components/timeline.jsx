@@ -9,7 +9,6 @@ const Timeline = ({ className, data }) => {
     ticks,
     videoWidth,
     containerWidth,
-    handlePlayheadMouseDown,
     handleTimelineClick,
     timelineContainer,
     playheadRef,
@@ -33,7 +32,6 @@ const Timeline = ({ className, data }) => {
             transform: "translate3d(0px,0,0)",
             backfaceVisibility: "hidden",
           }}
-          onMouseDown={handlePlayheadMouseDown}
         >
           <div className="absolute -top-1 -left-[0.35rem] w-3 h-3 rounded-full border-2 border-background bg-foreground cursor-ew-resize" />
         </div>

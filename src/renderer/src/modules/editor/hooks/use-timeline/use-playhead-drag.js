@@ -21,19 +21,6 @@ export function usePlayheadDrag(
     playheadRef.current.style.transform = `translate3d(${px}px, 0, 0)`;
   };
 
-  const handlePlayheadMouseDown = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    setIsDragging(true);
-    dragStartXRef.current = e.clientX;
-    dragStartTimeRef.current = currentTime;
-
-    if (preview?.video && !preview.video.paused) {
-      preview.video.pause();
-    }
-  };
-
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isDragging || !videoDuration || !pixelsPerSecond) return;
@@ -99,5 +86,5 @@ export function usePlayheadDrag(
     };
   }, [isDragging, pixelsPerSecond, videoDuration, videoWidth, preview, setCurrentTime, playheadRef]);
 
-  return { isDragging, handlePlayheadMouseDown };
+  return { isDragging };
 }

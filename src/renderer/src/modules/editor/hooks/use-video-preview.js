@@ -9,7 +9,9 @@ export function useVideoPreview({ videoPreviewInstance, videoPath, handleTimeUpd
       videoPreviewInstance.current = new VideoPreview();
       videoPreviewInstance.current.init(canvasRef.current, videoPath, handleTimeUpdate, handlePreviewState, effects);
     }
+
+    return () => videoPreviewInstance.current.destroy()
   }, [videoPath]);
 
-  return { preview: videoPreviewInstance, canvasRef };
+  return { canvasRef };
 }
