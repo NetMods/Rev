@@ -1,4 +1,3 @@
-
 export class CanvasRenderer {
   constructor() {
     this.canvas = null;
@@ -70,14 +69,34 @@ export class CanvasRenderer {
 
     this.video = video;
 
-    this.ctx.fillRect(0, 0, video.videoWidth, video.videoHeight);
+    const videoAspect = video.videoWidth / video.videoHeight;
+    const canvasDisplayAspect = parseFloat(this.canvas.style.width) / parseFloat(this.canvas.style.height);
 
-    this.ctx.save();
+    let drawWidth, drawHeight, offsetX, offsetY;
+
+    if (videoAspect > canvasDisplayAspect) {
+      // Fit width
+      drawWidth = video.videoWidth;
+      drawHeight = video.videoWidth / canvasDisplayAspect;
+      offsetX = 0;
+      offsetY = (video.videoHeight - drawHeight) / 2;
+    } else {
+      // Fit height
+      drawHeight = video.videoHeight;
+      drawWidth = video.videoHeight * canvasDisplayAspect;
+      offsetX = (video.videoWidth - drawWidth) / 2;
+      offsetY = 0;
+    }
+
+    this.ctx.save()
 
     this.effectsManager.applyEffects(this.ctx, this.video, currentTime);
-    this.ctx.drawImage(video, 0, 0, this.canvas.width, this.canvas.height);
 
-    this.ctx.restore();
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
+
+    this.ctx.restore()
   }
 
   destroy() {

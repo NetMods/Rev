@@ -1,6 +1,16 @@
 export class EffectsManager {
   constructor() {
     this.effects = [];
+    this.currentScale = 1;
+    this.currentTranslateX = 0;
+    this.currentTranslateY = 0;
+
+    this.isResetting = false;
+    this.resetStartTime = 0;
+    this.resetDuration = 1;
+    this.resetStartScale = 1;
+    this.resetStartTranslateX = 0;
+    this.resetStartTranslateY = 0;
   }
 
   init(effects) {
@@ -17,185 +27,196 @@ export class EffectsManager {
 
   applyEffects(ctx, video, currentTime) {
     if (!video || !ctx) return;
-
     const activeEffects = this.getActiveEffectsAtTime(currentTime);
 
-    activeEffects.forEach(effect => {
-      if (effect.type === 'zoom') {
-        this.applyZoomEffect(effect, currentTime);
+    if (activeEffects.length > 0) {
+      this.isResetting = false;
+      activeEffects.forEach(effect => {
+        if (effect.type === 'zoom') {
+          this.applyZoomEffect(effect, currentTime, ctx);
+        }
+        if (effect.type === 'pan') {
+          this.applyPanEffect(effect, currentTime, ctx);
+        }
+      });
+    } else {
+      if (this.currentScale !== 1 || this.currentTranslateX !== 0 || this.currentTranslateY !== 0) {
+        this.resetZoomEffect(ctx, currentTime)
+      }
+      else {
+        this.isResetting = false;
+      }
+    }
+  }
+
+  applyZoomEffect(effect, currentTime, ctx) {
+    const { startTime, endTime, center, level } = effect
+    const duration = endTime - startTime
+
+    if (!effect._started) {
+      effect._started = true;
+      effect.initialScale = this.currentScale;
+
+      effect.initialTranslateX = this.currentTranslateX;
+      effect.initialTranslateY = this.currentTranslateY;
+
+      const worldX = (center.x - effect.initialTranslateX) / effect.initialScale;
+      const worldY = (center.y - effect.initialTranslateY) / effect.initialScale;
+
+      effect.targetTranslateX = center.x - (level * worldX);
+      effect.targetTranslateY = center.y - (level * worldY);
+
+      effect.targetTranslateX = Math.abs(effect.targetTranslateX) < 200 ? 0 : effect.targetTranslateX
+      effect.targetTranslateY = Math.abs(effect.targetTranslateY) < 200 ? 0 : effect.targetTranslateY
+    }
+
+    const targetScale = level;
+    const progress = Math.min((currentTime - startTime) / duration, 1)
+    const eased = this.ease(progress)
+
+    this.currentScale = effect.initialScale + (targetScale - effect.initialScale) * eased
+    this.currentTranslateX = effect.initialTranslateX + (effect.targetTranslateX - effect.initialTranslateX) * eased;
+    this.currentTranslateY = effect.initialTranslateY + (effect.targetTranslateY - effect.initialTranslateY) * eased;
+
+    ctx.translate(this.currentTranslateX, this.currentTranslateY);
+    ctx.scale(this.currentScale, this.currentScale);
+  }
+
+  applyPanEffect(effect, currentTime, ctx) {
+    const { startTime, endTime, path } = effect;
+    const totalDuration = parseFloat(endTime) - parseFloat(startTime);
+
+    if (!effect._started) {
+      effect._started = true;
+      effect.initialTranslateX = this.currentTranslateX;
+      effect.initialTranslateY = this.currentTranslateY;
+      effect.initialScale = this.currentScale;
+
+      // Convert path times to relative progress values and calculate cumulative distances
+      effect.processedPath = this.processPathForInterpolation(path, startTime, endTime);
+    }
+
+    const currentProgress = Math.min((currentTime - parseFloat(startTime)) / totalDuration, 1);
+    const easedProgress = this.ease(currentProgress);
+
+    // Find the current position along the path
+    const currentPosition = this.interpolateAlongPath(effect.processedPath, easedProgress);
+
+    // Calculate the pan offset (negative because we're moving the canvas, not the content)
+    const panOffsetX = -(currentPosition.x - effect.processedPath[0].x);
+    const panOffsetY = -(currentPosition.y - effect.processedPath[0].y);
+
+    // Apply the pan offset to the current transformation
+    this.currentTranslateX = effect.initialTranslateX + panOffsetX;
+    this.currentTranslateY = effect.initialTranslateY + panOffsetY;
+    this.currentScale = effect.initialScale; // Maintain current scale during pan
+
+    ctx.translate(this.currentTranslateX, this.currentTranslateY);
+    ctx.scale(this.currentScale, this.currentScale);
+  }
+
+  processPathForInterpolation(path) {
+    const processedPath = [];
+    let totalDistance = 0;
+
+    for (let i = 0; i < path.length; i++) {
+      const point = path[i];
+      let segmentDistance = 0;
+
+      if (i > 0) {
+        const prevPoint = path[i - 1];
+        segmentDistance = Math.sqrt(
+          Math.pow(point.x - prevPoint.x, 2) +
+          Math.pow(point.y - prevPoint.y, 2)
+        );
+        totalDistance += segmentDistance;
       }
 
-      if (effect.type === 'pan') {
-        this.applyPanEffect(effect, currentTime);
-      }
+      processedPath.push({
+        x: point.x,
+        y: point.y,
+        time: parseFloat(point.time),
+        cumulativeDistance: totalDistance,
+        segmentDistance: segmentDistance
+      });
+    }
+
+    // Normalize distances to 0-1 range for easier interpolation
+    processedPath.forEach(point => {
+      point.normalizedDistance = totalDistance > 0 ? point.cumulativeDistance / totalDistance : 0;
     });
+
+    return processedPath;
   }
 
-  applyZoomEffect(effect, currentTime) {
-    console.log(effect, currentTime)
+  interpolateAlongPath(processedPath, progress) {
+    if (processedPath.length === 0) return { x: 0, y: 0 };
+    if (processedPath.length === 1) return { x: processedPath[0].x, y: processedPath[0].y };
+    if (progress <= 0) return { x: processedPath[0].x, y: processedPath[0].y };
+    if (progress >= 1) return { x: processedPath[processedPath.length - 1].x, y: processedPath[processedPath.length - 1].y };
+
+    // Find the segment where the current progress falls
+    for (let i = 0; i < processedPath.length - 1; i++) {
+      const currentPoint = processedPath[i];
+      const nextPoint = processedPath[i + 1];
+
+      if (progress >= currentPoint.normalizedDistance && progress <= nextPoint.normalizedDistance) {
+        // Calculate local progress within this segment
+        const segmentRange = nextPoint.normalizedDistance - currentPoint.normalizedDistance;
+        const localProgress = segmentRange > 0 ?
+          (progress - currentPoint.normalizedDistance) / segmentRange : 0;
+
+        // Linear interpolation between the two points
+        return {
+          x: currentPoint.x + (nextPoint.x - currentPoint.x) * localProgress,
+          y: currentPoint.y + (nextPoint.y - currentPoint.y) * localProgress
+        };
+      }
+    }
+
+    // Fallback to the last point
+    return {
+      x: processedPath[processedPath.length - 1].x,
+      y: processedPath[processedPath.length - 1].y
+    };
   }
 
-  applyPanEffect(effect, currentTime) {
-    console.log(effect, currentTime)
+  resetZoomEffect(ctx, currentTime) {
+    if (!this.isResetting) {
+      this.isResetting = true;
+      this.resetStartTime = currentTime;
+      this.resetStartScale = this.currentScale;
+      this.resetStartTranslateX = this.currentTranslateX;
+      this.resetStartTranslateY = this.currentTranslateY;
+    }
+
+    const progress = Math.min((currentTime - this.resetStartTime) / this.resetDuration, 1);
+    const eased = this.ease(progress);
+
+    this.currentScale = this.resetStartScale + (1 - this.resetStartScale) * eased;
+    this.currentTranslateX = this.resetStartTranslateX + (0 - this.resetStartTranslateX) * eased;
+    this.currentTranslateY = this.resetStartTranslateY + (0 - this.resetStartTranslateY) * eased;
+
+    ctx.translate(this.currentTranslateX, this.currentTranslateY);
+    ctx.scale(this.currentScale, this.currentScale);
+
+    if (progress >= 1) {
+      this.isResetting = false;
+      this.currentScale = 1;
+      this.currentTranslateX = 0;
+      this.currentTranslateY = 0;
+    }
   }
 
   updateEffects(newEffects) {
     this.effects = newEffects || [];
+  }
+
+  ease(x) {
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   }
 
   destroy() {
     this.effects = []
   }
 }
-
-
-
-{/*
-export class EffectsManager {
-  constructor() {
-    this.effects = [];
-    this.videoZoomLevel = 1;
-    this.lastCenter = null;
-    this.lastFrameTime = null;
-  }
-
-  getActiveEffectsAtTime(currentTime) {
-    return this.effects.filter(effect => {
-      const start = parseFloat(effect.startTime);
-      const end = parseFloat(effect.endTime);
-      return currentTime >= start && currentTime <= end;
-    });
-  }
-
-  applyEffects(ctx, video, currentTime) {
-    if (!video || !ctx) return;
-
-    const w = video.videoWidth;
-    const h = video.videoHeight;
-    const activeEffects = this.getActiveEffectsAtTime(currentTime);
-    let hasZoom = false;
-    let hasPan = false;
-
-    activeEffects.forEach(effect => {
-      if (effect.type === 'zoom') {
-        this.applyZoomEffect(effect, currentTime);
-        hasZoom = true;
-      }
-
-      if (effect.type === 'pan') {
-        this.applyPanEffect(effect, currentTime);
-        hasPan = true;
-      }
-    });
-
-    if (!hasZoom && !hasPan && this.videoZoomLevel > 1) {
-      const zoomOutRate = 1;
-      const currentFrameTime = performance.now();
-      if (this.lastFrameTime !== null) {
-        const deltaTime = (currentFrameTime - this.lastFrameTime) / 1000;
-        this.videoZoomLevel = Math.max(1, this.videoZoomLevel - zoomOutRate * deltaTime);
-      }
-      this.lastFrameTime = currentFrameTime;
-    } else if (hasZoom || hasPan) {
-      this.lastFrameTime = performance.now();
-    }
-
-    const s = this.videoZoomLevel;
-    if (s > 1) {
-      let cx = this.lastCenter ? this.lastCenter.x : w / 2;
-      let cy = this.lastCenter ? this.lastCenter.y : h / 2;
-
-      if (!hasZoom && !hasPan) {
-        const half_w = w / (2 * s);
-        const half_h = h / (2 * s);
-        cx = Math.max(half_w, Math.min(cx, w - half_w));
-        cy = Math.max(half_h, Math.min(cy, h - half_h));
-        this.lastCenter = { x: cx, y: cy };
-      }
-
-      ctx.translate(w / 2, h / 2);
-      ctx.scale(s, s);
-      ctx.translate(-cx, -cy);
-    }
-  }
-
-  applyZoomEffect(effect, currentTime) {
-    if (!effect.center || typeof effect.level !== 'number') return;
-
-    const { x, y } = effect.center;
-    const start = parseFloat(effect.startTime);
-    const end = parseFloat(effect.endTime);
-    const progress = Math.min(1, Math.max(0,
-      (currentTime - start) / (end - start)
-    ));
-
-    this.videoZoomLevel = 1 + (effect.level - 1) * progress;
-
-    const w = effect.videoWidth || 1920; // Default width if not provided
-    const h = effect.videoHeight || 1080; // Default height if not provided
-    let cx = x;
-    let cy = y;
-    const half_w = w / (2 * this.videoZoomLevel);
-    const half_h = h / (2 * this.videoZoomLevel);
-    cx = Math.max(half_w, Math.min(cx, w - half_w));
-    cy = Math.max(half_h, Math.min(cy, h - half_h));
-
-    this.lastCenter = { x: cx, y: cy };
-  }
-
-  applyPanEffect(effect, currentTime) {
-    const w = effect.videoWidth || 1920; // Default width if not provided
-    const h = effect.videoHeight || 1080; // Default height if not provided
-    const s = this.videoZoomLevel;
-    if (s <= 1) return;
-
-    const path = effect.path.map(point => ({
-      x: point.x,
-      y: point.y,
-      t: parseFloat(point.time)
-    }));
-
-    let cx, cy;
-    const now = currentTime;
-    const first = path[0];
-    const last = path[path.length - 1];
-
-    if (now < first.t) {
-      cx = first.x;
-      cy = first.y;
-    } else if (now > last.t) {
-      cx = last.x;
-      cy = last.y;
-    } else {
-      let found = false;
-      for (let i = 0; i < path.length - 1; i++) {
-        const p1 = path[i];
-        const p2 = path[i + 1];
-        if (now >= p1.t && now <= p2.t) {
-          const segDur = p2.t - p1.t;
-          const prog = segDur > 0 ? (now - p1.t) / segDur : 0;
-          cx = p1.x + (p2.x - p1.x) * prog;
-          cy = p1.y + (p2.y - p1.y) * prog;
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        cx = last.x;
-        cy = last.y;
-      }
-    }
-
-    const half_w = w / (2 * s);
-    const half_h = h / (2 * s);
-    cx = Math.max(half_w, Math.min(cx, w - half_w));
-    cy = Math.max(half_h, Math.min(cy, h - half_h));
-
-    this.lastCenter = { x: cx, y: cy };
-  }
-
-  updateEffects(newEffects) {
-    this.effects = newEffects || [];
-  }
-}
-    */}
