@@ -14,7 +14,7 @@ export default {
   async startRecording() {
     const mainWindow = this.core.window.getMainWindow();
     setupVideoRecording(mainWindow);
-    this.mouseTracker.start();
+    this.mouseTracker.start(mainWindow);
   },
 
   async stopRecording(arrayBuffer, extension) {

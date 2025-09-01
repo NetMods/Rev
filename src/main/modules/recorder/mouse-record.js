@@ -16,7 +16,12 @@ export class MouseTracker {
     this.isTracking = false
   }
 
-  start() {
+  isInsideMainWindow(mouseX, mouseY, win) {
+    const { x, y, width, height } = win.getBounds();
+    return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
+  }
+
+  start(mainWindow) {
     if (this.isTracking) {
       log.warn("Mouse tracking is already active")
       return
@@ -26,6 +31,8 @@ export class MouseTracker {
     this.startTime = process.hrtime.bigint()
 
     this.onMouseDown = (event) => {
+      if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return
+
       const currentTime = process.hrtime.bigint()
       const elapsedNanoseconds = currentTime - this.startTime
       const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
@@ -47,6 +54,8 @@ export class MouseTracker {
     }
 
     this.onMouseMove = (event) => {
+      if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return
+
       if (this.activeDrag) {
         const currentTime = process.hrtime.bigint()
         const elapsedNanoseconds = currentTime - this.startTime
@@ -62,6 +71,8 @@ export class MouseTracker {
     }
 
     this.onMouseUp = (event) => {
+      if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return
+
       if (this.activeDrag) {
         const currentTime = process.hrtime.bigint()
         const elapsedNanoseconds = currentTime - this.startTime
