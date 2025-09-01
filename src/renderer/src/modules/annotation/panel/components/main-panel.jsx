@@ -39,7 +39,7 @@ const MainPanel = ({ config, setConfig }) => {
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
           config.tool === "eraser" ? "" : "hover")}
       >
-        <Eraser size={23} />
+        <Eraser size={20} />
       </button>
 
       <button
@@ -63,7 +63,7 @@ const MainPanel = ({ config, setConfig }) => {
           config.tool === "text" ? "" : ""
         )}
       >
-        <Text size={23} />
+        <Text size={20} />
       </button>
     </div>
   );

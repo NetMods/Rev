@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('api', {
     getConfig: (...args) => ipcRenderer.invoke('annotation-config:get', ...args),
   },
 
+
   project: {
     create: (...args) => ipcRenderer.invoke('project:create', ...args),
   },
