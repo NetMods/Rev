@@ -27,7 +27,8 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   screenshot: {
-    create: (...args) => ipcRenderer.send('screenshot:create', ...args)
+    create: (...args) => ipcRenderer.send('screenshot:create-window', ...args),
+    show: (callback) => ipcRenderer.on("screenshot:image-data", (_, data) => callback(data))
   },
 
   core: {

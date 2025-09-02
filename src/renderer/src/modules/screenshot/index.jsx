@@ -81,7 +81,10 @@ export default function Page() {
 
   useEffect(() => {
     setupCanvas();
-    createImage("https://placewaifu.com/image");
+    window.api.screenshot.show((data) => {
+      // createImage(data);
+      createImage("https://placewaifu.com/image");
+    })
 
     window.addEventListener("resize", onResize);
 

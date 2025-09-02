@@ -15,7 +15,7 @@ export default {
 
   getIPCHandlers() {
     return {
-      "screenshot:create": (_, data) => this.createScreenshot(data),
+      "screenshot:create-window": (_, data) => this.createScreenshot(data),
     };
   }
 };
