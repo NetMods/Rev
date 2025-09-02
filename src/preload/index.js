@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('api', {
 
   editor: {
     create: (...args) => ipcRenderer.send('editor:create', ...args),
+    saveVideo: (...args) => ipcRenderer.invoke('editor:save', ...args),
   },
 
   core: {

@@ -113,6 +113,111 @@ export class VideoPreview {
     }
   }
 
+  async export() {
+    // 1. Validate that the necessary components are initialized
+    if (!this.canvasRenderer.canvas || !this.videoManager.video) {
+      console.error("Export failed: Canvas or video not initialized.");
+      return;
+    }
+
+    console.log("Starting video export...");
+
+    // Store the original state (current time and play status) to restore later
+    const originalTime = this.videoManager.currentTime;
+    const wasPlaying = this.isPlaying;
+
+    // Pause the video if it's playing and reset to the beginning for a clean start
+    if (wasPlaying) {
+      this.videoManager.togglePlayPause();
+    }
+    this.seekTo(0);
+
+    // Ensure the first frame is drawn before recording starts
+    // A small delay helps guarantee the canvas is updated
+    await new Promise(resolve => setTimeout(resolve, 100));
+    this.canvasRenderer.drawFrame(this.videoManager.video, 0);
+
+    // 2. Setup MediaRecorder
+    const stream = this.canvasRenderer.canvas.captureStream(30); // Capture at 30 FPS
+    const options = {
+      // Using webm/vp9 for better browser support and quality-to-size ratio
+      mimeType: 'video/webm; codecs=vp9',
+      bitsPerSecond: 8_000_000 // 8 Mbps for good quality
+    };
+
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      console.error(`${options.mimeType} is not supported. Trying default.`);
+      // Fallback to default if the preferred codec isn't supported
+      delete options.mimeType;
+    }
+
+    const recorder = new MediaRecorder(stream, options);
+    const chunks = [];
+
+    // 3. Define event handlers and wrap the process in a Promise
+    const exportPromise = new Promise((resolve, reject) => {
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        console.log("Recording stopped, processing file...");
+        try {
+          // Use the first chunk's type or a fallback
+          const blobType = chunks.length > 0 ? chunks[0].type : 'video/webm';
+          const blob = new Blob(chunks, { type: blobType });
+
+          // This part is specific to your app's API (e.g., Electron backend)
+          const arrayBuffer = await blob.arrayBuffer();
+          await window.api.editor.saveVideo(arrayBuffer);
+
+          console.log("Export successful!");
+          resolve(); // Resolve the promise on success
+        } catch (error) {
+          console.error("Error during video saving:", error);
+          reject(error); // Reject the promise on failure
+        }
+      };
+
+      recorder.onerror = (event) => {
+        console.error("MediaRecorder encountered an error:", event.error);
+        reject(event.error);
+      };
+    });
+
+    // This function will be called when the video finishes playing
+    const handleVideoEnd = () => {
+      if (recorder.state === "recording") {
+        recorder.stop();
+      }
+      // Clean up the event listener
+      this.videoManager.video.removeEventListener('ended', handleVideoEnd);
+    };
+
+    // 4. Start the recording process
+    this.videoManager.video.addEventListener('ended', handleVideoEnd);
+    recorder.start();
+    this.videoManager.video.play(); // Play the video to generate frames for the stream
+
+    // Wait for the process to complete, then restore the original state
+    try {
+      await exportPromise;
+    } finally {
+      console.log("Restoring original video state.");
+      this.seekTo(originalTime);
+      if (wasPlaying) {
+        // You might want to resume playback or leave it paused
+        // this.videoManager.togglePlayPause();
+      }
+      // Redraw the frame at the original time
+      this.canvasRenderer.drawFrame(this.videoManager.video, originalTime);
+    }
+
+    return exportPromise;
+  }
+
   destroy() {
     this.videoManager.destroy();
     this.canvasRenderer.destroy();

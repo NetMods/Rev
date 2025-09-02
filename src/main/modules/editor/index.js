@@ -1,5 +1,5 @@
 import log from 'electron-log/main';
-import { createEditorWindow } from './editor';
+import { createEditorWindow, saveVideo } from './editor';
 import { createZoomAndPanEffects } from "./effects"
 
 export default {
@@ -21,6 +21,7 @@ export default {
   getIPCHandlers() {
     return {
       'editor:create': (_, data) => this.createEditor(data),
+      'editor:save': async (_, data) => saveVideo(data),
     };
   }
 };

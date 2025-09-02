@@ -25,7 +25,7 @@ export const saveVideo = async (arrayBuffer) => {
   log.verbose(`Showing dialog to user to select video location`)
   const { canceled, filePath } = await dialog.showSaveDialog({
     buttonLabel: 'Save video',
-    defaultPath: `rec-${Date.now()}.webm`,
+    defaultPath: `rec-${Date.now()}.mp4`,
   });
 
   if (canceled || !filePath) {

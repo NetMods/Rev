@@ -1,6 +1,7 @@
 import { MdFullscreen as Fullscreen, MdFullscreenExit as FullscreenExit } from "react-icons/md";
 import { IoPlay as Play, IoPauseSharp as Pause } from 'react-icons/io5';
 import { LuPlus as Plus, LuMinus as Minus } from "react-icons/lu";
+import { PiExport as Export } from "react-icons/pi";
 import { formatTime } from "../utils";
 import { cn } from "../../../shared/utils";
 
@@ -42,6 +43,13 @@ export const Controls = ({ className, data }) => {
           aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
         >
           {isFullscreen ? <FullscreenExit size={20} /> : <Fullscreen size={20} />}
+        </button>
+
+        <button
+          onClick={() => preview.export()}
+          className="z-50 cursor-pointer bg-muted hover:bg-foreground/20 p-1 inline-flex items-center justify-center transition-colors"
+        >
+          <Export size={20} />
         </button>
       </div>
     </div>
