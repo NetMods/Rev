@@ -18,7 +18,7 @@ export default function Page() {
   const [selectedMode, setSelectedMode] = useState(OperatingMode.VIDEO);
 
   return (
-    <div className="py-1 bg-background text-foreground/80 border border-foreground/25 rounded select-none w-[52px]">
+    <div className="py-1 bg-background text-foreground/80 border border-foreground/25 rounded select-none w-[53px]">
       <div className="flex flex-col gap-2 px-2">
         <div className="flex flex-col gap-1">
           <button

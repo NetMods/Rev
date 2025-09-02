@@ -1,5 +1,6 @@
 import log from 'electron-log/main';
 import { createEditorWindow } from './editor';
+import { createZoomAndPanEffects } from "./effects"
 
 export default {
   name: 'editor',
@@ -11,6 +12,10 @@ export default {
 
   async createEditor(data) {
     return createEditorWindow(data, this.core);
+  },
+
+  createEffects(mouseClicks, mouseDrags) {
+    return createZoomAndPanEffects(mouseClicks, mouseDrags)
   },
 
   getIPCHandlers() {

@@ -1,16 +1,19 @@
 import { app, BrowserWindow } from 'electron';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
-import log from 'electron-log/main';
 
 import { createWindow, createMainWindow, closeWindow } from './window';
 import { loadModules } from '../modules';
 import { registerIPCRouter } from './ipc-router';
 import config from './config';
 import paths from "./path"
+import { handleProtocolRequests, registerProtocolScheme } from './protocol';
+import { initializeLogger } from './utils';
 
-log.initialize();
-log.transports.console.format = '\x1b[33m{h}:{i}:{s} \x1b[36m[{level}] \x1b[30m› \x1b[0m{text}';
-log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] › {text}';
+const log = initializeLogger()
+
+const SCHEME_NAME = "app"
+
+registerProtocolScheme(SCHEME_NAME)
 
 app.whenReady().then(async () => {
   // Set app user model for Windows notifications
@@ -20,6 +23,11 @@ app.whenReady().then(async () => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });
+
+  // For enabling deep links
+  app.setAsDefaultProtocolClient("rev")
+
+  handleProtocolRequests(SCHEME_NAME)
 
   const mainWindow = await createMainWindow();
 

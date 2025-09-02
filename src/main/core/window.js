@@ -35,6 +35,10 @@ export const createWindow = async (options, name = 'unnamed') => {
     window.loadFile(join(__dirname, '../renderer/index.html'), { hash: options.path })
   }
 
+  window.webContents.on(`did-finish-load`, () => {
+    window.setTitle(`Rev - ${name} Window`)
+  })
+
   window.webContents.setWindowOpenHandler((details) => {
     log.warn(`Denied opening window with url ${details.url}`)
     return { action: 'deny' }
@@ -98,7 +102,6 @@ export async function createMainWindow() {
     }
   }
   const recorderWindow = await createWindow(options, 'Recorder')
-
 
   recorderWindow.on('ready-to-show', () => {
     recorderWindow.show()
