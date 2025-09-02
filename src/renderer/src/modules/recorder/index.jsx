@@ -60,7 +60,7 @@ export default function Page() {
               "py-1 no-drag flex justify-center rounded cursor-pointer",
               selectedMode === OperatingMode.SCREENSHOT ? "bg-button-hover/80" : "hover:bg-button-hover"
             )}
-            onClick={() => setSelectedMode(OperatingMode.SCREENSHOT)}
+            onClick={() => window.api.screenshot.create()}
           >
             <Camera size={23} />
           </button>

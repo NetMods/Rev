@@ -26,6 +26,10 @@ contextBridge.exposeInMainWorld('api', {
     create: (...args) => ipcRenderer.send('editor:create', ...args),
   },
 
+  screenshot: {
+    create: (...args) => ipcRenderer.send('screenshot:create', ...args)
+  },
+
   core: {
     closeWindow: () => ipcRenderer.send('window:close'),
   },
