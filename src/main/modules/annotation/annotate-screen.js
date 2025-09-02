@@ -62,7 +62,7 @@ const createAnnotationBackground = async (core) => {
     resizable: false,
     hasShadow: false,
     skipTaskbar: true,
-    focusable: true,
+    focusable: false,
     webPreferences: {
       backgroundThrottling: false
     }

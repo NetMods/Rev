@@ -1,5 +1,5 @@
 import log from 'electron-log/main';
-import { createProjectWithData } from './project';
+import { createProjectWithData, getProjectFromId, updateProjectEffects } from './project';
 
 export default {
   name: 'project',
@@ -13,9 +13,18 @@ export default {
     return createProjectWithData(data, this.core);
   },
 
+  async getProject(id) {
+    return getProjectFromId(id, this.core);
+  },
+  async updateEffects(id, effects) {
+    return updateProjectEffects(id, effects, this.core);
+  },
+
   getIPCHandlers() {
     return {
       'project:create': async (_, data) => this.createProject(data),
+      'project:get': async (_, id) => this.getProject(id),
+      'project:updateEffects': async (_, id, effects) => this.updateEffects(id, effects),
     };
   }
 };
