@@ -10,6 +10,7 @@ export default function App() {
   const [penSize, setPenSize] = useState(6)
   const [freeze, setFreeze] = useState(true)
   const [freezeTime, setFreezeTime] = useState(0)
+  const [tool, setTool] = useState("pen")
 
   const handleAnnotationConfigChange = (_, config) => {
     log.info('Annotation configuration changed:', config)
@@ -23,10 +24,22 @@ export default function App() {
     if (config.freezeTime !== undefined) {
       setFreezeTime(config.freezeTime)
     }
+
+    if (config.tool) {
+      setTool(config.tool)
+    }
+  }
+
+  const handleAnnotationClear = (data) => {
+    if (data.status === 200) {
+      log.info("clearing")
+      canvasRef.current.clear()
+    }
   }
 
   useEffect(() => {
     window.api.annotation.setConfig(handleAnnotationConfigChange)
+    window.api.annotation.onClear(handleAnnotationClear)
   }, [])
 
   return (
@@ -41,6 +54,7 @@ export default function App() {
         onForegroundAnnotationChange={setForegroundAnnotation}
         freeze={freeze}
         freezeTime={freezeTime}
+        tool={tool}
       />
     </div>
   )

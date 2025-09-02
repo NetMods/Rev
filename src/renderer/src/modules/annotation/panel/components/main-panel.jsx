@@ -1,52 +1,66 @@
-import { useState } from "react";
 import { LuBrush as Brush, LuArrowUpRight as Arrow } from "react-icons/lu";
-import { TbOvalVertical as Oval } from "react-icons/tb";
-import { IoText as Text } from "react-icons/io5";
+import { CiEraser as Eraser } from "react-icons/ci";
+import { MdOutlineFormatColorText as Text } from "react-icons/md";
 import { cn } from "../../../../shared/utils";
 import { MainAnnotationControls } from "../constants";
 
-const MainPanel = () => {
-  const [currentMode, setCurrentMode] = useState(MainAnnotationControls.LINE);
+const MainPanel = ({ config, setConfig }) => {
+
+
+  const handleToolChange = (tool) => {
+    setConfig({
+      tool: tool
+    })
+  }
+
 
   return (
-    <div className="flex flex-col gap-2 items-center">
+    <div className="flex flex-col gap-2 items-center no-drag">
       <button
-        onClick={() => setCurrentMode(MainAnnotationControls.LINE)}
+        onClick={() => {
+          handleToolChange(MainAnnotationControls.PEN)
+        }}
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center",
-          currentMode === "line" ? "" : "hover:"
+          config.tool === "pen" ? "" : "hover"
         )}
       >
         <Brush size={23} />
       </button>
 
       <button
-        onClick={() => setCurrentMode(MainAnnotationControls.ARROW)}
-        disabled
+        onClick={() => {
+          handleToolChange(MainAnnotationControls.ERASER)
+        }}
+        onDoubleClick={() => {
+          window.api.annotation.clear()
+        }}
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          currentMode === "arrow" ? "" : "hover")}
+          config.tool === "eraser" ? "" : "hover")}
+      >
+        <Eraser size={20} />
+      </button>
+
+      <button
+        onClick={() => {
+          handleToolChange(MainAnnotationControls.ARROW)
+        }}
+        className={cn(
+          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
+          config.tool === "arrow" ? "" : ""
+        )}
       >
         <Arrow size={23} />
       </button>
 
       <button
-        onClick={() => setCurrentMode(MainAnnotationControls.OVAL)}
-        disabled
+        onClick={() => {
+          handleToolChange(MainAnnotationControls.TEXT)
+        }}
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          currentMode === "oval" ? "" : ""
-        )}
-      >
-        <Oval size={23} />
-      </button>
-
-      <button
-        onClick={() => setCurrentMode(MainAnnotationControls.TEXT)}
-        disabled
-        className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          currentMode === "text" ? "" : ""
+          config.tool === "text" ? "" : ""
         )}
       >
         <Text size={20} />

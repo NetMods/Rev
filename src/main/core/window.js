@@ -106,6 +106,7 @@ export async function createMainWindow() {
   recorderWindow.on('ready-to-show', () => {
     recorderWindow.show()
     recorderWindow.focus()
+    recorderWindow.setContentProtection(true)
     try {
       recorderWindow.setAlwaysOnTop(true, 'pop-up-menu', 50)
       recorderWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })

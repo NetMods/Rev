@@ -8,9 +8,6 @@ const ColorPanel = ({ config, setConfig, close }) => {
   const handleColorChange = async (Hexcolor) => {
     setConfig({
       color: Hexcolor,
-      size: null,
-      freeze: null,
-      freezeTime: 0
     })
   };
 

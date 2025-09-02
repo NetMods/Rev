@@ -1,11 +1,11 @@
 export const PENCOLORS = Object.freeze({
-  RED: "#FF3B30",
-  YELLOW: "#FFCC00",
-  GREEN: "#34C759",
-  BLUE: "#007AFF",
-  PURPLE: "#AF52DE",
-  ORANGE: "#FF9500",
-  BLACK: "#333333"
+  RED: '#FF3B30',
+  YELLOW: '#FFCC00',
+  GREEN: '#34C759',
+  BLUE: '#007AFF',
+  PURPLE: '#AF52DE',
+  ORANGE: '#FF9500',
+  BLACK: '#333333'
 })
 
 export const PENSIZE = Object.freeze({
@@ -25,17 +25,16 @@ export const PENTIMER = Object.freeze({
 })
 
 export const MainAnnotationControls = Object.freeze({
-  LINE: 'line',
+  PEN: 'pen',
   ARROW: 'arrow',
-  OVAL: 'oval',
-  TEXT: 'text'
+  TEXT: 'text',
+  ERASER: 'eraser'
 })
 
 export const ANNOTATION_CONFIG = {
   color: null,
   size: null,
   freeze: null,
-  freezeTime: null
+  freezeTime: null,
+  tool: 'pen'
 }
-
-

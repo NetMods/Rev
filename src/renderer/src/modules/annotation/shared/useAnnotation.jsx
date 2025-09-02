@@ -8,6 +8,7 @@ const useAnnotationConfig = (initialConfig = {}) => {
     const fetchConfig = async () => {
       try {
         const fetchedConfig = await window.api.annotation.getConfig();
+        console.log("fetched config is : ", fetchedConfig)
         setConfig(fetchedConfig || initialConfig);
       } catch (e) {
         console.warn("Failed to get the annotation config:", e);
