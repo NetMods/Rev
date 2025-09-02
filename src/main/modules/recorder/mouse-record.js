@@ -1,5 +1,6 @@
 import { uIOhook } from 'uiohook-napi'
 import log from "electron-log/main"
+import { screen } from 'electron'
 
 export class MouseTracker {
   constructor() {
@@ -17,8 +18,23 @@ export class MouseTracker {
   }
 
   isInsideMainWindow(mouseX, mouseY, win) {
-    const { x, y, width, height } = win.getBounds();
-    return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
+    const bounds = win.getBounds()
+    const display = screen.getDisplayMatching(bounds)
+    const scaleFactor = display.scaleFactor
+
+    const scaledBounds = {
+      x: bounds.x * scaleFactor,
+      y: bounds.y * scaleFactor,
+      width: bounds.width * scaleFactor,
+      height: bounds.height * scaleFactor
+    }
+
+    return (
+      mouseX >= scaledBounds.x &&
+      mouseX <= scaledBounds.x + scaledBounds.width &&
+      mouseY >= scaledBounds.y &&
+      mouseY <= scaledBounds.y + scaledBounds.height
+    )
   }
 
   start(mainWindow) {
@@ -31,7 +47,11 @@ export class MouseTracker {
     this.startTime = process.hrtime.bigint()
 
     this.onMouseDown = (event) => {
-      if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return
+      try {
+        if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
+      } catch (err) {
+        log.error("Error in onMouseDown:", err)
+      }
 
       const currentTime = process.hrtime.bigint()
       const elapsedNanoseconds = currentTime - this.startTime
@@ -54,7 +74,11 @@ export class MouseTracker {
     }
 
     this.onMouseMove = (event) => {
-      if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return
+      try {
+        if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
+      } catch (err) {
+        log.error("Error in onMouseDown:", err)
+      }
 
       if (this.activeDrag) {
         const currentTime = process.hrtime.bigint()
@@ -71,7 +95,11 @@ export class MouseTracker {
     }
 
     this.onMouseUp = (event) => {
-      if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return
+      try {
+        if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
+      } catch (err) {
+        log.error("Error in onMouseDown:", err)
+      }
 
       if (this.activeDrag) {
         const currentTime = process.hrtime.bigint()
