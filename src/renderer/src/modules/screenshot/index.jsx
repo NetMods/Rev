@@ -1,101 +1,73 @@
-import { useRef, useEffect } from "react"
+import log from "electron-log/renderer"
+import { useEffect, useRef, useState } from "react"
+import ScreeshotPlaceholder from "../../assets/screenshot-placeholder.gif"
+import { Stage, Layer, Rect } from "react-konva"
+import URLImage from "./components/urlimage"
 
 export default function Page() {
-  const canvasRef = useRef(null)
-  const imageRef = useRef(null)
 
-  const getImageDimensions = () => {
-    const canvas = canvasRef.current;
-    const image = imageRef.current;
+  const [imageUrl, setImageUrl] = useState(null)
+  const stageRef = useRef(null)
+  const canvasContainerRef = useRef(null)
+  const [stageSize, setstageSize] = useState({
+    width: 0,
+    height: 0
+  })
 
-    if (!canvas || !image) return;
-
-    const imgAspect = image.width / image.height;
-    const canvasAspect = canvas.width / canvas.height;
-
-    let drawWidth, drawHeight, offsetX, offsetY;
-
-    if (imgAspect > canvasAspect) {
-      drawWidth = canvas.width;
-      drawHeight = canvas.width / imgAspect;
-      offsetX = 0;
-      offsetY = (canvas.height - drawHeight) / 2;
-    } else {
-      drawHeight = canvas.height;
-      drawWidth = canvas.height * imgAspect;
-      offsetY = 0;
-      offsetX = (canvas.width - drawWidth) / 2;
-    }
-
-    return { x: offsetX, y: offsetY, width: drawWidth, height: drawHeight };
-  };
-
-  const drawImage = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    const image = imageRef.current;
-
-    if (!canvas || !ctx || !image) return;
-
-    const { x, y, width, height } = getImageDimensions();
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(image, x, y, width, height);
-  };
-
-  const createImage = (url) => {
-    const img = new Image();
-    img.src = url;
-
-    img.onload = () => {
-      imageRef.current = img;
-      drawImage();
-    };
-  };
-
-  const onResize = () => {
-    setupCanvas();
-    drawImage();
-  };
-
-  const setupCanvas = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-
-    if (!canvas || !ctx) return;
-
-    /* High DPI / crispness */
-    const cssW = window.innerWidth;
-    const cssH = window.innerHeight;
-
-    const dpr = window.devicePixelRatio || 1;
-
-    canvas.width = Math.floor(cssW * dpr);
-    canvas.height = Math.floor(cssH * dpr);
-
-    canvas.style.width = cssW + "px";
-    canvas.style.height = cssH + "px";
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  };
-
+  // this one is for fetching the image data
   useEffect(() => {
-    setupCanvas();
     window.api.screenshot.show((data) => {
-      // createImage(data);
-      createImage("https://placewaifu.com/image");
+      log.info(data)
+      setImageUrl(data)
     })
+  }, [])
 
-    window.addEventListener("resize", onResize);
+
+  // this one is for handling resizing
+  useEffect(() => {
+    const handelResize = () => {
+      setstageSize({
+        width: canvasContainerRef.current.clientWidth,
+        height: canvasContainerRef.current.clientHeight
+      })
+    }
+    handelResize()
+
+    window.addEventListener('resize', handelResize)
 
     return () => {
-      window.removeEventListener("resize", drawImage);
-    };
-  }, []);
+      window.addEventListener('resize', handelResize)
+    }
+  }, [])
+
+
+
+
 
   return (
-    <div className="fixed inset-0 z-50">
-      <canvas ref={canvasRef} className="bg-background"></canvas>
+    <div className="h-screen w-screen overflow-hidden p-1 bg-green-300">
+      <div className="h-full w-full grid grid-cols-[4fr_1fr] grid-rows-[8fr_1fr] bg-blue-200">
+        <div ref={canvasContainerRef} className="flex justify-center items-center w-full h-full min-w-0 min-h-0 bg-gray-100" >
+          {!imageUrl ? (
+            <div className="h-full w-full flex justify-center items-center">
+              <img src={ScreeshotPlaceholder} alt="screenshot-placeholder" />
+            </div>
+          ) : (
+            <Stage ref={stageRef} width={stageSize.width} height={stageSize.height}>
+              <Layer>
+                <URLImage
+                  src={imageUrl}
+                  stageWidth={stageSize.width}
+                  stageHeight={stageSize.height}
+                />
+              </Layer>
+            </Stage>
+          )}
+        </div>
+        <div className="bg-violet-200"> </div>
+        <div className="bg-pink-300 col-start-1 col-end-3 flex items-center justify-center gap-3"> </div>
+      </div>
     </div>
   )
+
 }
