@@ -20,6 +20,7 @@ export default function Page() {
   return (
     <div className="py-1 bg-background text-foreground/80 border border-foreground/25 rounded select-none w-[53px]">
       <div className="flex flex-col gap-2 px-2">
+
         <div className="flex flex-col gap-1">
           <button
             disabled={!isRecording}
@@ -31,11 +32,13 @@ export default function Page() {
           >
             <span className='size-3.5 rounded-xs bg-foreground/90' />
           </button>
+
           <TimeIndicator
             isRecording={isRecording}
             isPaused={isPaused}
             onTimeLimitExceeds={() => stopRecording(() => setSelectedMode(OperatingMode.VIDEO))}
           />
+
           <button
             disabled={selectedMode !== OperatingMode.VIDEO}
             className="py-1 no-drag flex justify-center rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-button-hover"
@@ -44,7 +47,9 @@ export default function Page() {
             {isRecording && !isPaused ? <Pause size={20} /> : <Play size={20} />}
           </button>
         </div>
+
         <hr className="border-foreground/25" />
+
         <div className="flex flex-col gap-2">
           <button
             className={cn(
@@ -55,6 +60,7 @@ export default function Page() {
           >
             <Video size={23} />
           </button>
+
           <button
             className={cn(
               "py-1 no-drag flex justify-center rounded cursor-pointer",
@@ -64,6 +70,7 @@ export default function Page() {
           >
             <Camera size={23} />
           </button>
+
           <button
             className={cn("py-1 no-drag flex justify-center rounded cursor-pointer")}
             onClick={() => window.api.annotation.start()}
@@ -71,7 +78,9 @@ export default function Page() {
             <Pencil size={20} />
           </button>
         </div>
+
         <hr className="border-foreground/25" />
+
         <button
           className="py-1 no-drag flex justify-center rounded cursor-pointer hover:bg-button-hover"
           onClick={() => window.api.core.closeWindow()}

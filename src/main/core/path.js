@@ -5,10 +5,11 @@ import { homedir, version } from 'os';
 import { resolve, join } from 'path';
 import log from "electron-log/main"
 import { is } from '@electron-toolkit/utils';
+import { execFile } from 'child_process';
 
 export const homeDirectory = homedir();
 
-const applicationName = 'rev';
+export const applicationName = 'rev';
 export const projectFolderName = 'projects';
 export const configFileName = 'config.json';
 
@@ -45,11 +46,34 @@ if (is.dev) {
   ensureFile(configFile);
 }
 
+let ffmpegPath
+
+async function getFFmpegPath() {
+  if (ffmpegPath) return ffmpegPath;
+
+  const hasSystem = () => new Promise(resolve => execFile('ffmpeg', ['-version'], err => resolve(!err)));
+
+  if (await hasSystem()) {
+    ffmpegPath = 'ffmpeg';
+    return ffmpegPath
+  }
+
+  try {
+    const mod = await import('ffmpeg-static');
+    ffmpegPath = mod?.default ?? mod;
+    return ffmpegPath
+  } catch {
+    throw new Error('No ffmpeg available. Please Install ffmpeg manually for your machine.');
+  }
+}
+
 export default {
+  applicationName,
   projectsDirectory,
   projectFolderName,
   configDirectory,
   configFileName,
   configFile,
   homeDirectory,
+  getFFmpegPath
 };
