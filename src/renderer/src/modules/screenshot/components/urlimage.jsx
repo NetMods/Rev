@@ -7,7 +7,7 @@ const URLImage = ({
   stageWidth,
   stageHeight,
   padding = 0,
-  borderRadius = 0,
+  borderRadius = 10,
   onLayout,
 }) => {
   const [image] = useImage(src, "anonymous");
@@ -52,8 +52,7 @@ const URLImage = ({
         y={dims.y - padding}
         width={dims.width + padding * 2}
         height={dims.height + padding * 2}
-        fill="red"
-        cornerRadius={borderRadius}
+        fill="#222831"
       />
 
       {/* Image with rounded corners */}
