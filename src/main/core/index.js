@@ -15,6 +15,20 @@ const SCHEME_NAME = "app"
 
 registerProtocolScheme(SCHEME_NAME)
 
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', async () => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+  });
+}
+
 app.whenReady().then(async () => {
   // Set app user model for Windows notifications
   electronApp.setAppUserModelId('com.electron');

@@ -1,5 +1,5 @@
 import { screen } from 'electron'
-import { v4 as uuid } from 'uuid'
+import { randomUUID as uuid } from "crypto"
 
 export const createZoomAndPanEffects = (mouseClicks, mouseDrags) => {
   const effects = [];

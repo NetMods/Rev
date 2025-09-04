@@ -1,94 +1,41 @@
-import { useRef, useState } from "react";
-import log from 'electron-log/renderer'
+import { useState } from "react";
 
 export const useRecording = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [recorder, setRecorder] = useState(null);
-
-
-  const streamRef = useRef(null);
-  const recordedChunks = useRef([]);
-
-  const getSupportedMimeType = () => {
-    const types = [
-      'video/mp4; codecs=avc1.42001E',
-      'video/mp4; codecs=avc1.4D401F',
-      'video/webm; codecs=vp9',
-    ];
-    return types.find((type) => MediaRecorder.isTypeSupported(type)) || null;
-  };
-
-  const options = { mimeType: getSupportedMimeType() };
 
   const startRecording = async () => {
-    setIsRecording(true);
-
     try {
+      setIsRecording(true);
       await window.api.recording.start();
-
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        audio: false,
-        video: { framerate: 30 },
-      });
-      streamRef.current = stream;
-
-      const mediaRecorder = new MediaRecorder(stream, options);
-      mediaRecorder.ondataavailable = handleDataAvailable
-      mediaRecorder.onstop = handleStop
-
-      setRecorder(mediaRecorder);
-      mediaRecorder.start(100); // Timeslice of 100ms to ensure frequent dataavailable events
     } catch (error) {
-      console.error('Error starting recording:', error);
-      setIsRecording(false);
+      console.error('[renderer] Error starting recording:', error);
     }
   };
 
   const stopRecording = async (callback) => {
-    if (!recorder || !isRecording) return;
-
-    setIsRecording(false);
-    setIsPaused(false);
-    callback();
-
     try {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      recorder.stop();
+      setIsRecording(false);
+      setIsPaused(false);
+      callback();
+      await window.api.recording.stop()
     } catch (error) {
-      console.error('Error stopping recording:', error);
+      console.error('[renderer] Error stopping recording:', error);
     }
   };
 
-  const togglePause = () => {
-    if (recorder && !isPaused) {
-      recorder.pause();
-    } else if (recorder) {
-      recorder.resume();
-    }
-    setIsPaused((prev) => !prev);
-  };
-
-  const handleDataAvailable = (e) => {
-    if (e.data.size > 0) {
-      recordedChunks.current.push(e.data);
-    }
-  };
-
-  const handleStop = async () => {
-    const blob = new Blob(recordedChunks.current, options);
-    const extension = options.mimeType.includes('mp4') ? 'mp4' : 'webm';
-
+  const togglePause = async () => {
     try {
-      const arrayBuffer = await blob.arrayBuffer();
-
-      await window.api.recording.stop(arrayBuffer, extension)
+      if (isPaused) {
+        await window.api.recording.resume();
+      } else {
+        await window.api.recording.pause();
+      }
+      setIsPaused(prev => !prev);
     } catch (error) {
-      log.error('Error saving recording:', error);
+      console.error('[renderer] Error stopping recording:', error);
     }
-
-    recordedChunks.current = [];
-  }
+  };
 
   return { startRecording, stopRecording, togglePause, isRecording, isPaused };
 };

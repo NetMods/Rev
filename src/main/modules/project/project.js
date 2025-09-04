@@ -1,16 +1,12 @@
 import log from 'electron-log/main';
-import { ensureDirSync, writeFileSync } from 'fs-extra';
-import { v4 as uuid } from 'uuid';
+import { ensureDirSync, writeFileSync, existsSync, mkdirSync, readJsonSync } from 'fs-extra';
 import { join } from "path"
-import { existsSync, mkdirSync, readFileSync } from 'fs';
+import { randomUUID as uuid } from "crypto"
 
 export const fileEncoding = "utf-8"
 
-export const createProjectWithData = async (data, core) => {
-  const { arrayBuffer, mouseClickRecords, mouseDragRecords, timestamp, extension } = data
+export const createProjectWithData = async (data = {}, core) => {
   const projectsDirectory = core.paths.projectsDirectory
-
-  const effects = core.modules.editor.createEffects(mouseClickRecords, mouseDragRecords)
 
   try {
     ensureDirSync(projectsDirectory)
@@ -18,14 +14,15 @@ export const createProjectWithData = async (data, core) => {
     const projectDir = join(projectsDirectory, projectId)
     mkdirSync(projectDir, { recursive: true });
 
-    const videoPath = join(projectDir, `raw.${extension}`)
-    writeFileSync(videoPath, Buffer.from(arrayBuffer))
-
     const configFilePath = join(projectDir, "data.json")
-    const configData = { videoPath, effects, timestamp }
+    const configData = {
+      status: "in-progress",
+      startedAt: new Date().toISOString(),
+      ...data
+    }
 
     writeFileSync(configFilePath, JSON.stringify(configData, null, 2), { encoding: fileEncoding })
-    log.verbose("Created a project with video and mouse records")
+    log.verbose("Created a empty project")
 
     return projectId
   } catch (error) {
@@ -45,18 +42,15 @@ export const getProjectFromId = async (projectId, core) => {
       return null
     }
 
-    const configData = JSON.parse(readFileSync(configFilePath, { encoding: fileEncoding }))
-    return {
-      ...configData,
-      videoPath: `app://${configData.videoPath}`
-    }
+    const configData = readJsonSync(configFilePath)
+    return configData
   } catch (error) {
     log.error(`Error whiile loading project ${projectId}: `, error.message)
     return null
   }
 }
 
-export const updateProjectEffects = async (projectId, effects, core) => {
+export const updateProjectData = async (projectId, data, core) => {
   const projectsDirectory = core.paths.projectsDirectory;
   const projectDir = join(projectsDirectory, projectId);
   const configFilePath = join(projectDir, "data.json");
@@ -67,10 +61,17 @@ export const updateProjectEffects = async (projectId, effects, core) => {
       return false;
     }
 
-    const configData = JSON.parse(readFileSync(configFilePath, { encoding: fileEncoding }));
-    configData.effects = effects;
+    if (data.mouseClickRecords && data.mouseDragRecords) {
+      data['effects'] = core.modules.editor.createEffects(data.mouseClickRecords, data.mouseDragRecords)
 
-    writeFileSync(configFilePath, JSON.stringify(configData, null, 2), { encoding: fileEncoding });
+      delete data.mouseClickRecords
+      delete data.mouseDragRecords
+    }
+
+    const configData = readJsonSync(configFilePath)
+    const updatedData = { ...configData, ...data }
+
+    writeFileSync(configFilePath, JSON.stringify(updatedData, null, 2), { encoding: fileEncoding });
     log.verbose(`Updated effects for project ${projectId}`);
     return true;
   } catch (error) {
@@ -78,3 +79,5 @@ export const updateProjectEffects = async (projectId, effects, core) => {
     return false;
   }
 };
+
+
