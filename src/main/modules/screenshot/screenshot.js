@@ -14,7 +14,7 @@ export const createScreenshotWindow = async (data, core) => {
     minWidth: (width / 12) * 9,
     minHeight: (height / 12) * 9,
     frame: false,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     path: `/screenshot`,
   }
 

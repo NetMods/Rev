@@ -63,6 +63,7 @@ const URLImage = ({
         width={dims.width}
         height={dims.height}
         cornerRadius={borderRadius}
+        listening={false}
       />
     </Group>
   );

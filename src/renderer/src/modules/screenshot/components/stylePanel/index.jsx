@@ -1,8 +1,8 @@
 import { useState } from "react"
-import PresetDropdown from "./preset-dropDown"
+import PresetDropdown from "./preset-dropdown"
 import SliderControl from "./slider-selector"
-import BackgroundSelector from "./background-Selector"
-import RatioSelector from "./ratio-Selector"
+import BackgroundSelector from "./background-selector"
+import RatioSelector from "./ratio-selector"
 
 
 const SidePanel = () => {
