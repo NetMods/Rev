@@ -1,5 +1,4 @@
-import { LuBrush as Brush, LuArrowUpRight as Arrow } from "react-icons/lu";
-import { CiEraser as Eraser } from "react-icons/ci";
+import { LuBrush as Brush, LuArrowUpRight as Arrow, LuEraser as Eraser } from "react-icons/lu";
 import { MdOutlineFormatColorText as Text } from "react-icons/md";
 import { cn } from "../../../../shared/utils";
 import { MainAnnotationControls } from "../constants";
@@ -22,7 +21,7 @@ const MainPanel = ({ config, setConfig }) => {
         }}
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center",
-          config.tool === "pen" ? "" : "hover"
+          config.tool === "pen" ? "bg-button-hover" : "hover:bg-button-hover"
         )}
       >
         <Brush size={23} />
@@ -37,7 +36,8 @@ const MainPanel = ({ config, setConfig }) => {
         }}
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "eraser" ? "" : "hover")}
+          config.tool === "eraser" ? "bg-button-hover" : "hover:bg-button-hover"
+        )}
       >
         <Eraser size={20} />
       </button>
@@ -48,7 +48,7 @@ const MainPanel = ({ config, setConfig }) => {
         }}
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "arrow" ? "" : ""
+          config.tool === "arrow" ? "bg-button-hover" : "hover:bg-button-hover"
         )}
       >
         <Arrow size={23} />
@@ -60,7 +60,7 @@ const MainPanel = ({ config, setConfig }) => {
         }}
         className={cn(
           "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "text" ? "" : ""
+          config.tool === "text" ? "bg-button-hover" : "hover:bg-button-hover"
         )}
       >
         <Text size={20} />

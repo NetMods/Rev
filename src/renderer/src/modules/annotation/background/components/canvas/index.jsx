@@ -116,7 +116,7 @@ export default function Canvas({
           if (width >= 10 && height >= 10) {
             settextArea((prev) => [
               ...prev,
-              { x, y, width, height, id: Date.now() }
+              { x, y, width, height, id: Date.now(), penColor }
             ])
           }
         }
@@ -141,29 +141,31 @@ export default function Canvas({
     }
   }, [penColor, penWidth, foregroundAnnotation, onForegroundAnnotationChange, tool, tempEnd])
 
-  useEffect(() => {
-    // Clear any existing timer
-    if (freeze) return
 
+  useEffect(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
+      timerRef.current = null
     }
 
-    // Set a new timer to clear annotations after freezeTime
-    if (foregroundAnnotation.length > 0 || drawnArrows.length > 0) {
+    if (freeze) return // <-- only block clearing, not timer reset logic
+
+    if (foregroundAnnotation.length > 0 || drawnArrows.length > 0 || textArea.length > 0) {
       timerRef.current = setTimeout(() => {
         onForegroundAnnotationChange([])
         setDrawnArrows([])
         settextArea([])
+        timerRef.current = null
       }, freezeTime)
     }
 
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current)
+        timerRef.current = null
       }
     }
-  }, [foregroundAnnotation, drawnArrows, onForegroundAnnotationChange, freeze, freezeTime])
+  }, [foregroundAnnotation, drawnArrows, textArea, freeze, freezeTime, onForegroundAnnotationChange])
 
   useEffect(() => {
     if (stageRef.current) {
@@ -228,10 +230,10 @@ export default function Canvas({
                 width: vec.width,
                 height: vec.height,
                 resize: 'none',
-                border: '1px solid red',
                 background: 'rgba(255,255,255,0.7)',
-                fontSize: '14px',
+                fontSize: '24px',
                 outline: 'none',
+                color: vec.penColor,
               }}
               placeholder="Type here..."
             />
@@ -258,7 +260,7 @@ export default function Canvas({
             y={Math.min(originRef.current.y, tempEnd.y)}
             width={Math.abs(tempEnd.x - originRef.current.x)}
             height={Math.abs(tempEnd.y - originRef.current.y)}
-            fill="red"
+            fill={penColor}
             opacity={0.3}
           />
         )}

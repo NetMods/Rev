@@ -65,8 +65,13 @@ export default function Page() {
             <Camera size={23} />
           </button>
           <button
-            className={cn("py-1 no-drag flex justify-center rounded cursor-pointer")}
-            onClick={() => window.api.annotation.start()}
+            className={cn("py-1 no-drag flex justify-center rounded cursor-pointer",
+              selectedMode === OperatingMode.ANNOTATE ? "bg-button-hover/80" : "hover:bg-button-hover",
+            )}
+            onClick={() => {
+              setSelectedMode(OperatingMode.ANNOTATE)
+              window.api.annotation.start()
+            }}
           >
             <Pencil size={20} />
           </button>

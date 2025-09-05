@@ -28,7 +28,7 @@ const SizePanel = ({ config, setConfig, close }) => {
             key={size}
             onClick={() => handleSizeChange(size)}
             className={cn(
-              "hover:bg-button-hover p-1 no-drag w-full rounded flex justify-center items-center h-11 ",
+              "hover:bg-button-hover p-1 no-drag w-full rounded flex justify-center items-center h-11",
               config.size === size && "bg-button-hover"
             )}
           >
