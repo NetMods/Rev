@@ -9,7 +9,10 @@ Todos:
 - ~~anotate for linux~~
 - ~~get the video directly on the canvas~~
 - ~~make zoom in and out effect on the user activity~~
-- add face recording and audio
+- add webcam and audio
+- stay zoomed when typing
+- speed up pan effect
+- add a big cursor
 
 Quality Improvments
 
