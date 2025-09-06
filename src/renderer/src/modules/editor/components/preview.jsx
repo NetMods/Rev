@@ -7,9 +7,9 @@ const VideoPreview = ({ className, data }) => {
   const { canvasRef } = useVideoPreview({ videoPreviewInstance, videoPath, handleTimeUpdate, handlePreviewState, effects });
 
   return (
-    <div className={cn("bg-card rounded border py-1", className)}>
-      <div className="flex justify-center items-center h-full w-2/3 bg-muted/30">
-        <canvas ref={canvasRef} className="border-2 border-foreground/40" />
+    <div className={cn("rounded border py-1", className)}>
+      <div className="flex justify-center items-center h-full w-2/3 ">
+        <canvas ref={canvasRef} className="border-2" />
       </div>
     </div>
   )

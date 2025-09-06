@@ -28,9 +28,9 @@ const ColorPanel = ({ config, setConfig, close }) => {
             key={hex}
             onClick={() => handleColorChange(hex)}
             className={cn(
-              "hover:bg-button-hover p-1 no-drag w-full rounded flex justify-center items-center h-11 ",
+              "p-1 no-drag w-full rounded flex justify-center items-center h-11 ",
               colorClass,
-              config.color === hex ? "bg-button-hover" : "hover:bg-button-hover"
+              config.color === hex ? "" : ""
             )}
           >
             <FaCircle size={24} />
@@ -40,7 +40,7 @@ const ColorPanel = ({ config, setConfig, close }) => {
 
       <button
         onClick={close}
-        className="hover:bg-button-hover p-1 py-2 rounded no-drag w-full flex justify-center items-center h-11"
+        className="p-1 py-2 rounded no-drag w-full flex justify-center items-center h-11"
       >
         <LeftArrow size={20} />
       </button>

@@ -37,9 +37,6 @@ export default function Canvas({
     setTempEnd,
     textAreas,
     setTextAreas,
-    handlePointerDown,
-    handlePointerMove,
-    handlePointerUp
   } = useDrawingHandlers(
     stageRef,
     isDrawing,

@@ -18,7 +18,7 @@ export default function Page() {
   const [selectedMode, setSelectedMode] = useState(OperatingMode.VIDEO);
 
   return (
-    <div className="py-1 bg-background text-foreground/80 border border-foreground/25 rounded select-none w-[53px]">
+    <div className="py-1 border rounded select-none w-[53px]">
       <div className="flex flex-col gap-2 px-2">
 
         <div className="flex flex-col gap-1">
@@ -26,11 +26,11 @@ export default function Page() {
             disabled={!isRecording}
             className={cn(
               "py-2 no-drag flex justify-center items-center rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
-              isRecording ? "bg-red-700/90 hover:shadow-md" : "hover:bg-button-hover"
+              isRecording ? "bg-red-700/90 hover:shadow-md" : ""
             )}
             onClick={() => stopRecording(() => setSelectedMode(OperatingMode.VIDEO))}
           >
-            <span className='size-3.5 rounded-xs bg-foreground/90' />
+            <span className='size-3.5 rounded-xs' />
           </button>
 
           <TimeIndicator
@@ -41,20 +41,20 @@ export default function Page() {
 
           <button
             disabled={selectedMode !== OperatingMode.VIDEO}
-            className="py-1 no-drag flex justify-center rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-button-hover"
+            className="py-1 no-drag flex justify-center rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             onClick={() => (isRecording ? togglePause() : startRecording())}
           >
             {isRecording && !isPaused ? <Pause size={20} /> : <Play size={20} />}
           </button>
         </div>
 
-        <hr className="border-foreground/25" />
+        <hr className="" />
 
         <div className="flex flex-col gap-2">
           <button
             className={cn(
               "py-1 no-drag flex justify-center rounded cursor-pointer",
-              selectedMode === OperatingMode.VIDEO ? "bg-button-hover/80" : "hover:bg-button-hover"
+              selectedMode === OperatingMode.VIDEO ? "" : ""
             )}
             onClick={() => setSelectedMode(OperatingMode.VIDEO)}
           >
@@ -64,7 +64,7 @@ export default function Page() {
           <button
             className={cn(
               "py-1 no-drag flex justify-center rounded cursor-pointer",
-              selectedMode === OperatingMode.SCREENSHOT ? "bg-button-hover/80" : "hover:bg-button-hover"
+              selectedMode === OperatingMode.SCREENSHOT ? "" : ""
             )}
             onClick={() => setSelectedMode(OperatingMode.SCREENSHOT)}
           >
@@ -73,7 +73,7 @@ export default function Page() {
 
           <button
             className={cn("py-1 no-drag flex justify-center rounded cursor-pointer",
-              selectedMode === OperatingMode.ANNOTATE ? "bg-button-hover/80" : "hover:bg-button-hover",
+              selectedMode === OperatingMode.ANNOTATE ? "" : "",
             )}
             onClick={() => {
               setSelectedMode(OperatingMode.ANNOTATE)
@@ -84,10 +84,10 @@ export default function Page() {
           </button>
         </div>
 
-        <hr className="border-foreground/25" />
+        <hr className="" />
 
         <button
-          className="py-1 no-drag flex justify-center rounded cursor-pointer hover:bg-button-hover"
+          className="py-1 no-drag flex justify-center rounded cursor-pointer "
           onClick={() => window.api.core.closeWindow()}
         >
           <Close size={23} />

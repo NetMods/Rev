@@ -21,6 +21,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@tailwindcss/vite": "^4.1.10",
     "clsx": "^2.1.1",
+    "daisyui": "^5.1.7",
     "electron-log": "^5.4.1",
     "ffmpeg-static": "^5.2.0",
     "fs-extra": "^11.3.0",
@@ -53,9 +54,11 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
       "electron",
       "esbuild",
-      "ffmpeg-static"
+      "ffmpeg-static",
+      "uiohook-napi"
     ]
   },
   "packageManager": "pnpm@10.11.1+sha512.e519b9f7639869dc8d5c3c5dfef73b3f091094b0a006d7317353c72b124e80e1afd429732e28705ad6bfa1ee879c1fce46c128ccebd3192101f43dd67c667912"

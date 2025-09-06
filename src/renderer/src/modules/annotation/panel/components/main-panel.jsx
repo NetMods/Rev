@@ -20,8 +20,8 @@ const MainPanel = ({ config, setConfig }) => {
           handleToolChange(MainAnnotationControls.PEN)
         }}
         className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center",
-          config.tool === "pen" ? "bg-button-hover" : "hover:bg-button-hover"
+          "p-1 no-drag rounded w-full inline-flex justify-center",
+          config.tool === "pen" ? "" : ""
         )}
       >
         <Brush size={23} />
@@ -35,8 +35,8 @@ const MainPanel = ({ config, setConfig }) => {
           window.api.annotation.clear()
         }}
         className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "eraser" ? "bg-button-hover" : "hover:bg-button-hover"
+          "p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
+          config.tool === "eraser" ? "" : ""
         )}
       >
         <Eraser size={20} />
@@ -47,8 +47,8 @@ const MainPanel = ({ config, setConfig }) => {
           handleToolChange(MainAnnotationControls.ARROW)
         }}
         className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "arrow" ? "bg-button-hover" : "hover:bg-button-hover"
+          " p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
+          config.tool === "arrow" ? "" : ""
         )}
       >
         <Arrow size={23} />
@@ -59,8 +59,8 @@ const MainPanel = ({ config, setConfig }) => {
           handleToolChange(MainAnnotationControls.TEXT)
         }}
         className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "text" ? "bg-button-hover" : "hover:bg-button-hover"
+          "p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
+          config.tool === "text" ? "" : ""
         )}
       >
         <Text size={20} />
