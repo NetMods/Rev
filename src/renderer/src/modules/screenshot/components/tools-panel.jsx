@@ -1,8 +1,9 @@
-import log from "electron-log/renderer"
-import Button from "./button"
-import { useSetAtom } from "jotai";
-import { SCREENSHOTTOOL } from "../../../shared/constants"
-import { setPresetConfigAtom } from "../../../store";
+// tools-panel.jsx (or wherever ToolPanel lives)
+import log from "electron-log/renderer";
+import Button from "./button";
+import { useSetAtom, useAtomValue } from "jotai";
+import { SCREENSHOTTOOL } from "../../../shared/constants";
+import { getPresetConfigAtom, setPresetConfigAtom } from "../../../store";
 import { MdDelete as DeleteIcon } from "react-icons/md";
 import { IoCopySharp as CopyIcon } from "react-icons/io5";
 import { FaCropSimple as CropIcon } from "react-icons/fa6";
@@ -13,36 +14,35 @@ import { FaSave as SaveAsIcon } from "react-icons/fa";
 import { BsFillEraserFill as EraserIcon } from "react-icons/bs";
 import { FaRedo as RedoIcon } from "react-icons/fa";
 
-
-const ToolPanel = () => {
-
-  const setConfig = useSetAtom(setPresetConfigAtom)
+const ToolPanel = ({ onSave = () => { } }) => {
+  const setConfig = useSetAtom(setPresetConfigAtom);
+  const config = useAtomValue(getPresetConfigAtom)
 
   const handleDiscard = () => {
-    log.info("close the window")
-  }
+    log.info("close the window");
+  };
 
-  const handleRedo = () => { }
+  const handleRedo = () => { };
 
   const handleTools = (currentTool) => {
     setConfig({
-      tool: currentTool
-    })
-  }
+      tool: currentTool,
+    });
+  };
 
   return (
     <div className="bg-[#EEEEEE] col-start-1 col-end-3 p-1">
       <div className="border-black h-full w-full flex gap-4 justify-around items-center">
         <div className="flex gap-1 justify-center items-center no-drag">
-          <Button icon={CropIcon} onClick={() => handleTools(SCREENSHOTTOOL.CROP)} />
-          <Button icon={PencilIcon} onClick={() => handleTools(SCREENSHOTTOOL.PEN)} />
-          <Button icon={ArrowIcon} onClick={() => handleTools(SCREENSHOTTOOL.ARROW)} />
-          <Button icon={BlurIcon} onClick={() => handleTools(SCREENSHOTTOOL.BLUR)} />
-          <Button icon={EraserIcon} onClick={() => handleTools(SCREENSHOTTOOL.ERASER)} />
+          <Button pressed={config.tool === SCREENSHOTTOOL.CROP} icon={CropIcon} onClick={() => handleTools(SCREENSHOTTOOL.CROP)} />
+          <Button pressed={config.tool === SCREENSHOTTOOL.PEN} icon={PencilIcon} onClick={() => handleTools(SCREENSHOTTOOL.PEN)} />
+          <Button pressed={config.tool === SCREENSHOTTOOL.ARROW} icon={ArrowIcon} onClick={() => handleTools(SCREENSHOTTOOL.ARROW)} />
+          <Button pressed={config.tool === SCREENSHOTTOOL.BLUR} icon={BlurIcon} onClick={() => handleTools(SCREENSHOTTOOL.BLUR)} />
+          <Button pressed={config.tool === SCREENSHOTTOOL.ERASER} icon={EraserIcon} onClick={() => handleTools(SCREENSHOTTOOL.ERASER)} />
         </div>
         <div className="flex justify-center items-center no-drag">
           <Button text={"Copy"} icon={CopyIcon} onClick={() => { }} />
-          <Button text={"Save As"} icon={SaveAsIcon} onClick={() => { }} />
+          <Button text={"Save As"} icon={SaveAsIcon} onClick={onSave} />
         </div>
         <div className="flex justify-center items-center no-drag">
           <Button text={"Discard"} icon={DeleteIcon} onClick={handleDiscard} />
@@ -50,7 +50,7 @@ const ToolPanel = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ToolPanel
+export default ToolPanel;

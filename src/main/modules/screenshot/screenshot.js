@@ -1,8 +1,15 @@
-import { desktopCapturer } from "electron"
 import { screen } from "electron/main"
+const { execFile } = require("child_process");
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
+
 
 export const createScreenshotWindow = async (data, core) => {
+  const mainWindow = core.window.getMainWindow()
+  mainWindow.hide()
   const image = await captureScreenshot();
+  mainWindow.show()
 
   const primaryDisplay = screen.getPrimaryDisplay()
   const { width, height } = primaryDisplay.workAreaSize
@@ -33,17 +40,57 @@ export const createScreenshotWindow = async (data, core) => {
   });
 }
 
+
 async function captureScreenshot() {
-  const { screen } = require("electron");
+  return new Promise((resolve, reject) => {
+    const tmpFile = path.join(os.tmpdir(), `screenshot_${Date.now()}.png`);
+    let ffmpegCmd;
+    let ffmpegArgs;
 
-  const { width, height } = screen.getPrimaryDisplay().size;
+    const platform = os.platform();
 
-  const sources = await desktopCapturer.getSources({
-    types: ["screen"],
-    thumbnailSize: { width, height }
+    if (platform === "darwin") {
+      ffmpegCmd = "ffmpeg";
+      ffmpegArgs = [
+        "-f", "avfoundation",
+        "-framerate", "30",
+        "-i", "3:none",
+        "-frames:v", "1",
+        tmpFile
+      ];
+    } else if (platform === "win32") {
+      ffmpegCmd = "ffmpeg";
+      ffmpegArgs = [
+        "-f", "gdigrab",
+        "-framerate", "30",
+        "-i", "desktop",
+        "-frames:v", "1",
+        tmpFile
+      ];
+    } else if (platform === "linux") {
+      const display = process.env.DISPLAY || ":0.0";
+      ffmpegCmd = "ffmpeg";
+      ffmpegArgs = [
+        "-f", "x11grab",
+        "-framerate", "30",
+        "-i", display,
+        "-frames:v", "1",
+        tmpFile
+      ];
+    } else {
+      return reject(new Error("Unsupported platform"));
+    }
+
+    execFile(ffmpegCmd, ffmpegArgs, (error) => {
+      if (error) return reject(error);
+
+      fs.readFile(tmpFile, (err, buffer) => {
+        if (err) return reject(err);
+
+        const dataUrl = `data:image/png;base64,${buffer.toString("base64")}`;
+        fs.unlink(tmpFile, () => { });
+        resolve(dataUrl);
+      });
+    });
   });
-
-  const primary = sources[0];
-  const screenshot = primary.thumbnail.toDataURL();
-  return screenshot;
 }
