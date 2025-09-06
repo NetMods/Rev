@@ -16,6 +16,10 @@ export const annotateScreen = async (core) => {
     stopAnnotating(mainWindow, { annotationBackground, annotationPanel })
   })
 
+  annotationBackground.on('focus', () => {
+    annotationPanel.moveTop()
+  })
+
   if (annotationPanel?.isVisible() && annotationBackground?.isVisible()) {
     if (isValidWindow(mainWindow)) {
       mainWindow.hide()
@@ -51,10 +55,15 @@ const createAnnotationPanel = async (core) => {
 }
 
 const createAnnotationBackground = async (core) => {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize
+  const point = screen.getCursorScreenPoint();
+  const { bounds, scaleFactor } = screen.getDisplayNearestPoint(point);
+  console.log("the screen points are : ", bounds, scaleFactor)
+  const BoundingRect = {
+    width: process.platform === "darwin" ? bounds.width : Math.floor(bounds.width * scaleFactor),
+    height: process.platform === "darwin" ? bounds.height : Math.floor(bounds.height * scaleFactor),
+  }
   const options = {
-    width,
-    height,
+    ...BoundingRect,
     autoHideMenuBar: true,
     frame: false,
     path: '/annotation-background',
@@ -62,7 +71,8 @@ const createAnnotationBackground = async (core) => {
     resizable: false,
     hasShadow: false,
     skipTaskbar: true,
-    focusable: false,
+    focusable: true,
+    movable: false,
     webPreferences: {
       backgroundThrottling: false
     }

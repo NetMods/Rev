@@ -51,15 +51,17 @@ const AnnotateApp = () => {
         {breaker}
 
         <button
+          disabled={config.tool === "text" || config.tool === "arrow"}
           onClick={() => toggleDrawer("size")}
-          className="hover:bg-button-hover p-1 no-drag rounded w-full flex justify-center"
+          className="hover:bg-button-hover p-1 no-drag rounded w-full flex justify-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <BrushSize size="25" />
         </button>
 
         <button
+          disabled={config.tool === "eraser"}
           onClick={() => toggleDrawer("color")}
-          className="hover:bg-button-hover p-1 no-drag rounded w-full flex justify-center"
+          className="hover:bg-button-hover p-1 no-drag rounded w-full flex justify-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Palette size={23} />
         </button>
