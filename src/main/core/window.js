@@ -133,3 +133,21 @@ export const closeWindow = (event) => {
     selectedWindow.close()
   }
 }
+
+export const toggleMaximizeWindow = (event) => {
+  const selectedWindow = BrowserWindow.fromWebContents(event.sender);
+  if (selectedWindow && !selectedWindow.isDestroyed()) {
+    if (selectedWindow.isMaximized()) {
+      selectedWindow.unmaximize();
+    } else {
+      selectedWindow.maximize();
+    }
+  }
+};
+
+export const minimizeWindow = (event) => {
+  const selectedWindow = BrowserWindow.fromWebContents(event.sender);
+  if (selectedWindow && !selectedWindow.isDestroyed()) {
+    selectedWindow.minimize();
+  }
+};

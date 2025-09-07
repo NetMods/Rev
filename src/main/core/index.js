@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 
-import { createWindow, createMainWindow, closeWindow } from './window';
+import { createWindow, createMainWindow, closeWindow, minimizeWindow, toggleMaximizeWindow } from './window';
 import { loadModules } from '../modules';
 import { registerIPCRouter } from './ipc-router';
 import config from './config';
@@ -56,6 +56,8 @@ app.whenReady().then(async () => {
     modules: {},
     ipcHandlers: {
       'window:close': (event) => closeWindow(event),
+      'window:minimize': (event) => minimizeWindow(event),
+      'window:maximize': (event) => toggleMaximizeWindow(event),
     },
   };
 

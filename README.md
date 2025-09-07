@@ -13,10 +13,15 @@ Todos:
 - stay zoomed when typing
 - speed up pan effect
 - add a big cursor
+- clips slice feature
+- fix timestamps minor marks
+- clips and effects ui
+- fix timeline padding
+- update effects from timeline
+- video play on space
+- play/pause feature on fullscreen
 
 Quality Improvments
 
 - ~~find a way to make HMR work for background and anotate panel instead fo using file load using url~~
 - ~~UI improvements for mac (a screen flash when closing app and while recording)~~
-
-And we are done with the basic functionality

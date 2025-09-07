@@ -24,5 +24,7 @@ contextBridge.exposeInMainWorld('api', {
 
   core: {
     closeWindow: () => ipcRenderer.send('window:close'),
+    minimizeWindow: () => ipcRenderer.send('window:minimize'),
+    toggleMaximizeWindow: () => ipcRenderer.send('window:maximize')
   },
 });
