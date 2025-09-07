@@ -12,29 +12,34 @@ import StylePanel from "./components/stylepanel";
 export default function Page() {
   const [imageUrl, setImageUrl] = useState(null);
   const stageRef = useRef(null);
+  const layerRef = useRef(null);
   const canvasContainerRef = useRef(null);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+  const applyEffectRef = useRef(() => { });
 
   const config = useAtomValue(getPresetConfigAtom);
   const setConfig = useSetAtom(setPresetConfigAtom);
 
   const [displayDims, setDisplayDims] = useState(null);
 
-  // crop states
+  // Crop states
   const [isDrawing, setIsDrawing] = useState(false);
   const [rectProps, setRectProps] = useState(null);
   const [cropRect, setCropRect] = useState(null);
 
-  // pen states
+  // Pen states
   const [pencilLines, setPencilLines] = useState([]);
   const isDrawingPencil = useRef(false);
   const lastPoint = useRef(null);
   const MIN_DISTANCE = 5;
 
-  // arrow states
+  // Arrow states
   const [arrows, setArrows] = useState([]);
   const [tempArrowStart, setTempArrowStart] = useState(null);
   const [tempArrowEnd, setTempArrowEnd] = useState(null);
+
+  // Blur and pixelate states
+  const isDrawingEffect = useRef(false);
 
   useEffect(() => {
     window.api.screenshot.show((data) => {
@@ -68,20 +73,24 @@ export default function Page() {
         width: 0,
         height: 0,
       });
-    } else if (config.tool === "pen") {
+    } else if (config.tool === "pen" || config.tool === "eraser") {
       isDrawingPencil.current = true;
       lastPoint.current = { x: pointer.x, y: pointer.y };
       setPencilLines((prev) => [
         ...prev,
         {
           points: [pointer.x, pointer.y],
-          color: "red", // could use config.penColor
-          width: config.penWidth || 2,
+          color: "red",
+          width: 12,
+          type: config.tool === "eraser" ? "destination-out" : "source-over",
         },
       ]);
     } else if (config.tool === "arrow") {
       setTempArrowStart({ x: pointer.x, y: pointer.y });
       setTempArrowEnd(null);
+    } else if (config.tool === "pixelate") {
+      isDrawingEffect.current = true;
+      applyEffectRef.current(config.tool, pointer.x, pointer.y);
     }
   };
 
@@ -97,7 +106,7 @@ export default function Page() {
         width: pointer.x - prev.x,
         height: pointer.y - prev.y,
       }));
-    } else if (isDrawingPencil.current && config.tool === "pen") {
+    } else if ((isDrawingPencil.current && config.tool === "pen") || config.tool === "eraser") {
       const last = lastPoint.current;
       if (!last) return;
       const distance = Math.sqrt(
@@ -117,6 +126,8 @@ export default function Page() {
       }
     } else if (config.tool === "arrow" && tempArrowStart) {
       setTempArrowEnd({ x: pointer.x, y: pointer.y });
+    } else if ((config.tool === "pixelate") && isDrawingEffect.current) {
+      applyEffectRef.current(config.tool, pointer.x, pointer.y);
     }
   };
 
@@ -131,7 +142,7 @@ export default function Page() {
       setCropRect(rectProps);
       setRectProps(null);
       setConfig({ tool: "none" });
-    } else if (config.tool === "pen") {
+    } else if (config.tool === "pen" || config.tool === "eraser") {
       isDrawingPencil.current = false;
       lastPoint.current = null;
     } else if (config.tool === "arrow") {
@@ -145,12 +156,14 @@ export default function Page() {
               pointer.x,
               pointer.y,
             ],
-            color: config.penColor || "yellow",
+            color: "yellow",
           },
         ]);
       }
       setTempArrowStart(null);
       setTempArrowEnd(null);
+    } else if (config.tool === "pixelate") {
+      isDrawingEffect.current = false;
     }
   };
 
@@ -197,9 +210,12 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (config.tool !== "pen") {
+    if (config.tool !== "pen" && config.tool !== "eraser") {
       isDrawingPencil.current = false;
       lastPoint.current = null;
+    }
+    if (config.tool !== "pixelate") {
+      isDrawingEffect.current = false;
     }
   }, [config.tool]);
 
@@ -223,13 +239,15 @@ export default function Page() {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
             >
-              <Layer>
+              <Layer ref={layerRef}>
                 <URLImage
                   src={imageUrl}
                   stageWidth={stageSize.width}
                   stageHeight={stageSize.height}
                   cropRect={cropRect}
                   onDisplayDimsChange={setDisplayDims}
+                  applyEffect={applyEffectRef}
+                  batchDraw={() => layerRef.current?.batchDraw()}
                 />
                 {rectProps && (
                   <Rect
@@ -251,7 +269,7 @@ export default function Page() {
                     tension={0.3}
                     lineCap="round"
                     lineJoin="round"
-                    globalCompositeOperation="source-over"
+                    globalCompositeOperation={line.type}
                     draggable={false}
                   />
                 ))}

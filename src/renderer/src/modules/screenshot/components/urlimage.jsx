@@ -1,5 +1,5 @@
-// URLImage.jsx
-import { useEffect, useState, useMemo } from "react";
+import log from "electron-log/renderer";
+import { useEffect, useRef, useState, useMemo } from "react";
 import useImage from "use-image";
 import { Group, Rect, Image } from "react-konva";
 
@@ -11,9 +11,13 @@ const URLImage = ({
   borderRadius = 0,
   cropRect = null,
   onDisplayDimsChange = () => { },
+  applyEffect = () => { },
+  batchDraw = () => { },
 }) => {
   const [image] = useImage(src, "anonymous");
   const [dims, setDims] = useState(null);
+  const canvasRef = useRef(null);
+  const [konvaImage, setKonvaImage] = useState(null);
 
   useEffect(() => {
     if (!image || !stageWidth || !stageHeight) return;
@@ -21,7 +25,6 @@ const URLImage = ({
     const imgW = image.width;
     const imgH = image.height;
 
-    // available area after padding
     const availW = Math.max(0, stageWidth - padding * 2);
     const availH = Math.max(0, stageHeight - padding * 2);
 
@@ -37,18 +40,26 @@ const URLImage = ({
       y,
       width: newW,
       height: newH,
-      scale: scale,
+      scale,
       originalWidth: imgW,
       originalHeight: imgH,
     });
+
+    const offCanvas = document.createElement("canvas");
+    offCanvas.width = imgW;
+    offCanvas.height = imgH;
+    const ctx = offCanvas.getContext("2d");
+    ctx.drawImage(image, 0, 0);
+
+    canvasRef.current = offCanvas;
+    setKonvaImage(offCanvas);
   }, [image, stageWidth, stageHeight, padding]);
 
   const displayDims = useMemo(() => {
     if (!image || !dims) return null;
 
-    // If no crop, use full image dimensions
     if (!cropRect) {
-      const display = {
+      return {
         x: dims.x,
         y: dims.y,
         width: dims.width,
@@ -58,22 +69,18 @@ const URLImage = ({
         originalHeight: dims.originalHeight,
         scale: dims.scale,
       };
-      return display;
     }
 
-    // Calculate crop in original image coordinates
     const cropX = Math.max(0, (cropRect.x - dims.x) / dims.scale);
     const cropY = Math.max(0, (cropRect.y - dims.y) / dims.scale);
     const cropW = Math.abs(cropRect.width) / dims.scale;
     const cropH = Math.abs(cropRect.height) / dims.scale;
 
-    // Clamp crop to image bounds
     const clampedCropX = Math.min(cropX, image.width);
     const clampedCropY = Math.min(cropY, image.height);
     const clampedCropW = Math.min(cropW, image.width - clampedCropX);
     const clampedCropH = Math.min(cropH, image.height - clampedCropY);
 
-    // Fit the cropped area to the stage while maintaining aspect ratio
     const availW = Math.max(0, stageWidth - padding * 2);
     const availH = Math.max(0, stageHeight - padding * 2);
 
@@ -81,7 +88,6 @@ const URLImage = ({
     const displayW = clampedCropW * cropScale;
     const displayH = clampedCropH * cropScale;
 
-    // Center the cropped image
     const displayX = (stageWidth - displayW) / 2;
     const displayY = (stageHeight - displayH) / 2;
 
@@ -103,14 +109,93 @@ const URLImage = ({
     };
   }, [cropRect, dims, image, stageWidth, stageHeight, padding]);
 
-  // notify parent when displayDims changes
   useEffect(() => {
-    if (displayDims) {
-      onDisplayDimsChange(displayDims);
-    }
+    if (displayDims) onDisplayDimsChange(displayDims);
   }, [displayDims, onDisplayDimsChange]);
 
-  if (!image || !dims || !displayDims) return null;
+  // Pixelation effect
+  const pixelateAt = (x, y, size = 30, pixelSize = 12) => {
+    if (!canvasRef.current || !dims) return;
+
+    const ctx = canvasRef.current.getContext("2d");
+    const sx = x - size / 2;
+    const sy = y - size / 2;
+
+
+    // Create temporary canvas for pixelation
+    const tmpCanvas = document.createElement("canvas");
+    tmpCanvas.width = size;
+    tmpCanvas.height = size;
+    const tmpCtx = tmpCanvas.getContext("2d");
+
+    // Draw downscaled
+    tmpCtx.imageSmoothingEnabled = false;
+    tmpCtx.drawImage(canvasRef.current, sx, sy, size, size, 0, 0, size / pixelSize, size / pixelSize);
+
+    // Upscale back to blocky pixels
+    tmpCtx.drawImage(tmpCanvas, 0, 0, size / pixelSize, size / pixelSize, 0, 0, size, size);
+
+    // Put result back into main canvas
+    ctx.drawImage(tmpCanvas, sx, sy);
+
+    batchDraw();
+  };
+
+  // Blur effect
+  const blurAt = (x, y, size = 40) => {
+    if (!canvasRef.current || !dims) return;
+
+    const ctx = canvasRef.current.getContext("2d");
+    // Create a temporary canvas for the blur effect
+    const tmpCanvas = document.createElement("canvas");
+    tmpCanvas.width = size;
+    tmpCanvas.height = size;
+    const tmpCtx = tmpCanvas.getContext("2d");
+
+    // Extract the region to blur
+    const sx = x - size / 2;
+    const sy = y - size / 2;
+    tmpCtx.drawImage(canvasRef.current, sx, sy, size, size, 0, 0, size, size);
+
+    // Apply blur filter on temporary canvas
+    tmpCtx.filter = "blur(10px)";
+    tmpCtx.drawImage(tmpCanvas, 0, 0);
+
+    // Draw blurred region back to main canvas
+    ctx.drawImage(tmpCanvas, sx, sy);
+
+    batchDraw();
+  };
+
+  // Expose effect application function
+  useEffect(() => {
+    applyEffect.current = (effectType, x, y) => {
+      if (!canvasRef.current || !dims || !displayDims) return;
+
+      // Convert stage coordinates to image coordinates
+      const imgX = (x - dims.x) / dims.scale;
+      const imgY = (y - dims.y) / dims.scale;
+
+      // Check if within crop bounds if cropRect exists
+      if (cropRect && displayDims) {
+        const crop = displayDims.crop;
+        if (
+          imgX < crop.x ||
+          imgX > crop.x + crop.width ||
+          imgY < crop.y ||
+          imgY > crop.y + crop.height
+        ) {
+          return;
+        }
+      }
+
+      if (effectType === "pixelate") {
+        pixelateAt(imgX, imgY, 40, 8);
+      }
+    };
+  }, [dims, cropRect, displayDims, applyEffect, batchDraw]);
+
+  if (!konvaImage || !displayDims) return null;
 
   return (
     <Group>
@@ -121,13 +206,13 @@ const URLImage = ({
         height={displayDims.height + padding * 2}
       />
       <Image
-        image={image}
+        image={konvaImage}
         x={displayDims.x}
         y={displayDims.y}
         width={displayDims.width}
         height={displayDims.height}
         cornerRadius={borderRadius}
-        listening={false}
+        listening={true}
         crop={displayDims.crop}
       />
     </Group>

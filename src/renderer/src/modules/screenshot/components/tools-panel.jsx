@@ -37,7 +37,7 @@ const ToolPanel = ({ onSave = () => { } }) => {
           <Button pressed={config.tool === SCREENSHOTTOOL.CROP} icon={CropIcon} onClick={() => handleTools(SCREENSHOTTOOL.CROP)} />
           <Button pressed={config.tool === SCREENSHOTTOOL.PEN} icon={PencilIcon} onClick={() => handleTools(SCREENSHOTTOOL.PEN)} />
           <Button pressed={config.tool === SCREENSHOTTOOL.ARROW} icon={ArrowIcon} onClick={() => handleTools(SCREENSHOTTOOL.ARROW)} />
-          <Button pressed={config.tool === SCREENSHOTTOOL.BLUR} icon={BlurIcon} onClick={() => handleTools(SCREENSHOTTOOL.BLUR)} />
+          <Button pressed={config.tool === SCREENSHOTTOOL.PIXELATE} icon={BlurIcon} onClick={() => handleTools(SCREENSHOTTOOL.PIXELATE)} />
           <Button pressed={config.tool === SCREENSHOTTOOL.ERASER} icon={EraserIcon} onClick={() => handleTools(SCREENSHOTTOOL.ERASER)} />
         </div>
         <div className="flex justify-center items-center no-drag">

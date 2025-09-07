@@ -8,6 +8,6 @@ export const SCREENSHOTTOOL = Object.freeze({
   CROP: "crop",
   PEN: "pen",
   ARROW: "arrow",
-  BLUR: "blur",
+  PIXELATE: "pixelate",
   ERASER: "eraser"
 })
