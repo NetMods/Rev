@@ -1,9 +1,9 @@
+import log from "electron-log/renderer"
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { getPresetConfigAtom, setPresetConfigAtom } from "../../store";
 import { useDrawingLogic } from "./hooks/useDrawingLogic";
 import { AnnotationCanvas } from "./components/AnnotationCanvas";
-import { downloadDataUrl } from "./utils/download";
 import ScreeshotPlaceholder from "../../assets/screenshot-placeholder.gif";
 import ToolPanel from "./components/toolPanel"
 import StylePanel from "./components/stylePanel";
@@ -47,19 +47,6 @@ export default function EditorPage() {
     handleMouseDown, handleMouseMove, handleMouseUp,
   } = useDrawingLogic(config, applyEffectRef.current);
 
-  const handleSave = () => {
-    const stage = stageRef.current;
-    if (!stage || !displayDims) return;
-
-    const dataUrl = stage.toDataURL({
-      x: displayDims.x,
-      y: displayDims.y,
-      width: displayDims.width,
-      height: displayDims.height,
-      pixelRatio: displayDims.crop.width / displayDims.width,
-    });
-    downloadDataUrl(dataUrl, `screenshot-${Date.now()}.png`);
-  };
 
   const stageProps = {
     onMouseDown: handleMouseDown,
@@ -98,7 +85,7 @@ export default function EditorPage() {
           )}
         </div>
         <StylePanel />
-        <ToolPanel onSave={handleSave} />
+        <ToolPanel stageRef={stageRef} displayDims={displayDims} />
       </div>
     </div>
   );

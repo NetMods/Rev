@@ -100,7 +100,6 @@ export const useDrawingLogic = (config, applyEffect) => {
         break;
       case "arrow":
         if (tempArrowStart.current && tempArrowEnd) {
-          log.info("the final value are : ", tempArrowStart.current, tempArrowEnd)
           setArrows((prev) => [
             ...prev,
             {
