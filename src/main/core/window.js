@@ -84,9 +84,11 @@ export const createWindow = async (options, name = 'unnamed') => {
 
 export async function createMainWindow() {
   const options = {
-    width: 50,
-    height: 265,
+    width: 250,
+    height: 250,
     show: false,
+    transparent: true,
+    hasShadow: false,
     autoHideMenuBar: true,
     resizable: false,
     fullscreenable: false,
@@ -95,11 +97,12 @@ export async function createMainWindow() {
     skipTaskbar: false,
     focusable: true,
     alwaysOnTop: true,
+    thickFrame: false,
     visibleOnAllWorkspaces: true,
     type: process.platform === 'darwin' ? 'panel' : 'toolbar',
     webPreferences: {
       backgroundThrottling: false
-    }
+    },
   }
   const recorderWindow = await createWindow(options, 'Recorder')
 
