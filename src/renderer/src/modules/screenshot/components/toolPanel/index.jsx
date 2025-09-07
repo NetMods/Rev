@@ -1,9 +1,8 @@
-// tools-panel.jsx (or wherever ToolPanel lives)
 import log from "electron-log/renderer";
-import Button from "./button";
+import Button from "../commons/button";
 import { useSetAtom, useAtomValue } from "jotai";
-import { SCREENSHOTTOOL } from "../../../shared/constants";
-import { getPresetConfigAtom, setPresetConfigAtom } from "../../../store";
+import { SCREENSHOTTOOL } from "../../../../shared/constants";
+import { getPresetConfigAtom, setPresetConfigAtom } from "../../../../store";
 import { MdDelete as DeleteIcon } from "react-icons/md";
 import { IoCopySharp as CopyIcon } from "react-icons/io5";
 import { FaCropSimple as CropIcon } from "react-icons/fa6";
