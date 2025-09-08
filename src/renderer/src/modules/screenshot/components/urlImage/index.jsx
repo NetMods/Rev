@@ -1,6 +1,9 @@
 import { Image, Rect, Group } from "react-konva";
+// import Konva from "konva";
 import { useImageProcessor } from "../../hooks/useImageProcessor";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useAtomValue } from "jotai";
+import { getPresetConfigAtom } from "../../../../store";
 
 const URLImage = ({
   src,
@@ -10,51 +13,46 @@ const URLImage = ({
   onDisplayDimsChange,
   applyEffectRef,
   batchDraw,
-  padding = 10,
-  rectFill = "white",
-  rectStroke = "black",
-  rectStrokeWidth = 0,
-  imgCornerRadius = 10,
 }) => {
+  const config = useAtomValue(getPresetConfigAtom);
+  const imageRef = useRef();
+
   const { konvaImage, displayDims, applyEffect } = useImageProcessor(
     src,
     stageWidth,
     stageHeight,
     cropRect,
-    batchDraw
+    batchDraw,
+    config.padding
   );
 
   useEffect(() => {
     onDisplayDimsChange(displayDims);
     applyEffectRef.current = applyEffect;
-  }, [displayDims, onDisplayDimsChange, applyEffect, applyEffectRef]);
+  }, [displayDims, onDisplayDimsChange, applyEffect, applyEffectRef, batchDraw]);
 
   if (!konvaImage || !displayDims) return null;
 
   return (
     <Group>
-      {/* Background rect */}
       <Rect
         x={displayDims.x}
         y={displayDims.y}
         width={displayDims.width}
         height={displayDims.height}
-        fill={rectFill}
-        stroke={rectStroke}
-        strokeWidth={rectStrokeWidth}
+        fill={config.backgroundcolor}
         listening={false}
       />
-
-      {/* Foreground image with inset padding */}
       <Image
+        ref={imageRef} // ✅ Ref needed to apply filter
         image={konvaImage}
-        x={displayDims.x + padding}
-        y={displayDims.y + padding}
-        width={displayDims.width - padding * 2}
-        height={displayDims.height - padding * 2}
+        x={displayDims.x + config.padding}
+        y={displayDims.y + config.padding}
+        width={displayDims.width - config.padding * 2}
+        height={displayDims.height - config.padding * 2}
         crop={displayDims.crop}
         listening={false}
-        cornerRadius={imgCornerRadius}
+        cornerRadius={config.rounded}
       />
     </Group>
   );

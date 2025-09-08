@@ -1,4 +1,3 @@
-import log from 'electron-log/renderer'
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { getPresetConfigAtom, setPresetConfigAtom } from "../../store";

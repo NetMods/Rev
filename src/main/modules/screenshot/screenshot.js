@@ -54,7 +54,7 @@ async function captureScreenshot() {
       ffmpegArgs = [
         "-f", "avfoundation",
         "-framerate", "30",
-        "-i", "1:none",
+        "-i", "3:none",
         "-frames:v", "1",
         tmpFile
       ];

@@ -3,10 +3,10 @@ import { SCREENSHOTTOOL } from "../shared/constants"
 
 const presetConfigAtom = atom({
   tool: SCREENSHOTTOOL.NONE,
-  padding: 0,
+  padding: 20,
   rounded: 0,
-  shadow: 0,
-  backgroundcolor: "#222831"
+  noise: 0,
+  backgroundcolor: "#FFFFFF"
 })
 
 export const getPresetConfigAtom = atom((get) => get(presetConfigAtom))
@@ -22,9 +22,3 @@ export const setPresetConfigAtom = atom(
     })
   }
 )
-
-// export const historyAtom = atom([])
-//
-// export const getHistoryAtom = atom((get) => get(historyAtom))
-
-

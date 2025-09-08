@@ -6,7 +6,9 @@ const BackgroundSelector = ({ backgrounds, selected, setSelected }) => {
         {backgrounds.map((bg, idx) => (
           <button
             key={idx}
-            onClick={() => setSelected(bg.value)}
+            onClick={() => setSelected({
+              backgroundcolor: bg.value
+            })}
             className={`h-12 rounded-md border-2 no-drag ${selected === bg.value ? "border-[#00ADB5]" : "border-transparent"}`}
             style={{
               background: bg.value,
