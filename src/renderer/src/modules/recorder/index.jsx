@@ -66,7 +66,7 @@ export default function Page() {
               "py-1 no-drag flex justify-center rounded cursor-pointer",
               selectedMode === OperatingMode.SCREENSHOT ? "" : ""
             )}
-            onClick={() => setSelectedMode(OperatingMode.SCREENSHOT)}
+            onClick={() => window.api.screenshot.create()}
           >
             <Camera size={23} />
           </button>

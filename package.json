@@ -32,7 +32,8 @@
     "react-router": "^7.7.1",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.10",
-    "uiohook-napi": "^1.5.4"
+    "uiohook-napi": "^1.5.4",
+    "use-image": "^1.1.4",
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",
