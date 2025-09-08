@@ -10,7 +10,7 @@ export const createEditorWindow = async ({ projectId }, core) => {
     width: width,
     height: height,
     frame: false,
-    alwaysOnTop: true,
+    transparent: true,
     path: `/editor?id=${projectId}`,
   }
 

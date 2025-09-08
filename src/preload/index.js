@@ -2,7 +2,9 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
   recording: {
-    start: () => ipcRenderer.send('recording:setup'),
+    start: (...args) => ipcRenderer.invoke('recording:start', ...args),
+    pause: (...args) => ipcRenderer.invoke('recording:pause', ...args),
+    resume: (...args) => ipcRenderer.invoke('recording:resume', ...args),
     stop: (...args) => ipcRenderer.invoke('recording:stop', ...args),
   },
 
@@ -16,9 +18,7 @@ contextBridge.exposeInMainWorld('api', {
     getConfig: (...args) => ipcRenderer.invoke('annotation-config:get', ...args),
   },
 
-
   project: {
-    create: (...args) => ipcRenderer.invoke('project:create', ...args),
     get: (...args) => ipcRenderer.invoke('project:get', ...args),
   },
 

@@ -28,8 +28,8 @@ const SizePanel = ({ config, setConfig, close }) => {
             key={size}
             onClick={() => handleSizeChange(size)}
             className={cn(
-              "hover:bg-button-hover p-1 no-drag w-full rounded flex justify-center items-center h-11 ",
-              config.size === size && "bg-button-hover"
+              "p-1 no-drag w-full rounded flex justify-center items-center h-11",
+              config.size === size && ""
             )}
           >
             <FaCircle size={size} />
@@ -39,7 +39,7 @@ const SizePanel = ({ config, setConfig, close }) => {
 
       <button
         onClick={close}
-        className="hover:bg-button-hover p-1 py-2 rounded no-drag w-full flex justify-center items-center h-11"
+        className="p-1 py-2 rounded no-drag w-full flex justify-center items-center h-11"
       >
         <LeftArrow size={20} />
       </button>

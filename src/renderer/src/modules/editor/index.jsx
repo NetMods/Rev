@@ -25,7 +25,7 @@ export default function Page() {
   }, [id]);
 
   return (
-    <div className="p-2 font-sans bg-background text-foreground/80 **:no-drag border-1 border-white/30 rounded no-drag h-screen relative">
+    <div className="p-2 font-sans **:no-drag border-1 rounded no-drag h-screen relative">
       {data && <Editor data={data} />}
       <div className="absolute right-2 top-2">
         <button

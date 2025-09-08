@@ -1,5 +1,6 @@
 import log from "electron-log/main";
 import { protocol } from "electron";
+import path from "path"
 import { createReadStream, statSync, existsSync } from "fs-extra";
 
 export function registerProtocolScheme(name) {
@@ -20,8 +21,25 @@ export function registerProtocolScheme(name) {
 export function handleProtocolRequests(name) {
   protocol.handle(name, async (request) => {
     try {
-      const filePath = request.url.slice(`${name}:/`.length);
+      let filePath = request.url.slice(`${name}:/`.length);
+      // Decode +URI (in case of spaces or special chars)
+      filePath = decodeURIComponent(filePath)
 
+      // Handle Windows paths
+      if (process.platform === 'win32') {
+        // Remove leading slash from "/C:/..." → "C:/..."
+        if (filePath.startsWith('/')) {
+          filePath = filePath.slice(1)
+        }
+
+        // Fix missing colon after drive letter if needed
+        if (/^[a-zA-Z](\\|\/)/.test(filePath)) {
+          filePath = filePath[0] + ':' + filePath.slice(1)
+        }
+
+        // Normalize to Windows path
+        filePath = path.normalize(filePath)
+      }
       log.verbose(`Handling ${name}:// request for: ${filePath}`);
 
       if (!existsSync(filePath)) {
@@ -35,7 +53,7 @@ export function handleProtocolRequests(name) {
 
       let status = 200;
       const headers = {
-        "Content-Type": "video/webm",
+        "Content-Type": "video/mkv",
         "Accept-Ranges": "bytes",
       };
       let body;

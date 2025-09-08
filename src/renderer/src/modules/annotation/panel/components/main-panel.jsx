@@ -1,5 +1,4 @@
-import { LuBrush as Brush, LuArrowUpRight as Arrow } from "react-icons/lu";
-import { CiEraser as Eraser } from "react-icons/ci";
+import { LuBrush as Brush, LuArrowUpRight as Arrow, LuEraser as Eraser } from "react-icons/lu";
 import { MdOutlineFormatColorText as Text } from "react-icons/md";
 import { cn } from "../../../../shared/utils";
 import { MainAnnotationControls } from "../constants";
@@ -21,8 +20,8 @@ const MainPanel = ({ config, setConfig }) => {
           handleToolChange(MainAnnotationControls.PEN)
         }}
         className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center",
-          config.tool === "pen" ? "" : "hover"
+          "p-1 no-drag rounded w-full inline-flex justify-center",
+          config.tool === "pen" ? "" : ""
         )}
       >
         <Brush size={23} />
@@ -36,8 +35,9 @@ const MainPanel = ({ config, setConfig }) => {
           window.api.annotation.clear()
         }}
         className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "eraser" ? "" : "hover")}
+          "p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
+          config.tool === "eraser" ? "" : ""
+        )}
       >
         <Eraser size={20} />
       </button>
@@ -47,7 +47,7 @@ const MainPanel = ({ config, setConfig }) => {
           handleToolChange(MainAnnotationControls.ARROW)
         }}
         className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
+          " p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
           config.tool === "arrow" ? "" : ""
         )}
       >
@@ -59,7 +59,7 @@ const MainPanel = ({ config, setConfig }) => {
           handleToolChange(MainAnnotationControls.TEXT)
         }}
         className={cn(
-          "hover:bg-button-hover p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
+          "p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
           config.tool === "text" ? "" : ""
         )}
       >

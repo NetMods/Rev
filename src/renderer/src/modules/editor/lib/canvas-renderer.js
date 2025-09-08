@@ -28,7 +28,7 @@ export class CanvasRenderer {
     this.ctx.fillStyle = "#111111";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = "#666666";
-    this.ctx.font = "24px Arial";
+    this.ctx.font = "12px Arial";
     this.ctx.textAlign = "center";
     this.ctx.fillText("Loading...", this.canvas.width / 2, this.canvas.height / 2);
   }

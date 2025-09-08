@@ -16,7 +16,7 @@ const Timeline = ({ className, data }) => {
   } = useTimeline({ preview, videoDuration, currentTime, setCurrentTime, effects, zoomLevel });
 
   return (
-    <div className={cn("bg-card rounded border", className)}>
+    <div className={cn("rounded border", className)}>
       <div
         className="relative flex flex-col gap-3 size-full px-5 pb-2 overflow-x-auto scrollbar-thin scrollbar-track-neutral-800 scrollbar-thumb-neutral-600 hover:scrollbar-thumb-neutral-500"
         ref={timelineContainer}
@@ -25,7 +25,7 @@ const Timeline = ({ className, data }) => {
         {/* Play head */}
         <div
           ref={playheadRef}
-          className="absolute bottom-0 top-4 z-50 w-px rounded-full bg-foreground cursor-ew-resize"
+          className="absolute bottom-0 top-4 z-50 w-px rounded-full cursor-ew-resize"
           style={{
             left: "20px",
             willChange: "transform",
@@ -33,7 +33,7 @@ const Timeline = ({ className, data }) => {
             backfaceVisibility: "hidden",
           }}
         >
-          <div className="absolute -top-1 -left-[0.35rem] w-3 h-3 rounded-full border-2 border-background bg-foreground cursor-ew-resize" />
+          <div className="absolute -top-1 -left-[0.35rem] w-3 h-3 rounded-full border-2 cursor-ew-resize" />
         </div>
 
         {/*Time stamps*/}
@@ -41,12 +41,12 @@ const Timeline = ({ className, data }) => {
           {ticks.map((tick, idx) => (
             <div key={idx}>
               <div
-                className="absolute top-0 bg-foreground/30 w-px"
+                className="absolute top-0  w-px"
                 style={{ left: `${tick.x}px`, height: `8px` }}
               />
               {tick.label && (
                 <div
-                  className="pointer-events-none absolute select-none font-mono text-[0.7rem] text-foreground/30"
+                  className="pointer-events-none absolute select-none font-mono text-[0.7rem]"
                   style={{ left: `${tick.x}px`, bottom: "0px", transform: "translateX(-50%)" }}
                 >
                   {tick.label}
@@ -58,7 +58,7 @@ const Timeline = ({ className, data }) => {
 
         {/*Clip row*/}
         <div
-          className="w-full h-1/2 bg-muted rounded relative flex overflow-hidden"
+          className="w-full h-1/2 rounded relative flex overflow-hidden"
           style={{ width: `${videoWidth > containerWidth ? videoWidth : containerWidth}px` }}
         >
           <div style={{ width: `${videoWidth}px` }} className="rounded">
@@ -72,7 +72,7 @@ const Timeline = ({ className, data }) => {
         {/*Effects row*/}
         <div
           ref={effectsRowRef}
-          className="w-full h-1/2 bg-muted rounded relative flex overflow-hidden"
+          className="w-full h-1/2 rounded relative flex overflow-hidden"
           style={{ width: `${videoWidth > containerWidth ? videoWidth : containerWidth}px` }}
         ></div>
       </div>

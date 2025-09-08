@@ -36,10 +36,10 @@ const AnnotateApp = () => {
     }
   };
 
-  const breaker = (<hr className="bg-button-hover/80" />)
+  const breaker = (<hr className="" />)
 
   return (
-    <div className="py-1 bg-background text-foreground/80 flex gap-1 border border-foreground/25 rounded select-none max-w-[53px]">
+    <div className="py-1 flex gap-1 borderrounded select-none max-w-[53px]">
       <div
         className={cn(
           "flex flex-col items-center justify-center w-[50px] transition-transform duration-300 ease-in-out px-2 gap-2",
@@ -51,15 +51,17 @@ const AnnotateApp = () => {
         {breaker}
 
         <button
+          disabled={config.tool === "text" || config.tool === "arrow"}
           onClick={() => toggleDrawer("size")}
-          className="hover:bg-button-hover p-1 no-drag rounded w-full flex justify-center"
+          className="p-1 no-drag rounded w-full flex justify-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <BrushSize size="25" />
         </button>
 
         <button
+          disabled={config.tool === "eraser"}
           onClick={() => toggleDrawer("color")}
-          className="hover:bg-button-hover p-1 no-drag rounded w-full flex justify-center"
+          className="p-1 no-drag rounded w-full flex justify-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Palette size={23} />
         </button>
@@ -69,14 +71,14 @@ const AnnotateApp = () => {
         <div className="flex flex-col items-center gap-1">
           <button
             onClick={handleAnnotationTimer}
-            className="hover:bg-button-hover p-1 no-drag rounded w-full flex justify-center"
+            className="p-1 no-drag rounded w-full flex justify-center"
           >
             <Timer size={23} />
           </button>
           <div className="flex gap-1 max-w-8 opacity-60">
-            <span className={cn('w-4 h-0.5', annotationTimer > 0 ? 'bg-cyan-500' : 'bg-foreground')} />
-            <span className={cn('w-4 h-0.5', annotationTimer > 1 ? 'bg-cyan-500' : 'bg-foreground')} />
-            <span className={cn('w-4 h-0.5', annotationTimer > 2 ? 'bg-cyan-500' : 'bg-foreground')} />
+            <span className={cn('w-4 h-0.5', annotationTimer > 0 ? 'bg-cyan-500' : '')} />
+            <span className={cn('w-4 h-0.5', annotationTimer > 1 ? 'bg-cyan-500' : '')} />
+            <span className={cn('w-4 h-0.5', annotationTimer > 2 ? 'bg-cyan-500' : '')} />
           </div>
         </div>
 
@@ -84,7 +86,7 @@ const AnnotateApp = () => {
 
         <button
           onClick={() => window.api.annotation.stop()}
-          className="hover:bg-button-hover p-1 no-drag rounded w-full flex justify-center"
+          className="p-1 no-drag rounded w-full flex justify-center"
         >
           <Cross size={23} />
         </button>

@@ -16,6 +16,11 @@ Todos:
 - find a better way for crop and pixelate effect
 - shift to a common UI (daisy UI)
 - add face recording and audio
+- add webcam and audio
+- stay zoomed when typing
+- speed up pan effect
+- add a big cursor
+
 
 Quality Improvments
 
