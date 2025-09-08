@@ -23,6 +23,9 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   core: {
+    getConfig: () => ipcRenderer.invoke('config:get'),
+    updateConfig: (...args) => ipcRenderer.invoke('config:update', ...args),
+    getIOdevices: (...args) => ipcRenderer.invoke('devices:get', ...args),
     closeWindow: () => ipcRenderer.send('window:close'),
     minimizeWindow: () => ipcRenderer.send('window:minimize'),
     toggleMaximizeWindow: () => ipcRenderer.send('window:maximize')

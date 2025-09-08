@@ -1,27 +1,23 @@
 import { useState } from "react";
 import startSound from '../../../assets/start.wav';
 import stopSound from '../../../assets/stop.wav';
+import { playSound } from "../../../shared/utils";
 
 const startRecSound = new Audio(startSound);
 const stopRecSound = new Audio(stopSound);
+
 startRecSound.volume = 0.05;
 stopRecSound.volume = 0.05;
 
-const playSound = (sound) => {
-  sound.currentTime = 0;
-  sound.play().catch((e) => {
-    console.log(e)
-  });
-};
 export const useRecording = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  const startRecording = async () => {
+  const startRecording = async (opts) => {
     try {
       setIsRecording(true);
       playSound(startRecSound)
-      await window.api.recording.start();
+      await window.api.recording.start(opts);
     } catch (error) {
       console.error('[renderer] Error starting recording:', error);
     }

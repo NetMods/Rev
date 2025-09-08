@@ -14,13 +14,18 @@ Todos:
 - speed up pan effect
 - add a big cursor
 - clips slice feature
-- fix timestamps minor marks
+- fix minor timestamps marks
 - clips and effects ui
 - fix timeline padding
 - update effects from timeline
 - video play on space
 - play/pause feature on fullscreen
-- clip 1s from start and end
+- trim 1s from start and end
+- undo and redo for editor
+- fix canvas edges while zooming
+- fix pan effect when coords are near the edge
+- maintain a active processes set
+- debounce multiple clicks
 
 Quality Improvments
 

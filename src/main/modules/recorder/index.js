@@ -20,7 +20,7 @@ export default {
     log.info('Recording module initialized');
   },
 
-  async startRecording() {
+  async startRecording(opts) {
     if (this.session) {
       throw new Error('Recording is already in progress.');
     }
@@ -31,7 +31,7 @@ export default {
 
       const currentProjectId = await this.core.modules.project.createProject();
 
-      this.session = new RecordingSession(currentProjectId, this.core);
+      this.session = new RecordingSession(currentProjectId, opts, this.core);
       await this.session.start();
 
       log.verbose('Recording started successfully.');
@@ -68,18 +68,31 @@ export default {
     }
 
     try {
+      let data
       const { clicks, drags } = this.mouseTracker.stop();
 
       const videoPath = await this.session.stop();
-      const { projectId } = this.session;
 
-      const data = {
-        videoPath: `app://${videoPath}`,
-        status: 'completed',
-        mouseClickRecords: clicks,
-        mouseDragRecords: drags,
-        finishedAt: new Date().toISOString(),
-      };
+      if (typeof videoPath === 'string') {
+        data = {
+          videoPath: `app://${videoPath}`,
+          status: 'completed',
+          mouseClickRecords: clicks,
+          mouseDragRecords: drags,
+          finishedAt: new Date().toISOString(),
+        }
+      } else {
+        data = {
+          videoPath: `app://${videoPath.screen}`,
+          webcamPath: `app://${videoPath.webcam}`,
+          status: 'completed',
+          mouseClickRecords: clicks,
+          mouseDragRecords: drags,
+          finishedAt: new Date().toISOString(),
+        }
+      }
+
+      const { projectId } = this.session;
 
       await this.core.modules.project.updateProject(projectId, data, this.core);
 
@@ -153,7 +166,7 @@ export default {
       'recording:start': async (_, ...args) => this.startRecording(...args),
       'recording:pause': async (_, ...args) => this.pauseRecording(...args),
       'recording:resume': async (_, ...args) => this.resumeRecording(...args),
-      'recording:stop': async (_, ...args) => this.stopRecording(...args),
+      'recording:stop': async (_, ...args) => this.stopRecording(...args)
     };
   },
 };

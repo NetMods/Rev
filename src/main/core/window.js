@@ -1,5 +1,5 @@
 import { is } from '@electron-toolkit/utils'
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, session } from 'electron'
 import log from 'electron-log/main'
 import { join } from 'path'
 
@@ -84,8 +84,8 @@ export const createWindow = async (options, name = 'unnamed') => {
 
 export async function createMainWindow() {
   const options = {
-    width: 250,
-    height: 250,
+    width: 220,
+    height: 220,
     show: false,
     transparent: true,
     hasShadow: false,
@@ -104,30 +104,38 @@ export async function createMainWindow() {
       backgroundThrottling: false
     },
   }
-  const recorderWindow = await createWindow(options, 'Recorder')
+  const mainWindow = await createWindow(options, 'Recorder')
 
-  recorderWindow.on('ready-to-show', () => {
-    recorderWindow.show()
-    recorderWindow.focus()
-    recorderWindow.setContentProtection(true)
+  mainWindow.on('ready-to-show', () => {
+    mainWindow.show()
+    mainWindow.focus()
+    mainWindow.setContentProtection(true)
     try {
-      recorderWindow.setAlwaysOnTop(true, 'pop-up-menu', 50)
-      recorderWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+      mainWindow.setAlwaysOnTop(true, 'pop-up-menu', 50)
+      mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
       if (process.platform === 'darwin') {
-        recorderWindow.setWindowButtonVisibility(false)
+        mainWindow.setWindowButtonVisibility(false)
       }
     } catch (error) {
       log.error('Error setting workspace visibility on show:', error)
     }
   })
 
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (permission === "media") {
+      callback(true);
+    } else {
+      callback(false);
+    }
+  })
+
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    recorderWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    recorderWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  return recorderWindow
+  return mainWindow
 }
 
 export const closeWindow = (event) => {
