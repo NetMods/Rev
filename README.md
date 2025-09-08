@@ -12,6 +12,8 @@ Todos:
 - ~~add screenshot functionality~~
 - add presets feature to screenshot
 - add redo feature in screenshot
+- refine the undo functionality
+- find a better way for crop and pixelate effect
 - shift to a common UI (daisy UI)
 - add face recording and audio
 

@@ -22,6 +22,7 @@ export const AnnotationCanvas = ({
     tempArrowEnd &&
     tempArrowEnd.x !== undefined;
 
+
   return (
     <Stage
       ref={stageRef}

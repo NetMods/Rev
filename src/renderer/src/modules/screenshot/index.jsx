@@ -1,4 +1,4 @@
-import log from "electron-log/renderer"
+import log from 'electron-log/renderer'
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { getPresetConfigAtom, setPresetConfigAtom } from "../../store";
@@ -7,10 +7,12 @@ import { AnnotationCanvas } from "./components/AnnotationCanvas";
 import ScreeshotPlaceholder from "../../assets/screenshot-placeholder.gif";
 import ToolPanel from "./components/toolPanel"
 import StylePanel from "./components/stylePanel";
+import HistoryStack from "./utils/historyStack";
 
 const PADDING = 8;
 
 export default function EditorPage() {
+
   const [imageUrl, setImageUrl] = useState(null);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
   const [displayDims, setDisplayDims] = useState(null);
@@ -18,8 +20,10 @@ export default function EditorPage() {
 
   const stageRef = useRef(null);
   const layerRef = useRef(null);
+  const editorRef = useRef(null);
   const canvasContainerRef = useRef(null);
   const applyEffectRef = useRef(() => { });
+  const historyRef = useRef(new HistoryStack([]))
 
   const config = useAtomValue(getPresetConfigAtom);
   const setConfig = useSetAtom(setPresetConfigAtom);
@@ -43,9 +47,47 @@ export default function EditorPage() {
   }, []);
 
   const {
-    pencilLines, arrows, cropPreview, tempArrowStart, tempArrowEnd,
-    handleMouseDown, handleMouseMove, handleMouseUp,
-  } = useDrawingLogic(config, applyEffectRef.current);
+    pencilLines, setPencilLines, arrows, setArrows, cropPreview, tempArrowStart, tempArrowEnd, setTempArrowEnd,
+    handleMouseDown, handleMouseMove, handleMouseUp
+  } = useDrawingLogic(config, applyEffectRef.current, historyRef.current);
+
+  useEffect(() => {
+
+    let historyStack = historyRef.current
+
+    if (!historyStack) return;
+
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        const prevTask = historyStack.undo();
+        if (!prevTask) return;
+
+        switch (prevTask.type) {
+          case "pen":
+            setPencilLines(prevTask.state);
+            break;
+          case "arrows":
+            setTempArrowEnd(null);
+            tempArrowStart.current = null;
+            setArrows(prevTask.state);
+            break;
+        }
+      } else if (e.key === "Escape") {
+        setConfig({
+          tool: "none"
+        })
+      }
+    };
+
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, []);
+
+
+
 
 
   const stageProps = {
@@ -58,7 +100,7 @@ export default function EditorPage() {
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden p-1">
+    <div ref={editorRef} className="relative h-screen w-screen overflow-hidden p-1 no-drag">
       <div className="h-full w-full grid grid-cols-[4fr_1fr] grid-rows-[11fr_1fr] no-drag">
         <div
           ref={canvasContainerRef}
@@ -81,6 +123,7 @@ export default function EditorPage() {
               stageProps={stageProps}
               onDisplayDimsChange={setDisplayDims}
               applyEffectRef={applyEffectRef}
+              historyStack={historyRef.current}
             />
           )}
         </div>

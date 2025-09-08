@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import useImage from "use-image";
 
 export const useImageProcessor = (src, stageWidth, stageHeight, cropRect, batchDraw) => {
-  const [image, status] = useImage(src, "anonymous"); // Correctly destructure both image and status
+  const [image, status] = useImage(src, "anonymous");
   const [dims, setDims] = useState(null);
   const canvasRef = useRef(null);
   const [konvaImage, setKonvaImage] = useState(null);

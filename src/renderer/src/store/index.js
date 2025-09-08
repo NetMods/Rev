@@ -23,4 +23,8 @@ export const setPresetConfigAtom = atom(
   }
 )
 
+// export const historyAtom = atom([])
+//
+// export const getHistoryAtom = atom((get) => get(historyAtom))
+
 
