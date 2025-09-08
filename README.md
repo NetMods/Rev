@@ -20,6 +20,7 @@ Todos:
 - update effects from timeline
 - video play on space
 - play/pause feature on fullscreen
+- clip 1s from start and end
 
 Quality Improvments
 

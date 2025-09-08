@@ -12,3 +12,10 @@ export function getOS() {
   if (platform.includes("linux")) return "linux";
   return "unknown";
 }
+
+export const playSound = (sound) => {
+  sound.currentTime = 0;
+  sound.play().catch((e) => {
+    console.log(e)
+  });
+};

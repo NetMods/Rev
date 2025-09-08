@@ -1,5 +1,18 @@
 import { useState } from "react";
+import startSound from '../../../assets/start.wav';
+import stopSound from '../../../assets/stop.wav';
 
+const startRecSound = new Audio(startSound);
+const stopRecSound = new Audio(stopSound);
+startRecSound.volume = 0.05;
+stopRecSound.volume = 0.05;
+
+const playSound = (sound) => {
+  sound.currentTime = 0;
+  sound.play().catch((e) => {
+    console.log(e)
+  });
+};
 export const useRecording = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -7,17 +20,18 @@ export const useRecording = () => {
   const startRecording = async () => {
     try {
       setIsRecording(true);
+      playSound(startRecSound)
       await window.api.recording.start();
     } catch (error) {
       console.error('[renderer] Error starting recording:', error);
     }
   };
 
-  const stopRecording = async (callback) => {
+  const stopRecording = async () => {
     try {
       setIsRecording(false);
       setIsPaused(false);
-      callback();
+      playSound(stopRecSound)
       await window.api.recording.stop()
     } catch (error) {
       console.error('[renderer] Error stopping recording:', error);
