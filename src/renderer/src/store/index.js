@@ -3,8 +3,8 @@ import { SCREENSHOTTOOL } from "../shared/constants"
 
 const presetConfigAtom = atom({
   tool: SCREENSHOTTOOL.NONE,
-  padding: 20,
-  rounded: 0,
+  padding: 10,
+  rounded: 5,
   noise: 0,
   backgroundcolor: "#FFFFFF"
 })

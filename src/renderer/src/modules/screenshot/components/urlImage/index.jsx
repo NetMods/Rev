@@ -1,5 +1,4 @@
 import { Image, Rect, Group } from "react-konva";
-// import Konva from "konva";
 import { useImageProcessor } from "../../hooks/useImageProcessor";
 import { useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
@@ -36,20 +35,20 @@ const URLImage = ({
   return (
     <Group>
       <Rect
-        x={displayDims.x}
-        y={displayDims.y}
-        width={displayDims.width}
-        height={displayDims.height}
+        x={displayDims.x - config.padding}
+        y={displayDims.y - config.padding}
+        width={displayDims.width + config.padding * 2}
+        height={displayDims.height + config.padding * 2}
         fill={config.backgroundcolor}
         listening={false}
       />
       <Image
-        ref={imageRef} // ✅ Ref needed to apply filter
+        ref={imageRef}
         image={konvaImage}
-        x={displayDims.x + config.padding}
-        y={displayDims.y + config.padding}
-        width={displayDims.width - config.padding * 2}
-        height={displayDims.height - config.padding * 2}
+        x={displayDims.x}
+        y={displayDims.y}
+        width={displayDims.width}
+        height={displayDims.height}
         crop={displayDims.crop}
         listening={false}
         cornerRadius={config.rounded}

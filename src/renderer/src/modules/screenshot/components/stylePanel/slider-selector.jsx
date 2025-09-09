@@ -1,8 +1,8 @@
-const SliderControl = ({ label, value, setValue, min = 0, max = 100 }) => {
+const SliderControl = ({ label, value, setValue, min = 0, max = 50 }) => {
   let key = label.toLowerCase().replace(" ", "");
   return (
     <div className="flex flex-col mb-4 no-drag">
-      <label className="text-[#EEEEEE] mb-1 no-drag">{label}</label>
+      <label className="text-base-content mb-1 no-drag">{label}</label>
       <div className="flex items-center gap-2 no-drag">
         <input
           type="range"
@@ -12,7 +12,7 @@ const SliderControl = ({ label, value, setValue, min = 0, max = 100 }) => {
           onChange={(e) => setValue({
             [key]: parseInt(e.target.value)
           })}
-          className="w-full accent-[#00ADB5] no-drag"
+          className="w-full accent-primary no-drag"
         />
         <input
           type="number"
@@ -20,7 +20,7 @@ const SliderControl = ({ label, value, setValue, min = 0, max = 100 }) => {
           max={max}
           value={value}
           onChange={(e) => setValue(Number(e.target.value))}
-          className="w-16 text-center rounded bg-[#393E46] text-[#EEEEEE] border border-[#00ADB5] no-drag"
+          className="w-16 text-center rounded bg-base-300 text-base-content border border-primary no-drag"
         />
       </div>
     </div>

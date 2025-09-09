@@ -1,3 +1,4 @@
+//current
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { getPresetConfigAtom, setPresetConfigAtom } from "../../store";
@@ -103,7 +104,7 @@ export default function EditorPage() {
       <div className="h-full w-full grid grid-cols-[4fr_1fr] grid-rows-[11fr_1fr] no-drag">
         <div
           ref={canvasContainerRef}
-          className="flex justify-center items-center w-full h-full bg-[#222831]"
+          className="flex justify-center items-center w-full h-full bg-neutral"
         >
           {!imageUrl ? (
             <img src={ScreeshotPlaceholder} alt="loading..." />

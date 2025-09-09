@@ -33,20 +33,20 @@ const SidePanel = () => {
     { value: "#7A6F5C" }, // bronze alloy
     { value: "#8A817C" }, // tarnished silver
   ]
-  const ratios = ["Auto", "4:3", "3:2", "16:9", "1:1"]
+  // const ratios = ["Auto", "4:3", "3:2", "16:9", "1:1"]
 
   return (
-    <div className="bg-[#222831] p-4 overflow-y-auto">
+    <div className="bg-neutral p-4 overflow-y-auto border-l-primary">
       <PresetDropdown presets={presets} selected={preset} setSelected={setPreset} />
       <SliderControl label="Padding" value={config.padding} setValue={setConfig} />
       <SliderControl label="Rounded" value={config.rounded} setValue={setConfig} />
-      <SliderControl label="Shadow" value={config.shadow} setValue={setConfig} />
+      {/*<SliderControl label="Shadow" value={config.shadow} setValue={setConfig} />*/}
       <BackgroundSelector
         backgrounds={backgrounds}
         selected={config.backgroundcolor}
         setSelected={setConfig}
       />
-      <RatioSelector ratios={ratios} selected={ratio} setSelected={setRatio} />
+      {/*<RatioSelector ratios={ratios} selected={ratio} setSelected={setRatio} />*/}
     </div>
   )
 }

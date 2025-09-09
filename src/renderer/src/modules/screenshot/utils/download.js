@@ -4,13 +4,18 @@
 import log from "electron-log/renderer"
 
 
-export const getDataUrl = (stage, displayDims) => {
+export const getDataUrl = (stage, displayDims, padding) => {
+  const exportDims = {
+    x: displayDims.x - padding,
+    y: displayDims.y - padding,
+    width: displayDims.width + padding * 2,
+    height: displayDims.height + padding * 2,
+  };
   const dataUrl = stage.toDataURL({
-    x: displayDims.x,
-    y: displayDims.y,
-    width: displayDims.width,
-    height: displayDims.height,
-    pixelRatio: displayDims.crop.width / displayDims.width,
+    ...exportDims,
+    pixelRatio: 2,
+    mimeType: "image/png",
+    quality: 1,
   });
   return dataUrl
 }
