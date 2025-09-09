@@ -1,13 +1,14 @@
 import { app, BrowserWindow } from 'electron';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 
-import { createWindow, createMainWindow, closeWindow } from './window';
+import { createWindow, createMainWindow, closeWindow, minimizeWindow, toggleMaximizeWindow } from './window';
 import { loadModules } from '../modules';
 import { registerIPCRouter } from './ipc-router';
 import config from './config';
 import paths from "./path"
 import { handleProtocolRequests, registerProtocolScheme } from './protocol';
 import { initializeLogger } from './utils';
+import { getInputDevices } from './input';
 
 const log = initializeLogger()
 
@@ -55,7 +56,12 @@ app.whenReady().then(async () => {
     paths,
     modules: {},
     ipcHandlers: {
+      'devices:get': async (_, ...args) => getInputDevices(...args),
       'window:close': (event) => closeWindow(event),
+      'window:minimize': (event) => minimizeWindow(event),
+      'window:maximize': (event) => toggleMaximizeWindow(event),
+      'config:get': async () => config.getConfig(),
+      'config:update': async (_, ...args) => config.updateConfig(...args),
     },
   };
 

@@ -16,16 +16,16 @@ const Timeline = ({ className, data }) => {
   } = useTimeline({ preview, videoDuration, currentTime, setCurrentTime, effects, zoomLevel });
 
   return (
-    <div className={cn("rounded border", className)}>
+    <div className={cn("rounded border-2 border-base-content/10 bg-base-200", className)}>
       <div
-        className="relative flex flex-col gap-3 size-full px-5 pb-2 overflow-x-auto scrollbar-thin scrollbar-track-neutral-800 scrollbar-thumb-neutral-600 hover:scrollbar-thumb-neutral-500"
+        className="relative flex flex-col gap-3 size-full px-5 pb-2 overflow-x-auto noscrollbar scrollbar-thin scrollbar-track-neutral-800 scrollbar-thumb-neutral-600 hover:scrollbar-thumb-neutral-500"
         ref={timelineContainer}
         onClick={handleTimelineClick}
       >
         {/* Play head */}
         <div
           ref={playheadRef}
-          className="absolute bottom-0 top-4 z-50 w-px rounded-full cursor-ew-resize"
+          className="absolute bottom-0 top-1 z-50 bg-primary w-px rounded-full cursor-ew-resize"
           style={{
             left: "20px",
             willChange: "transform",
@@ -33,7 +33,7 @@ const Timeline = ({ className, data }) => {
             backfaceVisibility: "hidden",
           }}
         >
-          <div className="absolute -top-1 -left-[0.35rem] w-3 h-3 rounded-full border-2 cursor-ew-resize" />
+          <div className="absolute -top-1 -left-[0.35rem] w-3 h-3 rounded-full bg-primary border-primary border-2 cursor-ew-resize" />
         </div>
 
         {/*Time stamps*/}
@@ -41,12 +41,12 @@ const Timeline = ({ className, data }) => {
           {ticks.map((tick, idx) => (
             <div key={idx}>
               <div
-                className="absolute top-0  w-px"
+                className="absolute top-0 bg-base-content/20 w-px"
                 style={{ left: `${tick.x}px`, height: `8px` }}
               />
               {tick.label && (
                 <div
-                  className="pointer-events-none absolute select-none font-mono text-[0.7rem]"
+                  className="pointer-events-none text-base-content/50 absolute select-none font-mono text-[0.7rem]"
                   style={{ left: `${tick.x}px`, bottom: "0px", transform: "translateX(-50%)" }}
                 >
                   {tick.label}
@@ -62,9 +62,9 @@ const Timeline = ({ className, data }) => {
           style={{ width: `${videoWidth > containerWidth ? videoWidth : containerWidth}px` }}
         >
           <div style={{ width: `${videoWidth}px` }} className="rounded">
-            <div className="flex size-full rounded items-center justify-center bg-[#458588] grain-overlay">
-              <ClipIcon />
-              <span className="pl-1"> Clip </span>
+            <div className="flex size-full rounded items-center justify-center border-1 border-accent/70 bg-accent/55 grain-overlay">
+              <ClipIcon className="text-accent-content" />
+              <span className="pl-1 text-accent-content"> Clip </span>
             </div>
           </div>
         </div>

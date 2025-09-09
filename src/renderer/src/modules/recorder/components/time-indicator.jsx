@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { cn } from '../../../shared/utils';
 
 const padZero = (num) => (num < 10 ? `0${num}` : `${num}`);
 
-export const TimeIndicator = ({ isRecording, isPaused, onTimeLimitExceeds }) => {
+export const TimeIndicator = ({ isRecording, isPaused, onTimeLimitExceeds, className }) => {
   const [time, setTime] = useState({ minute: 0, second: 0 });
 
   useEffect(() => {
@@ -35,6 +36,6 @@ export const TimeIndicator = ({ isRecording, isPaused, onTimeLimitExceeds }) => 
   }, [isRecording, isPaused, onTimeLimitExceeds]);
 
   return (
-    <span className='inline-flex justify-center text-sm'>{`${time.minute}:${padZero(time.second)}`} </span>
+    <span className={cn("inline-flex flex-col items-center justify-end", className)}>{`${time.minute}:${padZero(time.second)}`} </span>
   );
 };

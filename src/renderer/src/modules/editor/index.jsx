@@ -1,9 +1,8 @@
-import { IoClose as Close } from 'react-icons/io5';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import log from 'electron-log/renderer';
 import { Editor } from './components/editor';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { TopBar } from '../../shared/ui/topbar';
 
 export default function Page() {
   const [searchParams] = useSearchParams();
@@ -25,15 +24,15 @@ export default function Page() {
   }, [id]);
 
   return (
-    <div className="p-2 font-sans **:no-drag border-1 rounded no-drag h-screen relative">
-      {data && <Editor data={data} />}
-      <div className="absolute right-2 top-2">
-        <button
-          className="rounded cursor-pointer no-drag py-1 inline-flex justify-center hover:bg-neutral-800"
-          onClick={() => window.api.core.closeWindow()}
-        >
-          <Close size={23} />
-        </button>
+    <div className="p-2 pt-0 font-sans bg-base-300 text-base-content h-screen overflow-hidden flex flex-col">
+      <TopBar title={id} />
+
+      <div className="flex-1 relative">
+        {data ? (
+          <Editor data={data} />
+        ) : (
+          <div className="h-full flex items-center justify-center text-sm opacity-60">Loading…</div>
+        )}
       </div>
     </div>
   );
