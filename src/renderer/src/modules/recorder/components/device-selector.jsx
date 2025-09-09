@@ -7,6 +7,14 @@ import {
 export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, selectedDevice }) {
   const filteredDevices = deviceType === 'Video' ? devices.videoDevices : devices.audioDevices;
 
+  const handleDeviceClick = (device) => {
+    if (selectedDevice?.id === device.id) {
+      onSelectDevice(deviceType, null);
+    } else {
+      onSelectDevice(deviceType, device);
+    }
+  };
+
   return (
     <div>
       <button
@@ -25,7 +33,7 @@ export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, se
             <button
               key={device.id}
               className={`w-full p-2 pb-1 cursor-pointer rounded-md transition-all duration-200 overflow-hidden ${selectedDevice?.id === device.id ? 'bg-primary/80 text-primary-content' : 'bg-base-200 text-base-content/70 hover:bg-base-300 hover:text-base-content'}`}
-              onClick={() => onSelectDevice(deviceType, device)}
+              onClick={() => handleDeviceClick(device)}
             >
               <span className="inline-flex items-center justify-start whitespace-nowrap scroll-container">
                 <span>
