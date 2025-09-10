@@ -100,7 +100,7 @@ export default function EditorPage() {
   };
 
   return (
-    <div ref={editorRef} className="relative h-screen w-screen overflow-hidden p-1 no-drag">
+    <div ref={editorRef} className="relative h-screen w-screen overflow-hidden p-1 no-drag font-sans">
       <div className="h-full w-full grid grid-cols-[4fr_1fr] grid-rows-[11fr_1fr] no-drag">
         <div
           ref={canvasContainerRef}
