@@ -5,7 +5,13 @@ import {
 } from 'react-icons/io5';
 
 export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, selectedDevice }) {
-  const filteredDevices = deviceType === 'Video' ? devices.videoDevices : devices.audioDevices;
+  let filteredDevices = deviceType === 'Video' ? devices.videoDevices : devices.audioDevices;
+
+  if (deviceType === 'Video') {
+    filteredDevices = filteredDevices.filter(
+      (device) => !device.name.toLowerCase().includes('capture screen')
+    );
+  }
 
   const handleDeviceClick = (device) => {
     if (selectedDevice?.id === device.id) {

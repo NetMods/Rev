@@ -65,8 +65,6 @@ export const getInputDevices = async () => {
           name = name.slice(1, -1).trim();
         }
 
-        if (name.toLowerCase().includes('capture screen')) continue;
-
         const devices = section === 'video' ? videoDevices : audioDevices;
         devices.push({ name, id });
       }

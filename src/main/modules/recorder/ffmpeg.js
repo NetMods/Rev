@@ -4,7 +4,7 @@ import { writeFileSync } from "fs-extra";
 import { spawn } from "child_process";
 import log from "electron-log/main"
 
-export const spawnScreenCapture = (ffmpegPath, outputPath, opts) => {
+export const spawnScreenCapture = async (ffmpegPath, outputPath, opts, core) => {
   const platform = process.platform;
   const { audioDevice } = opts;
   let args = [];
@@ -23,18 +23,26 @@ export const spawnScreenCapture = (ffmpegPath, outputPath, opts) => {
 
   if (platform === 'win32') {
     args = [
-      '-f', 'gdigrab', '-i', 'desktop',                                // Video Input: Entire desktop
-      '-f', 'dshow', '-i', `audio=${audioDevice}`,                     // Audio Input: Use provided audioDevice
+      '-f', 'gdigrab', '-i', 'desktop', // Video Input: Entire desktop
     ];
+    if (audioDevice) {
+      args.push('-f', 'dshow', '-i', `audio=${audioDevice}`); // Audio Input: Only if audioDevice is provided
+    }
   } else if (platform === 'darwin') {
+    const { videoDevices } = await core.input.getInputDevices()
+    const screenDevice = videoDevices.find(device => device.name.toLowerCase().includes('capture screen'));
+    const screenIndex = screenDevice ? screenDevice.id : null
+
     args = [
-      '-f', 'avfoundation', '-i', `0:${audioDevice}`,                  // Video index 1, Audio index from audioDevice
+      '-f', 'avfoundation', '-i', `${screenIndex}:${audioDevice ?? 'none'}`,                  // Video index 1, Audio index from audioDevice
     ];
   } else if (platform === 'linux') {
     args = [
-      '-f', 'x11grab', '-i', process.env.DISPLAY || ':0.0',           // Video Input: X11 display
-      '-f', 'pulse', '-i', audioDevice,                               // Audio Input: Use provided audioDevice
+      '-f', 'x11grab', '-i', process.env.DISPLAY || ':0.0', // Video Input: X11 display
     ];
+    if (audioDevice) {
+      args.push('-f', 'pulse', '-i', audioDevice); // Audio Input: Only if audioDevice is provided
+    }
   } else {
     dialog.showErrorBox('Platform Not Supported', `Unsupported platform: ${platform}`);
     return null;

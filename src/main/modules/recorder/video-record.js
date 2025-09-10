@@ -27,14 +27,14 @@ export class RecordingSession {
     this.clipPaths.push(outputPath);
 
     const ffmpegPath = await this.core.paths.getFFmpegPath();
-    this.currentProcess = spawnScreenCapture(ffmpegPath, outputPath, this.opts);
+    this.currentProcess = await spawnScreenCapture(ffmpegPath, outputPath, this.opts, this.core);
     log.verbose(`Started new clip: clip${this.clipIndex}.mkv`);
 
     if (this.opts.videoDevice) {
       const webcamOutputPath = join(this.tempDirectory, `webcam${this.clipIndex}.mkv`);
       this.webcamClipPaths.push(webcamOutputPath);
       this.currentWebcamProcess = spawnWebcamCapture(ffmpegPath, webcamOutputPath, this.opts);
-      log.verbose(`Started new webcam clip: webcam_clip${this.clipIndex}.mkv`);
+      log.verbose(`Started new webcam clip: webcam${this.clipIndex}.mkv`);
     }
   }
 
