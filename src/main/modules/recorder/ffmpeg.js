@@ -1,8 +1,8 @@
+import { join } from "path";
 import { dialog } from "electron";
 import { writeFileSync } from "fs-extra";
 import { spawn } from "child_process";
 import log from "electron-log/main"
-import { join } from "path";
 
 export const spawnScreenCapture = (ffmpegPath, outputPath, opts) => {
   const platform = process.platform;
@@ -28,7 +28,7 @@ export const spawnScreenCapture = (ffmpegPath, outputPath, opts) => {
     ];
   } else if (platform === 'darwin') {
     args = [
-      '-f', 'avfoundation', '-i', `1:${audioDevice}`,                  // Video index 1, Audio index from audioDevice
+      '-f', 'avfoundation', '-i', `0:${audioDevice}`,                  // Video index 1, Audio index from audioDevice
     ];
   } else if (platform === 'linux') {
     args = [
@@ -108,7 +108,7 @@ export const mergeVideoClips = (ffmpegPath, clipPaths, tempDirectory, videoName)
 
   if (clipPaths.length === 1) {
     log.info('Only one clip found, no merge necessary. Renaming instead.');
-    return Promise.resolve({ outputPath: clipPaths[0], videoName });
+    return Promise.resolve(clipPaths[0]);
   }
 
   const listFile = join(tempDirectory, 'concat_list.txt');

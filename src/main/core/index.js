@@ -8,7 +8,7 @@ import config from './config';
 import paths from "./path"
 import { handleProtocolRequests, registerProtocolScheme } from './protocol';
 import { initializeLogger } from './utils';
-import { getInputDevices } from './input';
+import input from './input';
 
 const log = initializeLogger()
 
@@ -54,9 +54,10 @@ app.whenReady().then(async () => {
     },
     config,
     paths,
+    input,
     modules: {},
     ipcHandlers: {
-      'devices:get': async (_, ...args) => getInputDevices(...args),
+      'devices:get': async (_, ...args) => input.getInputDevices(...args),
       'window:close': (event) => closeWindow(event),
       'window:minimize': (event) => minimizeWindow(event),
       'window:maximize': (event) => toggleMaximizeWindow(event),
