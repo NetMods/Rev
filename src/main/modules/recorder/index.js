@@ -68,28 +68,21 @@ export default {
     }
 
     try {
-      let data
       const { clicks, drags } = this.mouseTracker.stop();
+      let data = {
+        status: 'completed',
+        mouseClickRecords: clicks,
+        mouseDragRecords: drags,
+        finishedAt: new Date().toISOString(),
+      }
 
       const videoPath = await this.session.stop();
 
       if (typeof videoPath === 'string') {
-        data = {
-          videoPath: `app://${videoPath}`,
-          status: 'completed',
-          mouseClickRecords: clicks,
-          mouseDragRecords: drags,
-          finishedAt: new Date().toISOString(),
-        }
+        data['videoPath'] = `app://${videoPath}`
       } else {
-        data = {
-          videoPath: `app://${videoPath.screen}`,
-          webcamPath: `app://${videoPath.webcam}`,
-          status: 'completed',
-          mouseClickRecords: clicks,
-          mouseDragRecords: drags,
-          finishedAt: new Date().toISOString(),
-        }
+        data['videoPath'] = `app://${videoPath.screen}`
+        data['webcamPath'] = `app://${videoPath.webcam}`
       }
 
       const { projectId } = this.session;
@@ -110,7 +103,6 @@ export default {
 
   async handleBeforeQuit() {
     if (!this.session) return;
-
     log.info('Recording in progress. Stopping gracefully before quit...');
 
     try {
@@ -161,6 +153,7 @@ export default {
       log.error('A critical error occurred during project cleanup:', scanError);
     }
   },
+
   getIPCHandlers() {
     return {
       'recording:start': async (_, ...args) => this.startRecording(...args),

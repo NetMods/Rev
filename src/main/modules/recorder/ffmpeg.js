@@ -138,7 +138,7 @@ export const mergeVideoClips = (ffmpegPath, clipPaths, tempDirectory, videoName)
     ffmpegMerge.on('exit', (code) => {
       if (code === 0) {
         log.info(`Successfully merged clips into ${outputPath}`);
-        resolve({ outputPath, videoName });
+        resolve(outputPath);
       } else {
         reject(new Error(`ffmpeg merge failed with exit code ${code}`));
       }

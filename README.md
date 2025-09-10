@@ -26,6 +26,7 @@ Todos:
 - fix: canvas edges while zooming
 - fix: pan effect when coords are near the edge
 - fix: title bar text and maximise button
+- fix: macos recording
 
 
 Quality Improvments
