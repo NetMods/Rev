@@ -5,7 +5,7 @@ const presetConfigAtom = atom({
   tool: SCREENSHOTTOOL.NONE,
   padding: 10,
   rounded: 5,
-  noise: 0,
+  shadow: 0,
   backgroundcolor: "#FFFFFF"
 })
 

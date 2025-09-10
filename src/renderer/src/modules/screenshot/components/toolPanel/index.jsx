@@ -1,4 +1,4 @@
-import log from "electron-log/renderer";
+// import log from "electron-log/renderer";
 import Button from "../commons/button";
 import { useSetAtom, useAtomValue } from "jotai";
 import { SCREENSHOTTOOL } from "../../../../shared/constants";
@@ -7,11 +7,11 @@ import { getDataUrl } from "../../utils/download";
 import { MdDelete as DeleteIcon } from "react-icons/md";
 import { IoCopySharp as CopyIcon } from "react-icons/io5";
 import { FaCropSimple as CropIcon } from "react-icons/fa6";
-import { LuPencil as PencilIcon } from "react-icons/lu";
-import { RiArrowRightUpFill as ArrowIcon } from "react-icons/ri";
+// import { LuPencil as PencilIcon } from "react-icons/lu";
+// import { RiArrowRightUpFill as ArrowIcon } from "react-icons/ri";
 import { MdBlurOn as BlurIcon } from "react-icons/md";
 import { FaSave as SaveAsIcon } from "react-icons/fa";
-import { BsFillEraserFill as EraserIcon } from "react-icons/bs";
+// import { BsFillEraserFill as EraserIcon } from "react-icons/bs";
 import { FaRedo as RedoIcon } from "react-icons/fa";
 import { useState } from "react";
 
@@ -54,22 +54,22 @@ const ToolPanel = ({ stageRef, displayDims }) => {
   };
 
   return (
-    <div className="bg-base-100 col-start-1 col-end-3 p-1">
+    <div className="bg-base-300/80 col-start-1 col-end-3 p-1 border-t border-t-base-content/50">
       <div className="border-black h-full w-full flex gap-4 justify-around items-center">
         <div className="flex gap-1 justify-center items-center no-drag">
-          <Button pressed={config.tool === SCREENSHOTTOOL.CROP} icon={CropIcon} onClick={() => handleTools(SCREENSHOTTOOL.CROP)} />
-          <Button pressed={config.tool === SCREENSHOTTOOL.PIXELATE} icon={BlurIcon} onClick={() => handleTools(SCREENSHOTTOOL.PIXELATE)} />
+          <Button className="btn-neutral" pressed={config.tool === SCREENSHOTTOOL.CROP} icon={CropIcon} onClick={() => handleTools(SCREENSHOTTOOL.CROP)} />
+          <Button className="btn-neutral" pressed={config.tool === SCREENSHOTTOOL.PIXELATE} icon={BlurIcon} onClick={() => handleTools(SCREENSHOTTOOL.PIXELATE)} />
           {/*<Button pressed={config.tool === SCREENSHOTTOOL.PEN} icon={PencilIcon} onClick={() => handleTools(SCREENSHOTTOOL.PEN)} /> */}
           {/* <Button pressed={config.tool === SCREENSHOTTOOL.ARROW} icon={ArrowIcon} onClick={() => handleTools(SCREENSHOTTOOL.ARROW)} /> */}
           {/*<Button pressed={config.tool === SCREENSHOTTOOL.ERASER} icon={EraserIcon} onClick={() => handleTools(SCREENSHOTTOOL.ERASER)} />*/}
         </div>
         <div className="flex justify-center items-center no-drag">
-          <Button text={copyStatus === true ? "Saved" : "Copy"} icon={CopyIcon} onClick={handleCopy} />
-          <Button text={"Save As"} icon={SaveAsIcon} onClick={handleSave} />
+          <Button className="btn-neutral" text={copyStatus === true ? "Saved" : "Copy"} icon={CopyIcon} onClick={handleCopy} />
+          <Button className="btn-neutral" text={"Save As"} icon={SaveAsIcon} onClick={handleSave} />
         </div>
         <div className="flex justify-center items-center no-drag">
-          <Button text={"Discard"} icon={DeleteIcon} onClick={() => window.api.core.closeWindow()} />
-          <Button text={"Redo"} icon={RedoIcon} onClick={handleRedo} />
+          <Button className="btn-warning" text={"Discard"} icon={DeleteIcon} onClick={() => window.api.core.closeWindow()} />
+          <Button className="btn-neutral" text={"Redo"} icon={RedoIcon} onClick={handleRedo} />
         </div>
       </div>
     </div>

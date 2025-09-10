@@ -93,7 +93,7 @@ export const useImageProcessor = (
   // Calculate display dimensions with crop, without expanding
   const displayDims = useMemo(() => {
     if (!image || !dims) return null;
-    if (!cropRect) {
+    if (!cropRect || cropRect.width < 40 || cropRect.height < 40) {
       return {
         ...dims,
         crop: { x: 0, y: 0, width: image.width, height: image.height },
@@ -117,6 +117,7 @@ export const useImageProcessor = (
       0,
       Math.min(cropH, image.height - clampedCropY)
     );
+
 
     // Use the original scale for the cropped area, no expansion
     const displayW = clampedCropW * dims.scale;

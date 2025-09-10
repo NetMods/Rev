@@ -34,6 +34,7 @@ const URLImage = ({
 
   return (
     <Group>
+      {/* Background rect (without shadow) */}
       <Rect
         x={displayDims.x - config.padding}
         y={displayDims.y - config.padding}
@@ -42,17 +43,34 @@ const URLImage = ({
         fill={config.backgroundcolor}
         listening={false}
       />
-      <Image
-        ref={imageRef}
-        image={konvaImage}
-        x={displayDims.x}
-        y={displayDims.y}
-        width={displayDims.width}
-        height={displayDims.height}
-        crop={displayDims.crop}
-        listening={false}
-        cornerRadius={config.rounded}
-      />
+      <Group>
+        {/* Shadow rect (acts as shadow layer) */}
+        <Rect
+          x={displayDims.x}
+          y={displayDims.y}
+          width={displayDims.width}
+          height={displayDims.height}
+          fill="white"
+          cornerRadius={config.rounded}
+          shadowColor="black"
+          shadowBlur={config.shadow}
+          shadowOpacity={config.shadow < 10 ? 0 : 1}
+          shadowOffset={{ x: 4, y: 4 }}
+          listening={false}
+        />
+        {/* Actual image */}
+        <Image
+          ref={imageRef}
+          image={konvaImage}
+          x={displayDims.x}
+          y={displayDims.y}
+          width={displayDims.width}
+          height={displayDims.height}
+          crop={displayDims.crop}
+          listening={false}
+          cornerRadius={config.rounded}
+        />
+      </Group>
     </Group>
   );
 };
