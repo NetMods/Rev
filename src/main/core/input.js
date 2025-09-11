@@ -14,16 +14,17 @@ export const getInputDevices = async () => {
     const cmd = spawn(ffmpegPath, ['-list_devices', 'true', '-f', 'dshow', '-i', 'dummy'])
     const output = await runCommand(cmd)
     const lines = output.split('\n')
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim()
 
-      const deviceMatch = line.match(/^[dshow @ [^]]+] "(.+?)" ((video|audio))$/i)
+      const deviceMatch = line.match(/^\[dshow @ [^\]]+\] "(.+?)"\s*\((video|audio)\)$/i)
       if (deviceMatch) {
         const name = deviceMatch[1]
         const type = deviceMatch[2].toLowerCase()
 
         const nextLine = lines[i + 1]?.trim()
-        const altNameMatch = nextLine.match(/Alternative name "(.+?)"/)
+        const altNameMatch = nextLine?.match(/Alternative name "(.+?)"/)
 
         const id = altNameMatch ? altNameMatch[1] : name
         const deviceObj = { name, id }

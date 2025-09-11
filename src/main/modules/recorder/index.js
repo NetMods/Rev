@@ -49,7 +49,7 @@ export default {
       return;
     }
     await this.session.pause();
-    this.mouseTracker.pause();
+    // this.mouseTracker.pause();
   },
 
   async resumeRecording() {
@@ -58,7 +58,7 @@ export default {
       return;
     }
     await this.session.resume();
-    this.mouseTracker.resume();
+    // this.mouseTracker.resume();
   },
 
   async stopRecording() {

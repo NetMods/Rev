@@ -3,6 +3,7 @@ import { tmpdir } from 'os';
 import { mkdirSync, moveSync, rmSync } from 'fs-extra';
 import log from 'electron-log/main';
 import { spawnScreenCapture, spawnWebcamCapture, mergeVideoClips, gracefullyStopProcess } from './ffmpeg';
+import { existsSync } from 'fs';
 
 export class RecordingSession {
   constructor(projectId, opts, core) {
@@ -83,9 +84,14 @@ export class RecordingSession {
     const screenVideoName = 'screen.mkv'
     const finalScreenPath = join(projectsDirectory, this.projectId, screenVideoName);
 
-    const screenOutputPath = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory, screenVideoName);
+    let screenOutputPath = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory, screenVideoName);
 
-    moveSync(screenOutputPath, finalScreenPath, { overwrite: true });
+    if (existsSync(screenOutputPath)) {
+      moveSync(screenOutputPath, finalScreenPath, { overwrite: true });
+    } else {
+      screenOutputPath = ""
+    }
+
     log.info(`Final screen video saved to: ${finalScreenPath}`);
 
     let finalWebcamPath = null;
@@ -93,9 +99,14 @@ export class RecordingSession {
     if (this.opts.videoDevice && this.webcamClipPaths.length > 0) {
       finalWebcamPath = join(projectsDirectory, this.projectId, webcamVideoName);
 
-      const webcamOutputPath = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, webcamVideoName);
+      let webcamOutputPath = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, webcamVideoName);
 
-      moveSync(webcamOutputPath, finalWebcamPath, { overwrite: true });
+      if (existsSync(webcamOutputPath)) {
+        moveSync(webcamOutputPath, finalWebcamPath, { overwrite: true });
+      } else {
+        webcamOutputPath = ""
+      }
+
       log.info(`Final webcam video saved to: ${finalWebcamPath}`);
     }
 

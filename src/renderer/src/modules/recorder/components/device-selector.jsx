@@ -22,7 +22,7 @@ export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, se
   };
 
   return (
-    <div>
+    <div className='drag'>
       <button
         className="mb-2 absolute top-1 left-1 bg-base-100 p-1 rounded-md hover:bg-base-300 cursor-pointer"
         onClick={onBack}
@@ -33,7 +33,7 @@ export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, se
         Select {deviceType} Device
       </h2>
 
-      <div className="flex flex-col max-w-screen gap-3 px-2">
+      <div className="flex flex-col max-w-screen gap-3 px-2 no-drag">
         {filteredDevices?.length > 0 ? (
           filteredDevices.map((device) => (
             <button

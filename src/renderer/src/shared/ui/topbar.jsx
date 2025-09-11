@@ -1,4 +1,5 @@
 import { LuX as Close, LuMinus as Minimize, LuSquare as Maximize } from "react-icons/lu";
+import { HiOutlineSquare2Stack as Stack } from "react-icons/hi2";
 import { getOS } from '../utils';
 import log from 'electron-log/renderer';
 import { useState } from "react";
@@ -21,7 +22,7 @@ function NormalControls({ handleMaximize, isMaximized }) {
         onClick={handleMaximize}
         className="size-7 flex items-center justify-center rounded-sm hover:bg-base-100 active:bg-base-300 transition-colors"
       >
-        <Maximize size={11} />
+        {isMaximized ? <Stack size={10} /> : <Maximize size={11} />}
       </button>
 
       <button

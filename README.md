@@ -17,6 +17,7 @@ Todos:
 - ~~shift to a common UI (daisy UI)~~
 - ~~add webcam and audio~~
 - feat: clips and effects ui
+- feat: mouse record pause and resume
 - feat: update effects from timeline
 - feat: video play on space
 - feat: play/pause on fullscreen

@@ -24,7 +24,8 @@ const getButtonPosition = (index, totalButtons, radius) => {
   return { transform: `translate(${x}px, ${y}px)` };
 };
 
-export const CircularMenu = ({ buttons, dimensions, hoveredIndex, onHover, onLeave, playSound, selectedVideoDevice, selectedAudioDevice }) => {
+export const CircularMenu = ({ buttons, dimensions, hoveredIndex, onHover, onLeave, selectedVideoDevice, selectedAudioDevice }) => {
+  console.warn("circular menu rendered")
   const size = Math.min(dimensions.width, dimensions.height);
   const center = size / 2;
 
@@ -44,17 +45,14 @@ export const CircularMenu = ({ buttons, dimensions, hoveredIndex, onHover, onLea
             strokeOpacity={0.2}
             strokeWidth="1"
             className={cn("transition-all duration-200 cursor-pointer", !button.isDisabled && "hover:opacity-50")}
-            onClick={!button.isDisabled && button.action}
             style={{
               filter: !button.isDisabled && hoveredIndex === index ? 'brightness(6.8) saturate(1.2)' : 'brightness(1)',
               transform: !button.isDisabled && hoveredIndex === index ? 'scale(0.98)' : 'scale(1)',
               transformOrigin: 'center'
             }}
-            onMouseEnter={() => {
-              onHover(index);
-              playSound();
-            }}
+            onMouseEnter={() => onHover(index)}
             onMouseLeave={onLeave}
+            {...(!button.isDisabled && { onClick: button.action })}
           />
         ))}
       </svg>

@@ -6,7 +6,7 @@ import {
 import { RiScreenshotLine as Screenshot } from "react-icons/ri";
 import { TbScreenshot as RecordingArea } from 'react-icons/tb';
 import { BsPlay as Play } from 'react-icons/bs';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRecording } from './hooks/use-recording';
 import { useWindowSize } from './hooks/use-window-size';
 import { CircularMenu } from './components/radial-menu';
@@ -112,8 +112,8 @@ export default function Page() {
       isDisabled: false
     },
     {
-      icon: isRecording && !isPaused ? <Pause size={30} /> : <Play size={33} />,
-      label: isRecording && !isPaused ? 'Pause Recording' : 'Start Recording',
+      icon: (!isRecording || isPaused) ? <Play size={33} /> : <Pause size={30} />,
+      label: !isRecording ? 'Start Recording' : (isPaused ? 'Resume Recording' : 'Pause Recording'),
       action: () => {
         if (!isRecording) {
           startRecording({ videoDevice: selectedVideoDevice?.id, audioDevice: selectedAudioDevice?.id });
@@ -129,11 +129,19 @@ export default function Page() {
       label: 'Recording Area',
       isDisabled: true
     },
-
   ];
 
+  const handleHover = useCallback((index) => {
+    setHoveredIndex(index);
+    playSound(hoverSound);
+  }, [])
+
+  const handleLeave = useCallback(() => {
+    setHoveredIndex(null);
+  }, [])
+
   return (
-    <div className="font-sans w-full h-screen select-none drag">
+    <div className="font-sans w-full h-screen select-none">
       <div
         className="no-drag w-full h-full bg-base-100 flex justify-center items-center origin-center overflow-hidden shadow-xl transition-[border-radius] duration-300"
         style={{ borderRadius: deviceSelectionMode ? '0' : '100%' }}
@@ -152,9 +160,8 @@ export default function Page() {
               buttons={buttons}
               dimensions={dimensions}
               hoveredIndex={hoveredIndex}
-              onHover={setHoveredIndex}
-              onLeave={() => setHoveredIndex(null)}
-              playSound={() => playSound(hoverSound)}
+              onHover={handleHover}
+              onLeave={handleLeave}
               selectedVideoDevice={selectedVideoDevice}
               selectedAudioDevice={selectedAudioDevice}
             />
