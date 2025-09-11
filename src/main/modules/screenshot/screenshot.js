@@ -14,8 +14,8 @@ export const createScreenshotWindow = async (data, core) => {
     width,
     height,
     resizable: true,
-    minWidth: (width / 12) * 9,
-    minHeight: (height / 12) * 9,
+    minWidth: (width / 12) * 11,
+    minHeight: (height / 12) * 11,
     frame: false,
     alwaysOnTop: false,
     path: `/screenshot`,
@@ -29,8 +29,8 @@ export const createScreenshotWindow = async (data, core) => {
   screenshotWindow.on("ready-to-show", () => {
     screenshotWindow.setBounds({ x: 0, y: 0, width, height });
     screenshotWindow.setMinimumSize(
-      Math.floor((width / 12) * 9),
-      Math.floor((height / 12) * 9)
+      Math.floor((width / 12) * 11),
+      Math.floor((height / 12) * 11)
     );
   });
 

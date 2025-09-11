@@ -1,5 +1,6 @@
 import { nativeImage, clipboard, dialog } from "electron";
 import fs from 'fs'
+import path from "path";
 
 export const copyImageUrl = (dataUrl) => {
   try {
@@ -42,6 +43,29 @@ export const downloadImageUrl = async (...args) => {
     return {
       status: "failed"
     }
+  }
+}
+
+export const backgroundImagePath = (...args) => {
+  const [filePath] = args
+  if (!filePath) return null;
+  try {
+    // Prefer nativeImage (works with many image formats)
+    const img = nativeImage.createFromPath(filePath);
+
+    // nativeImage.isEmpty() may be true for some invalid paths
+    if (!img.isEmpty && img.toDataURL) {
+      return img.toDataURL(); // "data:image/png;base64,...."
+    }
+
+    // Fallback: read file and convert to base64 (detect mime by extension)
+    const buf = fs.readFileSync(filePath);
+    const ext = path.extname(filePath).slice(1).toLowerCase() || 'png';
+    const mime = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+    return `data:${mime};base64,${buf.toString('base64')}`;
+  } catch (err) {
+    console.error('read-image-dataurl error:', err);
+    return null;
   }
 }
 

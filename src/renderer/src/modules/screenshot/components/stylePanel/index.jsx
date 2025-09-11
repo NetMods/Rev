@@ -32,6 +32,8 @@ const SidePanel = () => {
     { value: "#FFB5A7" }, // soft coral blush
     { value: "#06D6A0" }, // bright mint green
     { value: "#FF70A6" }, // lively rose pink
+
+    { value: "transparent" }
   ]
   // const ratios = ["Auto", "4:3", "3:2", "16:9", "1:1"]
 

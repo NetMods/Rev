@@ -9,6 +9,10 @@ const presetConfigAtom = atom({
   backgroundcolor: "#FFFFFF"
 })
 
+export const backgroundImageAtom = atom(null)
+export const getbackgroundImageAtom = atom((get) => get(backgroundImageAtom))
+export const setbackgroundImageAtom = atom(null, (_, set, update) => set(backgroundImageAtom, update))
+
 export const getPresetConfigAtom = atom((get) => get(presetConfigAtom))
 
 export const setPresetConfigAtom = atom(

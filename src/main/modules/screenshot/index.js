@@ -1,6 +1,6 @@
 import log from 'electron-log/main';
 import { createScreenshotWindow } from './screenshot';
-import { copyImageUrl, downloadImageUrl } from './utils';
+import { copyImageUrl, downloadImageUrl, backgroundImagePath } from './utils';
 
 export default {
   name: 'screenshot',
@@ -22,11 +22,16 @@ export default {
     return downloadImageUrl(...args)
   },
 
+  getBackgroundImagePath(...args) {
+    return backgroundImagePath(...args)
+  },
+
   getIPCHandlers() {
     return {
       "screenshot:create-window": (_, data) => this.createScreenshot(data),
       "screenshot:copy": async (_, dataUrl) => this.copyImage(dataUrl),
-      "screenshot:download": async (_, ...args) => this.downloadImage(...args)
+      "screenshot:download": async (_, ...args) => this.downloadImage(...args),
+      "screenshot:backgroundimage-data": async (_, ...args) => this.getBackgroundImagePath(...args)
     };
   }
 };
