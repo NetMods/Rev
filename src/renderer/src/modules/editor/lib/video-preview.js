@@ -1,10 +1,12 @@
 import { CanvasRenderer } from "./canvas-renderer";
 import { EffectsManager } from "./effect-manager";
 import { VideoManager } from "./video-manager";
+import bgUrl from '../../../assets/background.jpg';
 
 export class VideoPreview {
   constructor() {
     this.videoManager = new VideoManager();
+    this.webcamManager = null;
     this.effectsManager = new EffectsManager();
     this.canvasRenderer = new CanvasRenderer();
 
@@ -16,10 +18,15 @@ export class VideoPreview {
     this.resizeObserver = null;
   }
 
-  init(canvasElement, videoPath, onTimeUpdate, onPreviewStateUpdate, effects) {
+  init(canvasElement, videoPath, webcamPath, onTimeUpdate, onPreviewStateUpdate, effects) {
     this.videoManager.init(videoPath);
+    if (webcamPath) {
+      this.webcamManager = new VideoManager();
+      this.webcamManager.init(webcamPath);
+    }
     this.effectsManager.init(effects);
-    this.canvasRenderer.init(canvasElement, this.effectsManager);
+    this.canvasRenderer.init(canvasElement, this.effectsManager, this.webcamManager);
+    this.canvasRenderer.loadBackground(bgUrl).catch(err => console.warn('bg failed', err));
 
     this.onTimeUpdate = onTimeUpdate;
     this.onPreviewStateUpdate = onPreviewStateUpdate;
@@ -43,11 +50,23 @@ export class VideoPreview {
 
       this.isPlaying = false;
       this.onTimeUpdate && this.onTimeUpdate(this.videoManager.currentTime, this.videoManager.duration);
+
+      if (this.webcamManager) {
+        this.webcamManager.seekTo(0);
+      }
     };
 
     this.videoManager.onPlayStateChange = (isPlaying) => {
       this.isPlaying = isPlaying;
       this.onPreviewStateUpdate({ isPlaying: this.isPlaying, isFullscreen: this.isFullscreen });
+
+      if (this.webcamManager) {
+        if (isPlaying) {
+          this.webcamManager.video.play();
+        } else {
+          this.webcamManager.video.pause();
+        }
+      }
       if (isPlaying) {
         this.startRenderLoop();
       }
@@ -82,6 +101,9 @@ export class VideoPreview {
 
   seekTo(time) {
     this.videoManager.seekTo(time);
+    if (this.webcamManager) {
+      this.webcamManager.seekTo(time);
+    }
     this.onTimeUpdate(this.videoManager.currentTime, this.videoManager.duration);
   }
 
@@ -115,6 +137,9 @@ export class VideoPreview {
 
   destroy() {
     this.videoManager.destroy();
+    if (this.webcamManager) {
+      this.webcamManager.destroy();
+    }
     this.canvasRenderer.destroy();
     this.effectsManager.destroy();
 

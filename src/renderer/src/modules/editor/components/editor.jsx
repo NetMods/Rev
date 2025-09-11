@@ -7,6 +7,8 @@ import { useRef } from "react";
 export const Editor = ({ data }) => {
   const { id, videoPath, effects: savedEffects } = data
 
+  const webcamPath = data?.webcamPath ?? null
+
   const [currentTime, setCurrentTime] = useState(0)
   const [videoDuration, setVideoDuration] = useState(0)
   const [zoomLevel, setZoomLevel] = useState(6);
@@ -38,10 +40,10 @@ export const Editor = ({ data }) => {
   const decreaseZoom = () => setZoomLevel(prev => Math.max(0, prev - 1))
 
   return (
-    <div className='flex flex-col h-full gap-1'>
+    <div className='flex flex-col h-full gap-1 no-drag'>
       <Preview
         className="h-2/3 flex justify-center"
-        data={{ videoPreviewInstance, videoPath, handleTimeUpdate, handlePreviewState, effects }}
+        data={{ videoPreviewInstance, videoPath, webcamPath, handleTimeUpdate, handlePreviewState, effects }}
       />
 
       <Controls

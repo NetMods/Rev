@@ -14,25 +14,20 @@ Todos:
 - add redo feature in screenshot
 - refine the undo functionality
 - find a better way for crop and pixelate effect
-- shift to a common UI (daisy UI)
-- add face recording and audio
-- add webcam and audio
-- stay zoomed when typing
-- speed up pan effect
-- add a big cursor
-- clips slice feature
-- fix minor timestamps marks
-- clips and effects ui
-- fix timeline padding
-- update effects from timeline
-- video play on space
-- play/pause feature on fullscreen
-- trim 1s from start and end
-- undo and redo for editor
-- fix canvas edges while zooming
-- fix pan effect when coords are near the edge
-- maintain a active processes set
-- debounce multiple clicks
+- ~~shift to a common UI (daisy UI)~~
+- ~~add webcam and audio~~
+- feat: clips and effects ui
+- feat: mouse record pause and resume
+- feat: update effects from timeline
+- feat: video play on space
+- feat: play/pause on fullscreen
+- fix: speed up pan effect
+- fix: timeline padding
+- fix: minor timestamps marks
+- fix: canvas edges while zooming
+- fix: pan effect when coords are near the edge
+- fix: title bar text and maximise button
+- fix: macos recording
 
 
 Quality Improvments
@@ -41,6 +36,14 @@ Quality Improvments
 - ~~UI improvements for mac (a screen flash when closing app and while recording)~~
 - improve ffmpeg hits for a correct screen in macOS
 - add more error handling in codebase
+- stay zoomed when typing
+- add a big cursor with click sound
+- clips slice feature
+- undo and redo for editor
+- trim 1s from start and end
+- maintain a active processes set
+- add system audio
+- debounce multiple clicks
 
 
 Future Insights
@@ -48,4 +51,4 @@ Future Insights
 - make users save video/screenshot to cloud
 - using AI in annotation to answer whats happening on the screen using annotation
 
-And we are done with the basic functionality
+And we are done

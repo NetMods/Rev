@@ -14,7 +14,7 @@ export const CentralDisplay = ({ isRecording, isPaused, stopRecording, hoveredIn
             className={"row-span-3 text-lg"}
           />
           <button
-            className='hover:bg-red-700 hover:text-base-content/80 bg-red-500 text-red-900 text-sm w-full row-span-2 cursor-pointer'
+            className='hover:bg-red-600 no-drag hover:text-base-content bg-red-700 text-base-content/70 text-sm w-full row-span-2 cursor-pointer transition-all ease-linear duration-100'
             onClick={stopRecording}
           >
             Stop
@@ -33,13 +33,13 @@ export const CentralDisplay = ({ isRecording, isPaused, stopRecording, hoveredIn
       );
     }
 
-    return <Close size={25} className='cursor-pointer' onClick={() => window.api.core.closeWindow()} />;
+    return <Close size={25} className='cursor-pointer no-drag' onClick={() => window.api.core.closeWindow()} />;
   };
 
   return (
     <div
       className={cn(
-        `bg-base-200 absolute rounded-full text-base-content/80 border border-base-content/20`,
+        `bg-base-100 btn btn-circle absolute rounded-full text-base-content/80 border border-base-content/20 drag`,
         `size-20 flex justify-center items-center overflow-hidden z-10`
       )}
     >

@@ -36,12 +36,14 @@ export const useRecording = () => {
 
   const togglePause = async () => {
     try {
-      if (isPaused) {
+      const currentPausedState = isPaused
+      setIsPaused(prev => !prev);
+
+      if (currentPausedState) {
         await window.api.recording.resume();
       } else {
         await window.api.recording.pause();
       }
-      setIsPaused(prev => !prev);
     } catch (error) {
       console.error('[renderer] Error stopping recording:', error);
     }

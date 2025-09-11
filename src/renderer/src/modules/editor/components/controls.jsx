@@ -38,13 +38,15 @@ export const Controls = ({ className, data }) => {
           <Plus size={20} />
         </button>
 
-        <button
-          onClick={() => preview.toggleFullscreen()}
-          className="z-50 p-1 cursor-pointer rounded-full hover:bg-base-300"
-          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-        >
-          {isFullscreen ? <FullscreenExit size={20} /> : <Fullscreen size={20} />}
-        </button>
+        {/*
+      <button
+      onClick={() => preview.toggleFullscreen()}
+      className="z-50 p-1 cursor-pointer rounded-full hover:bg-base-300"
+      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      >
+      {isFullscreen ? <FullscreenExit size={20} /> : <Fullscreen size={20} />}
+      </button>
+      */ }
       </div>
     </div>
   )

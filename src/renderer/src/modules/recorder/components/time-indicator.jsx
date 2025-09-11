@@ -1,41 +1,32 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { cn } from '../../../shared/utils';
 
-const padZero = (num) => (num < 10 ? `0${num}` : `${num}`);
-
-export const TimeIndicator = ({ isRecording, isPaused, onTimeLimitExceeds, className }) => {
-  const [time, setTime] = useState({ minute: 0, second: 0 });
-
-  useEffect(() => {
-    if (!isRecording) {
-      setTime({ minute: 0, second: 0 });
-    }
-  }, [isRecording]);
-
-  useEffect(() => {
-    if (!isRecording || isPaused) return;
-
-    const intervalId = setInterval(() => {
-      setTime((prev) => {
-        let { minute, second } = prev;
-
-        second += 1;
-        if (second >= 60) {
-          second = 0;
-          minute += 1;
-        }
-        if (minute >= 9 && second >= 59) {
-          onTimeLimitExceeds()
-          return { minute: 0, second: 0 };
-        }
-        return { minute, second };
-      });
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [isRecording, isPaused, onTimeLimitExceeds]);
-
-  return (
-    <span className={cn("inline-flex flex-col items-center justify-end", className)}>{`${time.minute}:${padZero(time.second)}`} </span>
-  );
+const formatTime = (milliseconds) => {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 };
+
+export const TimeIndicator = memo(function TimeIndicator({ isRecording, isPaused, onTimeLimitExceeds, className }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!isRecording) return;
+    let startTime = Date.now();
+    let lastElapsed = elapsed;
+
+    if (isPaused) return;
+
+    const tick = () => {
+      const updatedTime = lastElapsed + Date.now() - startTime
+      if (updatedTime > 360000) onTimeLimitExceeds()
+      setElapsed(updatedTime);
+    };
+
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [isRecording, isPaused]);
+
+  return <span className={cn("inline-flex flex-col items-center justify-end", className)}>{formatTime(elapsed)}</span>
+});

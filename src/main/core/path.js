@@ -48,7 +48,7 @@ if (is.dev) {
 
 let ffmpegPath
 
-async function getFFmpegPath() {
+export async function getFFmpegPath() {
   if (ffmpegPath) return ffmpegPath;
 
   const hasSystem = () => new Promise(resolve => execFile('ffmpeg', ['-version'], err => resolve(!err)));

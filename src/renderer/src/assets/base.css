@@ -26,6 +26,7 @@ body {
     sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -webkit-app-region: drag;
   -moz-osx-font-smoothing: grayscale;
 }
 
@@ -56,7 +57,7 @@ code {
 @layer components {
   .drag {
     -webkit-app-region: drag;
-    cursor: grab;
+    cursor: grab !important;
   }
 
   .no-drag {

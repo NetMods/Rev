@@ -3,13 +3,14 @@ import { tmpdir } from 'os';
 import { mkdirSync, moveSync, rmSync } from 'fs-extra';
 import log from 'electron-log/main';
 import { spawnScreenCapture, spawnWebcamCapture, mergeVideoClips, gracefullyStopProcess } from './ffmpeg';
+import { existsSync } from 'fs';
 
 export class RecordingSession {
   constructor(projectId, opts, core) {
     this.projectId = projectId;
     this.core = core;
     this.tempDirectory = join(tmpdir(), core.paths.applicationName, projectId);
-    this.clipIndex = 1;
+    this.clipIndex = 0;
     this.clipPaths = [];
     this.webcamClipPaths = [];
     this.currentProcess = null;
@@ -22,25 +23,24 @@ export class RecordingSession {
   }
 
   async _startNewClip() {
-    this.clipIndex += 2;
+    this.clipIndex += 1;
     const outputPath = join(this.tempDirectory, `clip${this.clipIndex}.mkv`);
     this.clipPaths.push(outputPath);
 
     const ffmpegPath = await this.core.paths.getFFmpegPath();
-    this.currentProcess = spawnScreenCapture(ffmpegPath, outputPath, this.opts);
+    this.currentProcess = await spawnScreenCapture(ffmpegPath, outputPath, this.opts, this.core);
     log.verbose(`Started new clip: clip${this.clipIndex}.mkv`);
 
-    if (this.opts.videoDevice) {
-      const webcamOutputPath = join(this.tempDirectory, `webcam_clip${this.clipIndex}.mkv`);
+    if (this.opts.videoDevice !== null) {
+      const webcamOutputPath = join(this.tempDirectory, `webcam${this.clipIndex}.mkv`);
       this.webcamClipPaths.push(webcamOutputPath);
       this.currentWebcamProcess = spawnWebcamCapture(ffmpegPath, webcamOutputPath, this.opts);
-      log.verbose(`Started new webcam clip: webcam_clip${this.clipIndex}.mkv`);
+      log.verbose(`Started new webcam clip: webcam${this.clipIndex}.mkv`);
     }
   }
 
   async start() {
     await this._startNewClip();
-    this.isPaused = false;
   }
 
   async pause() {
@@ -49,7 +49,7 @@ export class RecordingSession {
     await gracefullyStopProcess(this.currentProcess);
     this.currentProcess = null;
 
-    if (this.opts.videoDevice && this.currentWebcamProcess) {
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess) {
       await gracefullyStopProcess(this.currentWebcamProcess);
       this.currentWebcamProcess = null;
     }
@@ -72,32 +72,45 @@ export class RecordingSession {
       await gracefullyStopProcess(this.currentProcess);
       this.currentProcess = null;
     }
-    if (this.opts.videoDevice && this.currentWebcamProcess) {
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess) {
       await gracefullyStopProcess(this.currentWebcamProcess);
       this.currentWebcamProcess = null;
     }
 
+    const projectsDirectory = this.core.paths.projectsDirectory;
     const ffmpegPath = await this.core.paths.getFFmpegPath();
 
     // Merge screen clips
-    const { outputPath: screenOutputPath, videoName: screenVideoName } = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory, 'screen.mkv');
-
-    const projectsDirectory = this.core.paths.projectsDirectory;
+    const screenVideoName = 'screen.mkv'
     const finalScreenPath = join(projectsDirectory, this.projectId, screenVideoName);
-    moveSync(screenOutputPath, finalScreenPath, { overwrite: true });
+
+    let screenOutputPath = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory, screenVideoName);
+
+    if (existsSync(screenOutputPath)) {
+      moveSync(screenOutputPath, finalScreenPath, { overwrite: true });
+    } else {
+      screenOutputPath = ""
+    }
+
     log.info(`Final screen video saved to: ${finalScreenPath}`);
 
     let finalWebcamPath = null;
-    if (this.opts.videoDevice && this.webcamClipPaths.length > 0) {
-      // Merge webcam clips
-      const { outputPath: webcamOutputPath, videoName: webcamVideoName } = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, 'webcam.mkv');
-
+    const webcamVideoName = 'webcam.mkv';
+    if (this.opts.videoDevice !== null && this.webcamClipPaths.length > 0) {
       finalWebcamPath = join(projectsDirectory, this.projectId, webcamVideoName);
-      moveSync(webcamOutputPath, finalWebcamPath, { overwrite: true });
+
+      let webcamOutputPath = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, webcamVideoName);
+
+      if (existsSync(webcamOutputPath)) {
+        moveSync(webcamOutputPath, finalWebcamPath, { overwrite: true });
+      } else {
+        webcamOutputPath = ""
+      }
+
       log.info(`Final webcam video saved to: ${finalWebcamPath}`);
     }
 
-    return this.opts.videoDevice ? { screen: finalScreenPath, webcam: finalWebcamPath } : finalScreenPath;
+    return this.opts.videoDevice !== null ? { screen: finalScreenPath, webcam: finalWebcamPath } : finalScreenPath;
   }
 
   cleanup() {
@@ -105,7 +118,7 @@ export class RecordingSession {
       log.info(`Killing the current running ffmpeg process`);
       this.currentProcess.kill('SIGKILL');
     }
-    if (this.opts.videoDevice && this.currentWebcamProcess && this.currentWebcamProcess.exitCode === null) {
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess && this.currentWebcamProcess.exitCode === null) {
       log.info(`Killing the current running webcam ffmpeg process`);
       this.currentWebcamProcess.kill('SIGKILL');
     }

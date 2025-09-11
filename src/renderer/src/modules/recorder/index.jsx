@@ -3,14 +3,15 @@ import {
   IoMicOutline as Mic,
   IoPauseSharp as Pause,
 } from 'react-icons/io5';
-import { TbScreenshot as Screenshot } from 'react-icons/tb';
+import { RiScreenshotLine as Screenshot } from "react-icons/ri";
+import { TbScreenshot as RecordingArea } from 'react-icons/tb';
 import { BsPlay as Play } from 'react-icons/bs';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRecording } from './hooks/use-recording';
 import { useWindowSize } from './hooks/use-window-size';
 import { CircularMenu } from './components/radial-menu';
 import { CentralDisplay } from './components/center-display';
-import { AnnotateIcon, SystemAudioIcon } from './components/icons';
+import { AnnotateIcon } from './components/icons';
 import dslrSound from '../../assets/dslr.wav';
 import tickSound from '../../assets/click.wav';
 import { playSound } from '../../shared/utils';
@@ -30,6 +31,7 @@ export default function Page() {
   const [deviceSelectionMode, setDeviceSelectionMode] = useState(null);
   const [selectedVideoDevice, setSelectedVideoDevice] = useState(null);
   const [selectedAudioDevice, setSelectedAudioDevice] = useState(null);
+
   const [devices, setDevices] = useState({ videoDevices: [], audioDevices: [] });
 
   useEffect(() => {
@@ -43,22 +45,8 @@ export default function Page() {
         const savedVideoId = config?.videoDeviceId;
         const savedAudioId = config?.audioDeviceId;
 
-        const screenDevice = deviceList.videoDevices.find(d => d.name.toLowerCase().includes('screen'));
-        const externalMic = deviceList.audioDevices.find(d => d.name.toLowerCase().includes('external') || !d.name.toLowerCase().includes('monitor'));
-
-        setSelectedVideoDevice(
-          deviceList.videoDevices.find(d => d.id === savedVideoId) ||
-          screenDevice ||
-          deviceList.videoDevices[0] ||
-          null
-        );
-        setSelectedAudioDevice(
-          deviceList.audioDevices.find(d => d.id === savedAudioId) ||
-          externalMic ||
-          deviceList.audioDevices.find(d => d.name.toLowerCase().includes('microphone')) ||
-          deviceList.audioDevices[0] ||
-          null
-        );
+        setSelectedVideoDevice(deviceList.videoDevices.find(d => d.id === savedVideoId) || null);
+        setSelectedAudioDevice(deviceList.audioDevices.find(d => d.id === savedAudioId) || null);
 
         if (!savedVideoId && selectedVideoDevice) {
           await window.api.core.updateConfig({ videoDeviceId: selectedVideoDevice.id });
@@ -88,10 +76,10 @@ export default function Page() {
   const handleSelectDevice = async (type, device) => {
     if (type === 'Video') {
       setSelectedVideoDevice(device);
-      await window.api.core.updateConfig({ videoDeviceId: device.id });
+      await window.api.core.updateConfig({ videoDeviceId: device?.id || null });
     } else if (type === 'Audio') {
       setSelectedAudioDevice(device);
-      await window.api.core.updateConfig({ audioDeviceId: device.id });
+      await window.api.core.updateConfig({ audioDeviceId: device?.id || null });
     }
   };
 
@@ -100,25 +88,32 @@ export default function Page() {
       icon: <Camera size={30} />,
       action: () => fetchDevices('Video'),
       label: 'Camera',
+      isDisabled: false
     },
     {
       icon: <Mic size={30} />,
       action: () => fetchDevices('Audio'),
       label: 'Microphone',
+      isDisabled: false
     },
     {
       icon: <AnnotateIcon size={30} />,
       action: () => window.api.annotation.start(),
       label: 'Annotate',
+      isDisabled: false
     },
     {
-      icon: <Screenshot size={30} />,
-      action: () => playSound(screenshotSound),
+      icon: <Screenshot size={26} />,
+      action: () => {
+        playSound(screenshotSound)
+        window.api.screenshot.create()
+      },
       label: 'Screenshot',
+      isDisabled: false
     },
     {
-      icon: isRecording && !isPaused ? <Pause size={30} /> : <Play size={33} />,
-      label: isRecording && !isPaused ? 'Pause Recording' : 'Start Recording',
+      icon: (!isRecording || isPaused) ? <Play size={33} /> : <Pause size={30} />,
+      label: !isRecording ? 'Start Recording' : (isPaused ? 'Resume Recording' : 'Pause Recording'),
       action: () => {
         if (!isRecording) {
           startRecording({ videoDevice: selectedVideoDevice?.id, audioDevice: selectedAudioDevice?.id });
@@ -126,18 +121,29 @@ export default function Page() {
           togglePause();
         }
       },
+      isDisabled: false
     },
     {
-      icon: <SystemAudioIcon size={30} />,
+      icon: <RecordingArea size={30} />,
       action: () => { },
-      label: 'System Audio',
+      label: 'Recording Area',
+      isDisabled: true
     },
   ];
+
+  const handleHover = useCallback((index) => {
+    setHoveredIndex(index);
+    playSound(hoverSound);
+  }, [])
+
+  const handleLeave = useCallback(() => {
+    setHoveredIndex(null);
+  }, [])
 
   return (
     <div className="font-sans w-full h-screen select-none">
       <div
-        className="w-full h-full bg-base-100 flex justify-center items-center origin-center overflow-hidden shadow-xl transition-[border-radius] duration-300"
+        className="no-drag w-full h-full bg-base-100 flex justify-center items-center origin-center overflow-hidden shadow-xl transition-[border-radius] duration-300"
         style={{ borderRadius: deviceSelectionMode ? '0' : '100%' }}
       >
         {deviceSelectionMode ? (
@@ -154,9 +160,10 @@ export default function Page() {
               buttons={buttons}
               dimensions={dimensions}
               hoveredIndex={hoveredIndex}
-              onHover={setHoveredIndex}
-              onLeave={() => setHoveredIndex(null)}
-              playSound={() => playSound(hoverSound)}
+              onHover={handleHover}
+              onLeave={handleLeave}
+              selectedVideoDevice={selectedVideoDevice}
+              selectedAudioDevice={selectedAudioDevice}
             />
             <CentralDisplay
               isRecording={isRecording}

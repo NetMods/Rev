@@ -1,55 +1,75 @@
 import { spawn } from "child_process";
 import { join } from "path";
+import { getFFmpegPath } from "./path"
 import { readdir, readFile } from "fs-extra";
 
 export const getInputDevices = async () => {
   const platform = process.platform;
+  const ffmpegPath = await getFFmpegPath()
+
   let videoDevices = [];
   let audioDevices = [];
 
   if (platform === 'win32') {
-    const cmd = spawn('ffmpeg', ['-list_devices', 'true', '-f', 'dshow', '-i', 'dummy']);
-    const output = await runCommand(cmd);
-    const lines = output.split('\n');
-    let section = '';
-    lines.forEach(line => {
-      line = line.trim();
-      if (line.includes('DirectShow video devices')) {
-        section = 'video';
-      } else if (line.includes('DirectShow audio devices')) {
-        section = 'audio';
-      } else if (line.startsWith('[') && line.includes('] ') && (section === 'video' || section === 'audio')) {
-        const match = line.match(/^\[dshow @ [^\]]+\] (.*?)(\s*\(.*?\))?$/);
-        if (match) {
-          const friendlyName = match[1].trim();
-          const devices = section === 'video' ? videoDevices : audioDevices;
-          devices.push({ name: friendlyName, id: friendlyName });
+    const cmd = spawn(ffmpegPath, ['-list_devices', 'true', '-f', 'dshow', '-i', 'dummy'])
+    const output = await runCommand(cmd)
+    const lines = output.split('\n')
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+
+      const deviceMatch = line.match(/^\[dshow @ [^\]]+\] "(.+?)"\s*\((video|audio)\)$/i)
+      if (deviceMatch) {
+        const name = deviceMatch[1]
+        const type = deviceMatch[2].toLowerCase()
+
+        const nextLine = lines[i + 1]?.trim()
+        const altNameMatch = nextLine?.match(/Alternative name "(.+?)"/)
+
+        const id = altNameMatch ? altNameMatch[1] : name
+        const deviceObj = { name, id }
+
+        if (type === 'video') {
+          videoDevices.push(deviceObj)
+        } else if (type === 'audio') {
+          audioDevices.push(deviceObj)
         }
       }
-    });
-
+    }
   } else if (platform === 'darwin') {
-    const cmd = spawn('ffmpeg', ['-f', 'avfoundation', '-list_devices', 'true', '-i', '']);
+    const cmd = spawn(ffmpegPath, ['-f', 'avfoundation', '-list_devices', 'true', '-i', '']);
     const output = await runCommand(cmd);
     const lines = output.split('\n');
-    let section = '';
-    lines.forEach(line => {
-      line = line.trim();
+    let section
+
+    for (const line of lines) {
+      if (!line) continue;
+
+      // detect section headers (they might be prefixed by bracketed ffmpeg tags)
       if (line.includes('AVFoundation video devices:')) {
         section = 'video';
-      } else if (line.includes('AVFoundation audio devices:')) {
-        section = 'audio';
-      } else if (line.match(/^\[\d+\]/) && (section === 'video' || section === 'audio')) {
-        const match = line.match(/\[(\d+)\]\s*(.*)/);
-        if (match) {
-          const index = match[1];
-          const name = match[2].trim();
-          const devices = section === 'video' ? videoDevices : audioDevices;
-          devices.push({ name, id: index });
-        }
+        continue;
       }
-    });
+      if (line.includes('AVFoundation audio devices:')) {
+        section = 'audio';
+        continue;
+      }
 
+      // match the device index and name anywhere on the line, e.g. "...] [0] FaceTime HD Camera"
+      const m = line.match(/\[(\d+)\]\s*(.+)$/);
+      if (m && (section === 'video' || section === 'audio')) {
+        const id = Number(m[1]);
+        let name = m[2].trim();
+
+        // remove surrounding quotes if ffmpeg prints them
+        if ((name.startsWith('"') && name.endsWith('"')) || (name.startsWith("'") && name.endsWith("'"))) {
+          name = name.slice(1, -1).trim();
+        }
+
+        const devices = section === 'video' ? videoDevices : audioDevices;
+        devices.push({ name, id });
+      }
+    }
   } else {
     // Linux: read file directly from /sys/class/video4linux for video,
     // pactl for audio (PulseAudio; fallback to arecord -l for ALSA if pactl fails)
@@ -163,13 +183,11 @@ function runCommand(cmd) {
     let output = '';
     cmd.stderr.on('data', (data) => { output += data.toString(); });
     cmd.stdout.on('data', (data) => { output += data.toString(); });
-    cmd.on('close', (code) => {
-      if (code === 0 || code === 255) {
-        resolve(output);
-      } else {
-        reject(new Error(`Command failed with code ${code}`));
-      }
+    cmd.on('close', () => {
+      resolve(output);
     });
     cmd.on('error', reject);
   });
 }
+
+export default { getInputDevices }
