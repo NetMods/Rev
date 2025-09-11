@@ -31,7 +31,7 @@ export class RecordingSession {
     this.currentProcess = await spawnScreenCapture(ffmpegPath, outputPath, this.opts, this.core);
     log.verbose(`Started new clip: clip${this.clipIndex}.mkv`);
 
-    if (this.opts.videoDevice) {
+    if (this.opts.videoDevice !== null) {
       const webcamOutputPath = join(this.tempDirectory, `webcam${this.clipIndex}.mkv`);
       this.webcamClipPaths.push(webcamOutputPath);
       this.currentWebcamProcess = spawnWebcamCapture(ffmpegPath, webcamOutputPath, this.opts);
@@ -49,7 +49,7 @@ export class RecordingSession {
     await gracefullyStopProcess(this.currentProcess);
     this.currentProcess = null;
 
-    if (this.opts.videoDevice && this.currentWebcamProcess) {
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess) {
       await gracefullyStopProcess(this.currentWebcamProcess);
       this.currentWebcamProcess = null;
     }
@@ -72,7 +72,7 @@ export class RecordingSession {
       await gracefullyStopProcess(this.currentProcess);
       this.currentProcess = null;
     }
-    if (this.opts.videoDevice && this.currentWebcamProcess) {
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess) {
       await gracefullyStopProcess(this.currentWebcamProcess);
       this.currentWebcamProcess = null;
     }
@@ -96,7 +96,7 @@ export class RecordingSession {
 
     let finalWebcamPath = null;
     const webcamVideoName = 'webcam.mkv';
-    if (this.opts.videoDevice && this.webcamClipPaths.length > 0) {
+    if (this.opts.videoDevice !== null && this.webcamClipPaths.length > 0) {
       finalWebcamPath = join(projectsDirectory, this.projectId, webcamVideoName);
 
       let webcamOutputPath = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, webcamVideoName);
@@ -110,7 +110,7 @@ export class RecordingSession {
       log.info(`Final webcam video saved to: ${finalWebcamPath}`);
     }
 
-    return this.opts.videoDevice ? { screen: finalScreenPath, webcam: finalWebcamPath } : finalScreenPath;
+    return this.opts.videoDevice !== null ? { screen: finalScreenPath, webcam: finalWebcamPath } : finalScreenPath;
   }
 
   cleanup() {
@@ -118,7 +118,7 @@ export class RecordingSession {
       log.info(`Killing the current running ffmpeg process`);
       this.currentProcess.kill('SIGKILL');
     }
-    if (this.opts.videoDevice && this.currentWebcamProcess && this.currentWebcamProcess.exitCode === null) {
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess && this.currentWebcamProcess.exitCode === null) {
       log.info(`Killing the current running webcam ffmpeg process`);
       this.currentWebcamProcess.kill('SIGKILL');
     }

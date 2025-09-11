@@ -22,7 +22,7 @@ function NormalControls({ handleMaximize, isMaximized }) {
         onClick={handleMaximize}
         className="size-7 flex items-center justify-center rounded-sm hover:bg-base-100 active:bg-base-300 transition-colors"
       >
-        {isMaximized ? <Stack size={10} /> : <Maximize size={11} />}
+        {isMaximized ? <Stack size={15} /> : <Maximize size={11} />}
       </button>
 
       <button

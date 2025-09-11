@@ -69,7 +69,6 @@ export const spawnWebcamCapture = (ffmpegPath, outputPath, opts) => {
   let args = [];
 
   const videoArgs = [
-    '-framerate', '60',
     '-c:v', 'libx264',
     '-preset', 'veryfast',
     '-crf', '18',
@@ -77,11 +76,16 @@ export const spawnWebcamCapture = (ffmpegPath, outputPath, opts) => {
 
   if (platform === 'win32') {
     args = [
-      '-f', 'dshow', '-i', `video=${videoDevice}`,                     // Video Input: Webcam
+      '-framerate', '30',
+      '-f', 'dshow',
+      '-i', `video=${videoDevice}`,                     // Video Input: Webcam
     ];
   } else if (platform === 'darwin') {
     args = [
-      '-f', 'avfoundation', '-i', `${videoDevice}:none`,               // Video index from videoDevice, no audio
+      '-framerate', '30',
+      '-video_size', '1280x720',
+      '-f', 'avfoundation',
+      '-i', `${videoDevice}:none`,
     ];
   } else if (platform === 'linux') {
     args = [
