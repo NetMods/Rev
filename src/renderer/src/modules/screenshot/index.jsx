@@ -128,7 +128,7 @@ export default function EditorPage() {
           )}
         </div>
         <StylePanel />
-        <ToolPanel stageRef={stageRef} displayDims={displayDims} />
+        <ToolPanel stageRef={stageRef} displayDims={displayDims} setCropRect={setCropRect} />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 import Button from "../commons/button";
 import { useSetAtom, useAtomValue } from "jotai";
 import { SCREENSHOTTOOL } from "../../../../shared/constants";
-import { getPresetConfigAtom, setPresetConfigAtom } from "../../../../store";
+import { getcanvasRedoAtom, getPresetConfigAtom, setPresetConfigAtom } from "../../../../store";
 import { getDataUrl } from "../../utils/download";
 import { MdDelete as DeleteIcon } from "react-icons/md";
 import { IoCopySharp as CopyIcon } from "react-icons/io5";
@@ -15,12 +15,25 @@ import { FaSave as SaveAsIcon } from "react-icons/fa";
 import { FaRedo as RedoIcon } from "react-icons/fa";
 import { useState } from "react";
 
-const ToolPanel = ({ stageRef, displayDims }) => {
+const ToolPanel = ({ stageRef, displayDims, setCropRect }) => {
   const [copyStatus, setCopyStatus] = useState(false);
 
   const setConfig = useSetAtom(setPresetConfigAtom);
   const config = useAtomValue(getPresetConfigAtom);
-  const handleRedo = () => { };
+  const canvasRedoAtom = useAtomValue(getcanvasRedoAtom)
+
+
+  const handleRedo = () => {
+    setCropRect(null)
+    setConfig({
+      tool: SCREENSHOTTOOL.NONE,
+      padding: 10,
+      rounded: 5,
+      shadow: 0,
+      backgroundcolor: "#FFFFFF"
+    })
+    canvasRedoAtom()
+  };
 
   const handleTools = (currentTool) => {
     setConfig({

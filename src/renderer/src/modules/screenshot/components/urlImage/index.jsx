@@ -1,8 +1,8 @@
 import { Image, Rect, Group } from "react-konva";
 import { useImageProcessor } from "../../hooks/useImageProcessor";
 import { useEffect, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
-import { getPresetConfigAtom, getbackgroundImageAtom } from "../../../../store";
+import { useAtomValue, useSetAtom } from "jotai";
+import { getPresetConfigAtom, getbackgroundImageAtom, setCanvasRedoAtom } from "../../../../store";
 import log from "electron-log/renderer"
 
 const URLImage = ({
@@ -16,6 +16,7 @@ const URLImage = ({
 }) => {
   const config = useAtomValue(getPresetConfigAtom);
   const backgroundImageSrc = useAtomValue(getbackgroundImageAtom)
+  const setredoCanvasAtom = useSetAtom(setCanvasRedoAtom)
   const [backgroundImage, setbackgroundImage] = useState(null)
   const imageRef = useRef();
 
@@ -36,7 +37,7 @@ const URLImage = ({
     }
   }, [backgroundImageSrc])
 
-  const { konvaImage, displayDims, applyEffect } = useImageProcessor(
+  const { konvaImage, displayDims, applyEffect, redoCanvas } = useImageProcessor(
     src,
     stageWidth,
     stageHeight,
@@ -45,6 +46,7 @@ const URLImage = ({
     config.padding
   );
 
+  setredoCanvasAtom(() => redoCanvas)
 
   useEffect(() => {
     onDisplayDimsChange(displayDims);
@@ -114,34 +116,3 @@ const URLImage = ({
 };
 
 export default URLImage;
-
-
-// <Group>
-//         {/* Shadow rect (acts as shadow layer) */}
-//         <Rect
-//           x={displayDims.x}
-//           y={displayDims.y}
-//           width={displayDims.width}
-//           height={displayDims.height}
-//           fill="white"
-//           cornerRadius={config.rounded}
-//           shadowColor="black"
-//           shadowBlur={config.shadow}
-//           shadowOpacity={config.shadow < 10 ? 0 : 1}
-//           shadowOffset={{ x: 4, y: 4 }}
-//           listening={false}
-//         />
-//         {/* Actual image */}
-//         <Image
-//           ref={imageRef}
-//           image={konvaImage}
-//           x={displayDims.x}
-//           y={displayDims.y}
-//           width={displayDims.width}
-//           height={displayDims.height}
-//           crop={displayDims.crop}
-//           listening={false}
-//           cornerRadius={config.rounded}
-//         />
-//       </Group>
-

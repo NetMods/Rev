@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo, useRef } from "react";
 
 export const useImageProcessor = (
   src,
-  stageWidth,
-  stageHeight,
-  cropRect,
-  batchDraw,
+  stageWidth = 0,
+  stageHeight = 0,
+  cropRect = 0,
+  batchDraw = () => { },
   padding = 0
 ) => {
   const [image, setImage] = useState(null);
@@ -203,5 +203,17 @@ export const useImageProcessor = (
     }
   };
 
-  return { konvaImage, displayDims, applyEffect };
+
+  const redoCanvas = () => {
+    const newCanvas = document.createElement("canvas")
+    newCanvas.width = image.width
+    newCanvas.height = image.height
+    const newCtx = newCanvas.getContext("2d")
+    newCtx.drawImage(image, 0, 0)
+    canvasRef.current = newCanvas;
+    setKonvaImage(newCanvas);
+    batchDraw()
+  }
+
+  return { konvaImage, displayDims, applyEffect, redoCanvas };
 };
