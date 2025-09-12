@@ -1,11 +1,15 @@
-import { MdFullscreen as Fullscreen, MdFullscreenExit as FullscreenExit } from "react-icons/md";
+import { PiExport as ExportIcon } from "react-icons/pi";
+import Export from '../../export'
 import { IoPlay as Play, IoPauseSharp as Pause } from 'react-icons/io5';
 import { LuPlus as Plus, LuMinus as Minus } from "react-icons/lu";
 import { formatTime } from "../utils";
 import { cn } from "../../../shared/utils";
+import { useState } from "react";
+import { createPortal } from "react-dom";
 
 export const Controls = ({ className, data }) => {
-  const { preview, isPlaying, isFullscreen, currentTime, videoDuration, increaseZoom, decreaseZoom } = data
+  const { preview, isPlaying, currentTime, videoDuration, increaseZoom, decreaseZoom } = data
+  const [showExportModal, setShowExportModal] = useState(false)
 
   return (
     <div className={cn("px-4 border-2 rounded border-base-content/10 bg-base-200", className)}>
@@ -38,16 +42,18 @@ export const Controls = ({ className, data }) => {
           <Plus size={20} />
         </button>
 
-        {/*
-      <button
-      onClick={() => preview.toggleFullscreen()}
-      className="z-50 p-1 cursor-pointer rounded-full hover:bg-base-300"
-      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-      >
-      {isFullscreen ? <FullscreenExit size={20} /> : <Fullscreen size={20} />}
-      </button>
-      */ }
+        <button
+          onClick={() => setShowExportModal(true)}
+          className="z-50 p-1 text-xs cursor-pointer rounded-sm px-2 hover:bg-base-300 inline-flex justify-center items-center gap-2"
+        >
+          <ExportIcon size={17} className="shrink-0" />
+          Export
+        </button>
       </div>
+      {showExportModal && createPortal(
+        <Export onClose={() => setShowExportModal(false)} />,
+        document.body
+      )}
     </div>
   )
 }

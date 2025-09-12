@@ -34,6 +34,7 @@ export default function Page() {
           <div className="h-full flex items-center justify-center text-sm opacity-60">Loading…</div>
         )}
       </div>
+
     </div>
   );
 }
