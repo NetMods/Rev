@@ -1,4 +1,6 @@
 import { useRef, useState, useEffect } from "react";
+import { LuX as X } from "react-icons/lu";
+import { TbProgressBolt as Bolt } from "react-icons/tb";
 import {
   LuSettings as Setting,
   LuPlay as Start,
@@ -6,11 +8,10 @@ import {
   LuFileVideo as FileVideo,
   LuCheck as Check
 } from "react-icons/lu";
-import { LuX as X } from "react-icons/lu";
-import { TbProgressBolt as Bolt } from "react-icons/tb";
 import useModalFocus from "./hooks/use-modal-focus";
+import { VideoExporter } from "./lib/video-export";
 
-export default function ExportModal({ onClose }) {
+export default function ExportModal({ onClose, videoPath, webcamPath, effects }) {
   const modalRef = useRef(null);
   useModalFocus(modalRef);
 
@@ -26,33 +27,49 @@ export default function ExportModal({ onClose }) {
   });
   const [exportStatus, setExportStatus] = useState("idle"); // "idle", "exporting", "completed"
 
-  const progressPercentage = (frames.currentFrame / frames.totalFrames) * 100;
+  const exporterRef = useRef(null);
 
   useEffect(() => {
-    let interval;
-    if (exportStatus === "exporting" && frames.currentFrame < frames.totalFrames) {
-      interval = setInterval(() => {
-        setFrames((prev) => {
-          const nextFrame = prev.currentFrame + 10; // Increment frames
-          if (nextFrame >= prev.totalFrames) {
-            setExportStatus("completed");
-            return { ...prev, currentFrame: prev.totalFrames };
-          }
-          return { ...prev, currentFrame: nextFrame };
-        });
-      }, 10);
-    }
-    return () => clearInterval(interval);
-  }, [exportStatus, frames.currentFrame, frames.totalFrames]);
+    const exporter = new VideoExporter();
+    exporterRef.current = exporter;
+    if (!exporter) return
 
-  const handleStartExport = () => {
-    setExportStatus("exporting");
-    setFrames((prev) => ({ ...prev, currentFrame: 1 }));
+    exporter.init(videoPath, webcamPath, effects)
+
+    exporter.onExportProgress = ({ current, total }) => {
+      setFrames({ currentFrame: current, totalFrames: total });
+    };
+
+    exporter.onExportComplete = () => setExportStatus(prev => (prev !== "cancelled" ? "completed" : prev));;
+
+    exporter.onExportError = () => setExportStatus("error");
+
+    return () => {
+      exporter.destroy();
+    };
+  }, []);
+
+  const handleStartExport = async () => {
+    if (!exporterRef.current) return;
+    try {
+      setExportStatus("exporting");
+
+      await exporterRef.current.startExport({
+        format: "png",
+        fps: 30,
+        width: 1920,
+        height: 1080,
+        quality: 0.95,
+      });
+    } catch {
+      setExportStatus("error");
+    }
   };
 
   const handleStopExport = () => {
-    setExportStatus("idle");
-    setFrames((prev) => ({ ...prev, currentFrame: 0 }));
+    exporterRef.current?.cancelExport();
+    setExportStatus("cancelled");
+    setFrames({ currentFrame: 0, totalFrames: frames.totalFrames });
   };
 
   return (
@@ -111,7 +128,7 @@ export default function ExportModal({ onClose }) {
 
               <div className="py-2 text-center">
                 <span className="text-sm font-medium text-primary/70">
-                  {progressPercentage.toFixed(1)}% Complete
+                  {((frames.currentFrame / frames.totalFrames) * 100).toFixed(1)}% Complete
                 </span>
               </div>
 
@@ -125,10 +142,16 @@ export default function ExportModal({ onClose }) {
                   <div className="text-base-content/80 font-medium">
                     Exporting your video...
                   </div>
-                ) : (
-                  <div className="text-base-content/80">
-                    Ready to export
+                ) : exportStatus === "cancelled" ? (
+                  <div className="text-warning font-medium">
+                    Export aborted by user.
                   </div>
+                ) : exportStatus === "error" ? (
+                  <div className="text-error font-medium">
+                    Export failed due to an error.
+                  </div>
+                ) : (
+                  <div className="text-base-content/80">Ready to export</div>
                 )}
               </div>
             </div>
@@ -136,7 +159,7 @@ export default function ExportModal({ onClose }) {
 
           {/* BUTTONS */}
           <div className="flex flex-col items-center gap-2">
-            {exportStatus === "idle" || exportStatus === "completed" ? (
+            {exportStatus !== 'exporting' ? (
               <div className="flex gap-3">
                 <button
                   className="btn bg-primary/80 hover:bg-primary text-primary-content w-40 inline-flex items-center gap-2"

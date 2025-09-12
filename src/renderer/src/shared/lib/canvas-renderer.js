@@ -26,7 +26,7 @@ export class CanvasRenderer {
     this.effectsManager = effectsManager;
     this.webcamManager = webcamManager;
 
-    this.setupCanvas();
+    return this.setupCanvas.bind(this);
   }
 
   // load background image from a path (returns a Promise)
@@ -54,22 +54,22 @@ export class CanvasRenderer {
     return this.loadBackground(imgUrl);
   }
 
-  setupCanvas() {
+  setupCanvas(width, height) {
     if (!this.canvas || !this.canvas.parentElement) return;
 
     const parent = this.canvas.parentElement;
 
     // Set CSS size to parent so it fits
-    this.canvas.style.width = parent.offsetWidth + "px";
-    this.canvas.style.height = parent.offsetHeight + "px";
+    this.canvas.style.width = parent ? parent.offsetWidth + "px" : width;
+    this.canvas.style.height = parent ? parent.offsetHeight + "px" : height;
 
     // Make sure internal resolution is reasonable until first resize
     this.dpr = window.devicePixelRatio || 1;
-    this.canvas.width = parent.offsetWidth * this.dpr;
-    this.canvas.height = parent.offsetHeight * this.dpr;
+    this.canvas.width = (parent ? parent.offsetWidth : width) * this.dpr;
+    this.canvas.height = (parent ? parent.offsetHeight : height) * this.dpr;
 
     // Reset transform and scale once to account for DPR
-    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this.ctx.setTransform(parent ? this.dpr : 1, 0, 0, parent ? this.dpr : 1, 0, 0);
 
     // draw initial fallback
     const logicalWidth = this.canvas.width / this.dpr;

@@ -1,17 +1,21 @@
 import log from 'electron-log/main';
+import { ExportingSession } from './export';
 
 export default {
   name: 'export',
 
   init(core) {
     this.core = core;
+    this.session = new ExportingSession()
     log.info('Export module initialized');
   },
 
-
   getIPCHandlers() {
     return {
-      "export:start": (_, data) => { console.log(data) },
+      "export:start": async (_, data) => { this.session.start(data, this.core) },
+      "export:pushFrame": async (_, data) => { this.session.pushFrame(data) },
+      "export:stop": async (_, data) => { this.session.stop(data) },
+      "export:cancel": () => { this.session.cancel() }
     };
   }
 };

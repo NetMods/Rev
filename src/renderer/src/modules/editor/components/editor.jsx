@@ -4,7 +4,7 @@ import { Controls } from "./controls";
 import Timeline from "./timeline";
 import { useRef } from "react";
 
-export const Editor = ({ data }) => {
+export const Editor = ({ data, onExportModalOpen }) => {
   const { id, videoPath, effects: savedEffects } = data
 
   const webcamPath = data?.webcamPath ?? null
@@ -48,7 +48,7 @@ export const Editor = ({ data }) => {
 
       <Controls
         className="h-8 flex justify-between items-center"
-        data={{ preview: videoPreviewInstance.current, videoDuration, currentTime, isPlaying, isFullscreen, increaseZoom, decreaseZoom }}
+        data={{ preview: videoPreviewInstance.current, onExportModalOpen, videoDuration, currentTime, isPlaying, isFullscreen, increaseZoom, decreaseZoom }}
       />
 
       <Timeline

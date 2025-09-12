@@ -1,6 +1,6 @@
-import { CanvasRenderer } from "./canvas-renderer";
-import { EffectsManager } from "./effect-manager";
-import { VideoManager } from "./video-manager";
+import { CanvasRenderer } from "../../../shared/lib/canvas-renderer";
+import { EffectsManager } from "../../../shared/lib//effect-manager";
+import { VideoManager } from "../../../shared/lib/video-manager";
 import bgUrl from '../../../assets/background.jpg';
 
 export class VideoPreview {
@@ -25,7 +25,7 @@ export class VideoPreview {
       this.webcamManager.init(webcamPath);
     }
     this.effectsManager.init(effects);
-    this.canvasRenderer.init(canvasElement, this.effectsManager, this.webcamManager);
+    this.canvasRenderer.init(canvasElement, this.effectsManager, this.webcamManager)()
     this.canvasRenderer.loadBackground(bgUrl).catch(err => console.warn('bg failed', err));
 
     this.onTimeUpdate = onTimeUpdate;
