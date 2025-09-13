@@ -12,7 +12,7 @@ import { FaCropSimple as CropIcon } from "react-icons/fa6";
 import { MdBlurOn as BlurIcon } from "react-icons/md";
 import { FaSave as SaveAsIcon } from "react-icons/fa";
 // import { BsFillEraserFill as EraserIcon } from "react-icons/bs";
-import { FaRedo as RedoIcon } from "react-icons/fa";
+import { FaRedo as ResetIcon } from "react-icons/fa";
 import { useState } from "react";
 
 const ToolPanel = ({ stageRef, displayDims, setCropRect }) => {
@@ -23,7 +23,7 @@ const ToolPanel = ({ stageRef, displayDims, setCropRect }) => {
   const canvasRedoAtom = useAtomValue(getcanvasRedoAtom)
 
 
-  const handleRedo = () => {
+  const handleReset = () => {
     setCropRect(null)
     setConfig({
       tool: SCREENSHOT_TOOL.NONE,
@@ -82,7 +82,7 @@ const ToolPanel = ({ stageRef, displayDims, setCropRect }) => {
         </div>
         <div className="flex justify-center items-center no-drag">
           <Button className="btn-warning" text={"Discard"} icon={DeleteIcon} onClick={() => window.api.core.closeWindow()} />
-          <Button className="btn-neutral" text={"Redo"} icon={RedoIcon} onClick={handleRedo} />
+          <Button className="btn-neutral" text={"Reset"} icon={ResetIcon} onClick={handleReset} />
         </div>
       </div>
     </div>
