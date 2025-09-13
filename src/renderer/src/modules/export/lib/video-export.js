@@ -1,4 +1,4 @@
-import { CanvasRenderer } from "../../../shared/lib/canvas-renderer";
+// import { CanvasRenderer } from "../../../shared/lib/canvas-renderer";
 import { EffectsManager } from "../../../shared/lib/effect-manager";
 import { VideoManager } from "../../../shared/lib/video-manager";
 import bgUrl from "../../../assets/background.jpg"
@@ -113,7 +113,7 @@ export class VideoExporter {
         }
 
         if (i % 10 === 0) {
-          await this.delay(1);
+          await this.delay(10);
         }
       }
 
@@ -147,6 +147,8 @@ export class VideoExporter {
     return new Promise((resolve) => {
       const video = this.videoManager.video;
 
+      video.pause();  // Ensure paused before seek
+
       if (Math.abs(video.currentTime - time) < 0.001) {
         resolve();
         return;
@@ -154,8 +156,8 @@ export class VideoExporter {
 
       const onSeeked = () => {
         video.removeEventListener('seeked', onSeeked);
-        // Small delay to ensure frame is decoded
-        setTimeout(resolve, 50);
+        // Increase delay for full decode
+        setTimeout(resolve, 100);
       };
 
       video.addEventListener('seeked', onSeeked);
@@ -219,5 +221,159 @@ export class VideoExporter {
     this.onExportProgress = null;
     this.onExportComplete = null;
     this.onExportError = null;
+  }
+}
+
+
+export class CanvasRenderer {
+  constructor() {
+    this.canvas = null;
+    this.ctx = null;
+    this.backgroundImage = null;
+    this.backgroundImageLoaded = false;
+    this.padding = 40;
+    this.paddingColor = '#222222';
+  }
+
+  init(canvasElement, effectsManager, webcamManager) {
+    this.canvas = canvasElement;
+    this.ctx = this.canvas.getContext('2d', { alpha: true, desynchronized: true });
+    this.effectsManager = effectsManager;
+    this.webcamManager = webcamManager;
+
+    // Optimize for quality
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'high';
+
+    return this.setupCanvas.bind(this);
+  }
+
+  setupCanvas(width, height) {
+    if (!this.canvas) return;
+
+    // Set canvas dimensions directly to target resolution
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    // Ensure CSS size matches pixel size for crisp rendering
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+
+    // Clear canvas with padding color
+    this.ctx.fillStyle = this.paddingColor;
+    this.ctx.fillRect(0, 0, width, height);
+  }
+
+  loadBackground(src, { crossOrigin = null } = {}) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      if (crossOrigin) img.crossOrigin = crossOrigin;
+      img.onload = () => {
+        this.backgroundImage = img;
+        this.backgroundImageLoaded = true;
+        resolve(img);
+      };
+      img.onerror = (err) => {
+        this.backgroundImage = null;
+        this.backgroundImageLoaded = false;
+        reject(err);
+      };
+      img.src = src;
+    });
+  }
+
+  drawFrame(video, currentTime) {
+    if (!video || video.readyState < 2 || !this.ctx) return;
+
+    const width = this.canvas.width;
+    const height = this.canvas.height;
+
+    this.ctx.save();
+    this.ctx.clearRect(0, 0, width, height);
+
+    // Draw background
+    if (this.backgroundImageLoaded && this.backgroundImage) {
+      this.ctx.drawImage(this.backgroundImage, 0, 0, width, height);
+    } else {
+      this.ctx.fillStyle = this.paddingColor;
+      this.ctx.fillRect(0, 0, width, height);
+    }
+
+    // Calculate video dimensions with padding
+    const availableWidth = width - (this.padding * 2);
+    const availableHeight = height - (this.padding * 2);
+    const videoAspect = video.videoWidth / video.videoHeight;
+    const availableAspect = availableWidth / availableHeight;
+
+    let drawWidth, drawHeight;
+    if (videoAspect > availableAspect) {
+      drawWidth = availableWidth;
+      drawHeight = availableWidth / videoAspect;
+    } else {
+      drawHeight = availableHeight;
+      drawWidth = availableHeight * videoAspect;
+    }
+
+    // Center video
+    const videoX = this.padding + (availableWidth - drawWidth) / 2;
+    const videoY = this.padding + (availableHeight - drawHeight) / 2;
+
+    // Apply effects if available
+    if (this.effectsManager && typeof this.effectsManager.applyEffects === 'function') {
+      this.effectsManager.applyEffects(this.ctx, video, currentTime);
+    }
+
+    // Draw main video with high-quality settings
+    this.ctx.drawImage(video, videoX, videoY, drawWidth, drawHeight);
+
+    // Draw webcam if available
+    if (this.webcamManager && this.webcamManager.video && this.webcamManager.video.readyState >= 2) {
+      const webcam = this.webcamManager.video;
+      const webcamSize = Math.min(width, height) * 0.25;
+      const margin = 20;
+      const x = width - webcamSize - margin;
+      const y = height - webcamSize - margin;
+
+      this.ctx.save();
+
+      // Create circular clip for webcam
+      this.ctx.beginPath();
+      this.ctx.arc(x + webcamSize / 2, y + webcamSize / 2, webcamSize / 2, 0, Math.PI * 2);
+      this.ctx.clip();
+
+      // Crop webcam to square
+      const webcamAspect = webcam.videoWidth / webcam.videoHeight;
+      let srcWidth, srcHeight, srcX, srcY;
+      if (webcamAspect > 1) {
+        srcHeight = webcam.videoHeight;
+        srcWidth = srcHeight;
+        srcX = (webcam.videoWidth - srcWidth) / 2;
+        srcY = 0;
+      } else {
+        srcWidth = webcam.videoWidth;
+        srcHeight = srcWidth;
+        srcX = 0;
+        srcY = (webcam.videoHeight - srcHeight) / 2;
+      }
+
+      this.ctx.drawImage(webcam, srcX, srcY, srcWidth, srcHeight, x, y, webcamSize, webcamSize);
+      this.ctx.restore();
+    }
+
+    this.ctx.restore();
+  }
+
+  setPadding(padding, color = '#222222') {
+    this.padding = padding;
+    this.paddingColor = color;
+  }
+
+  destroy() {
+    this.canvas = null;
+    this.ctx = null;
+    this.effectsManager = null;
+    this.webcamManager = null;
+    this.backgroundImage = null;
+    this.backgroundImageLoaded = false;
   }
 }

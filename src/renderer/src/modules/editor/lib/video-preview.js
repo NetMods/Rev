@@ -24,8 +24,10 @@ export class VideoPreview {
       this.webcamManager = new VideoManager();
       this.webcamManager.init(webcamPath);
     }
+
     this.effectsManager.init(effects);
-    this.canvasRenderer.init(canvasElement, this.effectsManager, this.webcamManager)()
+
+    this.canvasRenderer.init(canvasElement, this.effectsManager, this.webcamManager)
     this.canvasRenderer.loadBackground(bgUrl).catch(err => console.warn('bg failed', err));
 
     this.onTimeUpdate = onTimeUpdate;

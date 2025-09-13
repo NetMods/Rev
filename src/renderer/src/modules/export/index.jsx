@@ -25,7 +25,7 @@ export default function ExportModal({ onClose, videoPath, webcamPath, effects })
     currentFrame: 0,
     totalFrames: 2234,
   });
-  const [exportStatus, setExportStatus] = useState("idle"); // "idle", "exporting", "completed"
+  const [exportStatus, setExportStatus] = useState("idle");
 
   const exporterRef = useRef(null);
 
