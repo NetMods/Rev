@@ -1,102 +1,169 @@
 export class CanvasRenderer {
   constructor() {
-    this.canvas = null;
-    this.ctx = null;
-    this.video = null;
-    this.webcam = null;
-    this.dpr = 1;
-
-    // Padding configuration
-    this.padding = 40; // Padding in logical pixels
-    this.paddingColor = "#222222"; // Dark gray padding color
-
-    // background image state
-    this.backgroundImage = null;
-    this.backgroundImageLoaded = false;
+    this.canvas = null
+    this.ctx = null
+    this.isOffScreen = null
+    this.background = { image: null, isLoaded: false }
+    this.padding = { value: 30, color: '#000000' }
   }
 
-  init(canvasElement, effectsManager, webcamManager) {
-    this.canvas = canvasElement;
-    this.ctx = this.canvas.getContext("2d");
+  init(canvasElement, effectsManager, { isOffScreen }) {
+    this.canvas = canvasElement
 
-    // image smoothing
-    this.ctx.imageSmoothingEnabled = false;
+    this.ctx = this.canvas.getContext('2d', { alpha: true, desynchronized: true, colorSpace: "display-p3" })
+    this.ctx.imageSmoothingEnabled = true;
     this.ctx.imageSmoothingQuality = 'high';
 
-    this.effectsManager = effectsManager;
-    this.webcamManager = webcamManager;
+    this.effectsManager = effectsManager
 
-    this.setupCanvas();
+    this.isOffScreen = isOffScreen
+
+    return this.setupCanvas.bind(this);
   }
 
-  // load background image from a path (returns a Promise)
-  loadBackground(src, { crossOrigin = null } = {}) {
+  setupCanvas(width, height) {
+    if (!this.canvas) return
+
+    if (this.isOffScreen) {
+      if (!width || !height) return
+    } else {
+      const parent = this.canvas.parentElement;
+      width = parent.offsetWidth
+      height = parent.offsetHeight
+    }
+
+    // Set canvas dimensions directly to target resolution
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    // Ensure CSS size matches pixel size for crisp rendering
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+
+    if (this.isOffScreen) {
+      this.ctx.fillStyle = this.padding.color;
+      this.ctx.fillRect(0, 0, width, height);
+    } else {
+      this.ctx.fillStyle = this.padding.color;
+      this.ctx.fillRect(0, 0, width, height);
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.font = "24px 'funnel'";
+      this.ctx.textAlign = "center";
+      this.ctx.fillText("Loading...", width / 2, height / 2);
+    }
+  }
+
+  loadBackground(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      if (crossOrigin) img.crossOrigin = crossOrigin; // optionally set CORS
+
       img.onload = () => {
-        this.backgroundImage = img;
-        this.backgroundImageLoaded = true;
+        this.background.image = img;
+        this.background.isLoaded = true;
         resolve(img);
       };
       img.onerror = (err) => {
-        this.backgroundImage = null;
-        this.backgroundImageLoaded = false;
+        this.background.image = null;
+        this.background.isLoaded = false;
         reject(err);
       };
       img.src = src;
     });
   }
 
-  // convenience: set background from already-imported URL (eg: import bg from '../assets/bg.png')
-  setBackgroundImage(imgUrl) {
-    // returns the same promise-based loader
-    return this.loadBackground(imgUrl);
-  }
+  drawFrame(video, webcam, currentTime) {
+    if (!this.ctx) return
+    if (!video || video.readyState < 2) return;
 
-  setupCanvas() {
-    if (!this.canvas || !this.canvas.parentElement) return;
+    const logicalWidth = this.canvas.width, logicalHeight = this.canvas.height
 
-    const parent = this.canvas.parentElement;
+    this.ctx.save();
 
-    // Set CSS size to parent so it fits
-    this.canvas.style.width = parent.offsetWidth + "px";
-    this.canvas.style.height = parent.offsetHeight + "px";
+    this.ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
-    // Make sure internal resolution is reasonable until first resize
-    this.dpr = window.devicePixelRatio || 1;
-    this.canvas.width = parent.offsetWidth * this.dpr;
-    this.canvas.height = parent.offsetHeight * this.dpr;
+    // Draw background
+    if (this.background.isLoaded && this.background.image) {
+      this.ctx.drawImage(this.background.image, 0, 0, logicalWidth, logicalHeight);
+    } else {
+      // Fallback to solid color
+      this.ctx.fillStyle = this.padding.color;
+      this.ctx.fillRect(0, 0, logicalWidth, logicalHeight);
+    }
 
-    // Reset transform and scale once to account for DPR
-    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    const availableWidth = logicalWidth - (this.padding.value * 2);
+    const availableHeight = logicalHeight - (this.padding.value * 2);
 
-    // draw initial fallback
-    const logicalWidth = this.canvas.width / this.dpr;
-    const logicalHeight = this.canvas.height / this.dpr;
-    this.ctx.fillStyle = "#111111";
-    this.ctx.fillRect(0, 0, logicalWidth, logicalHeight);
-    this.ctx.fillStyle = "#666666";
-    this.ctx.font = "12px Arial";
-    this.ctx.textAlign = "center";
-    this.ctx.fillText("Loading...", logicalWidth / 2, logicalHeight / 2);
+    const videoAspect = video.videoWidth / video.videoHeight;
+    const availableAspect = availableWidth / availableHeight;
+
+    let drawWidth, drawHeight;
+    if (videoAspect > availableAspect) {
+      // Video is wider, fit to width
+      drawWidth = availableWidth;
+      drawHeight = availableWidth / videoAspect;
+    } else {
+      // Video is taller, fit to height
+      drawHeight = availableHeight;
+      drawWidth = availableHeight * videoAspect;
+    }
+
+    // Center the video in the available space
+    const videoX = this.padding.value + (availableWidth - drawWidth) / 2;
+    const videoY = this.padding.value + (availableHeight - drawHeight) / 2;
+
+    this.effectsManager.applyEffects(this.ctx, video, currentTime);
+
+    this.ctx.drawImage(video, videoX, videoY, drawWidth, drawHeight);
+
+    this.ctx.restore();
+
+    // Draw webcam overlay
+    if (webcam && webcam.readyState >= 2) {
+      const webcamSize = Math.min(logicalWidth, logicalHeight) * 0.25;
+
+      const marginX = 20;
+      const marginY = 20;
+
+      const x = logicalWidth - webcamSize - marginX;
+      const y = logicalHeight - webcamSize - marginY;
+
+      this.ctx.save();
+
+      this.ctx.beginPath();
+      if (typeof this.ctx.roundRect === "function") {
+        this.ctx.roundRect(x, y, webcamSize, webcamSize, 15);
+      } else {
+        this.ctx.arc(x + webcamSize / 2, y + webcamSize / 2, webcamSize / 2, 0, Math.PI * 2);
+      }
+      this.ctx.clip();
+
+      const webcamAspect = webcam.videoWidth / webcam.videoHeight;
+      let srcWidth, srcHeight, srcX, srcY;
+      if (webcamAspect > 1) {
+        srcHeight = webcam.videoHeight;
+        srcWidth = srcHeight;
+        srcX = (webcam.videoWidth - srcWidth) / 2;
+        srcY = 0;
+      } else {
+        srcWidth = webcam.videoWidth;
+        srcHeight = srcWidth;
+        srcX = 0;
+        srcY = (webcam.videoHeight - srcHeight) / 2;
+      }
+
+      this.ctx.drawImage(webcam, srcX, srcY, srcWidth, srcHeight, x, y, webcamSize, webcamSize);
+
+      this.ctx.restore();
+    }
   }
 
   resizeCanvas(videoWidth, videoHeight) {
+    if (this.isOffScreen) return
     if (!this.canvas || !this.canvas.parentElement) return;
 
-    this.dpr = window.devicePixelRatio || 1;
-
-    // IMPORTANT: reset transforms before changing width/height and scaling
-    // This avoids cumulative scale when resizeCanvas called multiple times.
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-
     // Canvas internal resolution (physical pixels)
-    this.canvas.width = videoWidth * this.dpr;
-    this.canvas.height = videoHeight * this.dpr;
-
-    // scale to device pixels (logical coordinate space after this)
-    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this.canvas.width = videoWidth
+    this.canvas.height = videoHeight
 
     const parent = this.canvas.parentElement;
     const parentAspect = parent.offsetWidth / parent.offsetHeight;
@@ -117,135 +184,10 @@ export class CanvasRenderer {
     this.canvas.style.height = `${displayHeight}px`;
   }
 
-  // Method to set padding and color
-  setPadding(padding, color = "#222222") {
-    this.padding = padding;
-    this.paddingColor = color;
-  }
-
-  drawFrame(video, currentTime) {
-    if (!video || video.readyState < 2 || !this.ctx) return;
-
-    this.video = video;
-
-    const logicalWidth = this.canvas.width / this.dpr;
-    const logicalHeight = this.canvas.height / this.dpr;
-
-    this.ctx.save();
-
-    // Clear the entire canvas first (in logical coords)
-    this.ctx.clearRect(0, 0, logicalWidth, logicalHeight);
-
-    // Draw background image or fallback to color
-    if (this.backgroundImageLoaded && this.backgroundImage) {
-      // Stretch background to cover full canvas (you can change to cover/contain logic)
-      this.ctx.drawImage(this.backgroundImage, 0, 0, logicalWidth, logicalHeight);
-    } else {
-      // Fallback to solid color
-      this.ctx.fillStyle = this.paddingColor;
-      this.ctx.fillRect(0, 0, logicalWidth, logicalHeight);
-    }
-
-    // Calculate video dimensions with padding
-    const availableWidth = logicalWidth - (this.padding * 2);
-    const availableHeight = logicalHeight - (this.padding * 2);
-
-    // Calculate video size to fit within the padded area while maintaining aspect ratio
-    const videoAspect = video.videoWidth / video.videoHeight;
-    const availableAspect = availableWidth / availableHeight;
-
-    let drawWidth, drawHeight;
-    if (videoAspect > availableAspect) {
-      // Video is wider, fit to width
-      drawWidth = availableWidth;
-      drawHeight = availableWidth / videoAspect;
-    } else {
-      // Video is taller, fit to height
-      drawHeight = availableHeight;
-      drawWidth = availableHeight * videoAspect;
-    }
-
-    // Center the video in the available space
-    const videoX = this.padding + (availableWidth - drawWidth) / 2;
-    const videoY = this.padding + (availableHeight - drawHeight) / 2;
-
-    // Apply effects before drawing the video
-    if (this.effectsManager && typeof this.effectsManager.applyEffects === "function") {
-      this.effectsManager.applyEffects(this.ctx, this.video, currentTime);
-    }
-
-    // Draw the video with padding offset
-    this.ctx.drawImage(video, videoX, videoY, drawWidth, drawHeight);
-
-    this.ctx.restore();
-
-    // Draw webcam video if available (adjusted for padding)
-    if (this.webcamManager && this.webcamManager.video && this.webcamManager.video.readyState >= 2) {
-      this.webcam = this.webcamManager.video;
-
-      const webcamSize = Math.min(logicalWidth, logicalHeight) * 0.25;
-      const marginX = 20;
-      const marginY = 20;
-
-      // Position webcam considering the padding (keep inside logical area)
-      const x = logicalWidth - webcamSize - marginX;
-      const y = logicalHeight - webcamSize - marginY;
-
-      this.ctx.save();
-      this.ctx.beginPath();
-
-      // rounded rect (make sure browser supports roundRect; otherwise draw manual)
-      if (typeof this.ctx.roundRect === "function") {
-        this.ctx.roundRect(x, y, webcamSize, webcamSize, 15);
-        this.ctx.clip();
-      } else {
-        // fallback circle-like rounded rectangle
-        const r = 15;
-        this._roundedRectPath(this.ctx, x, y, webcamSize, webcamSize, r);
-        this.ctx.clip();
-      }
-
-      // ... cropping code remains the same ...
-      const webcamAspect = this.webcam.videoWidth / this.webcam.videoHeight;
-      let srcWidth, srcHeight, srcX, srcY;
-      if (webcamAspect > 1) {
-        // Wider than tall, crop width
-        srcHeight = this.webcam.videoHeight;
-        srcWidth = srcHeight; // Square
-        srcX = (this.webcam.videoWidth - srcWidth) / 2; // Center
-        srcY = 0;
-      } else {
-        // Taller than wide, crop height
-        srcWidth = this.webcam.videoWidth;
-        srcHeight = srcWidth; // Square
-        srcX = 0;
-        srcY = (this.webcam.videoHeight - srcHeight) / 2; // Center
-      }
-
-      this.ctx.drawImage(this.webcam, srcX, srcY, srcWidth, srcHeight, x, y, webcamSize, webcamSize);
-      this.ctx.restore();
-    }
-  }
-
-  // helper fallback for rounded rect path if ctx.roundRect is unavailable
-  _roundedRectPath(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-
   destroy() {
     this.canvas = null;
     this.ctx = null;
-    this.video = null;
-    this.webcam = null;
     this.effectsManager = null;
-    this.webcamManager = null;
-    this.backgroundImage = null;
-    this.backgroundImageLoaded = false;
+    this.background = { image: null, isLoaded: false };
   }
 }

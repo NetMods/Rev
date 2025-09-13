@@ -10,23 +10,42 @@ import {
 } from "react-icons/lu";
 import useModalFocus from "./hooks/use-modal-focus";
 import { VideoExporter } from "./lib/video-export";
+import Select from "../../shared/ui/select";
+
+const settingOptions = {
+  Format: [
+    { label: "MP4", value: "MP4" },
+    { label: "WEBM", value: "WEBM" },
+    { label: "MOV", value: "MOV" },
+  ],
+  Fps: [
+    { label: "24 FPS", value: 24 },
+    { label: "30 FPS (Smooth)", value: 30 },
+    { label: "60 FPS (Smoother)", value: 60 },
+  ],
+  Resolution: [
+    { label: "4K (3840x2160)", value: "3840x2160" },
+    { label: "1080p (1920x1080)", value: "1920x1080" },
+    { label: "720p (1280x720)", value: "1280x720" },
+    { label: "Highest", value: "hr" },
+  ],
+};
 
 export default function ExportModal({ onClose, videoPath, webcamPath, effects }) {
   const modalRef = useRef(null);
   useModalFocus(modalRef);
 
-  const settings = {
+  const [exportSettings, setExportSettings] = useState({
     Format: "MP4",
-    Quality: "High",
+    Fps: 30,
     Resolution: "1920x1080",
-  };
+  });
 
   const [frames, setFrames] = useState({
     currentFrame: 0,
-    totalFrames: 2234,
+    totalFrames: 0,
   });
   const [exportStatus, setExportStatus] = useState("idle");
-
   const exporterRef = useRef(null);
 
   useEffect(() => {
@@ -41,7 +60,6 @@ export default function ExportModal({ onClose, videoPath, webcamPath, effects })
     };
 
     exporter.onExportComplete = () => setExportStatus(prev => (prev !== "cancelled" ? "completed" : prev));;
-
     exporter.onExportError = () => setExportStatus("error");
 
     return () => {
@@ -49,16 +67,24 @@ export default function ExportModal({ onClose, videoPath, webcamPath, effects })
     };
   }, []);
 
+  const handleSettingChange = (settingKey, value) => {
+    setExportSettings(prevSettings => ({
+      ...prevSettings,
+      [settingKey]: value,
+    }));
+  };
+
   const handleStartExport = async () => {
     if (!exporterRef.current) return;
     try {
       setExportStatus("exporting");
+      const [width, height] = exportSettings.Resolution.split('x').map(Number);
 
       await exporterRef.current.startExport({
-        format: "png",
-        fps: 30,
-        width: 1920,
-        height: 1080,
+        format: exportSettings.Format.toLowerCase(),
+        fps: Number(exportSettings.Fps),
+        width: width,
+        height: height,
         quality: 0.95,
       });
     } catch {
@@ -84,31 +110,39 @@ export default function ExportModal({ onClose, videoPath, webcamPath, effects })
             <span> Export </span>
           </span>
 
-          {/* SETTINGS */}
           <div className="py-6">
             <div className="font-semibold inline-flex justify-center items-center text-base-content gap-1 pb-2">
               <Setting className="size-4 text-base-content/70" />
               Export Settings
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-3">
-              {Object.entries(settings).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="p-3 bg-base-200 rounded-md shadow-md shadow-base-100/30 border border-base-content/10"
-                >
-                  <div className="text-[11px] uppercase tracking-wide text-base-content/60 font-medium pb-0.5">
-                    {key}
-                  </div>
-                  <div className="text-sm text-base-content font-semibold">
-                    {value}
-                  </div>
-                </div>
-              ))}
+              <Select
+                label="Format"
+                options={settingOptions.Format}
+                value={exportSettings.Format}
+                onChange={(newValue) => handleSettingChange('Format', newValue)}
+                isDisabled={true}
+              />
+              <Select
+                label="Fps"
+                options={settingOptions.Fps}
+                value={exportSettings.Fps}
+                onChange={(newValue) => handleSettingChange('Fps', newValue)}
+                isDisabled={true}
+              />
+              <Select
+                label="Resolution"
+                options={settingOptions.Resolution}
+                value={'hr'}
+                onChange={(newValue) => handleSettingChange('Resolution', newValue)}
+                isDisabled={true}
+              />
             </div>
           </div>
 
-          {/* PROGRESS */}
-          {exportStatus !== 'idle' &&
+          {/* PROGRESS (No changes here) */}
+          {exportStatus !== 'idle' && (
+            // ... The rest of your progress JSX is unchanged ...
             <div className="mb-4">
               <div className="flex justify-between items-center pb-1">
                 <div className="font-semibold inline-flex justify-center items-center text-base-content gap-1">
@@ -128,7 +162,7 @@ export default function ExportModal({ onClose, videoPath, webcamPath, effects })
 
               <div className="py-2 text-center">
                 <span className="text-sm font-medium text-primary/70">
-                  {((frames.currentFrame / frames.totalFrames) * 100).toFixed(1)}% Complete
+                  {frames.totalFrames > 0 ? ((frames.currentFrame / frames.totalFrames) * 100).toFixed(1) : 0}% Complete
                 </span>
               </div>
 
@@ -155,10 +189,11 @@ export default function ExportModal({ onClose, videoPath, webcamPath, effects })
                 )}
               </div>
             </div>
-          }
+          )}
 
-          {/* BUTTONS */}
+          {/* BUTTONS (No changes here) */}
           <div className="flex flex-col items-center gap-2">
+            {/* ... Your button JSX is unchanged ... */}
             {exportStatus !== 'exporting' ? (
               <div className="flex gap-3">
                 <button

@@ -4,7 +4,8 @@ export class VideoManager {
     this.currentTime = 0;
     this.duration = 0;
     this.isPlaying = false;
-
+    this.width = 0;
+    this.height = 0;
     this.onTimeUpdate = null;
     this.onPlayStateChange = null;
     this.onLoadedData = null;
@@ -27,6 +28,11 @@ export class VideoManager {
   }
 
   setupEventListeners() {
+    this.video.addEventListener("loadedmetadata", () => {
+      this.width = this.video.videoWidth;
+      this.height = this.video.videoHeight;
+    });
+
     this.video.addEventListener("loadeddata", () => {
       this.duration = this.video.duration;
       this.currentTime = 0;

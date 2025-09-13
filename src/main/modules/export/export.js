@@ -1,30 +1,50 @@
 import { spawn } from 'child_process';
-import os from 'os';  // For os.tmpdir()
-import fs from 'fs';  // For file writing and mkdir
-import path from 'path';  // For path joining
+import path from 'path';
+import os from 'os';
+import fs from 'fs/promises';
 
 export class ExportingSession {
   constructor() {
     this.ffmpegProc = null;
     this.ffmpegStdin = null;
-    this.tempDir = null;  // Will hold the temp directory path
+  }
+
+  async _getOutputPath(fileName) {
+    const homeDir = os.homedir();
+    const desktopPath = path.join(homeDir, 'Desktop');
+    const videosPath = path.join(homeDir, 'Videos');
+
+    try {
+      await fs.access(desktopPath);
+      console.log(`Desktop found. Saving to: ${desktopPath}`);
+      return path.join(desktopPath, fileName);
+    } catch {
+      console.log('Desktop not found or accessible. Trying Videos folder.');
+      try {
+        await fs.mkdir(videosPath, { recursive: true });
+        console.log(`Using Videos folder. Saving to: ${videosPath}`);
+        return path.join(videosPath, fileName);
+      } catch (mkdirError) {
+        console.error(`Could not create Videos directory: ${mkdirError.message}. Falling back to home directory.`);
+        return path.join(homeDir, fileName);
+      }
+    }
   }
 
   async start(opts, core) {
+    const fileName = `shikibidi.${opts.format}`;
+    const outputPath = await this._getOutputPath(fileName);
+
+    console.log(`Starting export to: ${outputPath}`);
+
     const ffmpegpath = await core.paths.getFFmpegPath();
 
-    const { width = 1920, height = 1080, fps = 30, format = 'png', outputPath = '/home/ninjafire/out.mkv' } = opts;  // Changed default to 'png' for lossless debugging
+    const { width, height, fps } = opts;
     this.width = width;
     this.height = height;
     this.fps = fps;
-    this.format = format;
     this.outputPath = outputPath;
-
-    // Create unique temp dir for frames
-    this.tempDir = path.join(os.tmpdir(), `export_frames_${Date.now()}`);
-    fs.mkdirSync(this.tempDir, { recursive: true });
-
-    console.log(`Saving frames to temporary directory: ${this.tempDir}`);
+    this.format = path.extname(this.outputPath).substring(1);
 
     this.ffmpegProc = spawn(ffmpegpath, [
       '-y',
@@ -32,10 +52,10 @@ export class ExportingSession {
       '-framerate', String(this.fps),
       '-i', '-',
       '-c:v', 'libx264',
-      '-crf', '18',  // Adjust to 0-23; lower for better quality
-      '-preset', 'slow',  // Or 'veryslow' for max quality
-      '-tune', 'animation',  // Optimizes for screen-like content
-      '-pix_fmt', 'yuv444p',  // Full chroma for sharp edges/text
+      '-crf', '18',
+      '-preset', 'slow',
+      '-tune', 'animation',
+      '-pix_fmt', 'yuv444p',
       this.outputPath,
     ]);
 
@@ -46,25 +66,18 @@ export class ExportingSession {
     });
     this.ffmpegProc.on('close', (code) => {
       console.log(`FFmpeg closed with code: ${code}`);
-      if (this.tempDir) {
-        console.log(`Frames saved to: ${this.tempDir}. Inspect them for quality, then delete the directory manually if needed.`);
+      if (code === 0) {
+        console.log(`✅ Export successful: ${this.outputPath}`);
+      } else {
+        console.error(`❌ Export failed.`);
       }
     });
   }
 
   pushFrame(obj) {
-    const { data, frameNumber } = obj;
+    const { data } = obj;
     if (this.ffmpegStdin && data) {
       const buffer = Buffer.from(data.replace(/^data:image\/\w+;base64,/, ""), "base64");
-
-      // Save frame to temp dir
-      if (this.tempDir) {
-        const framePath = path.join(this.tempDir, `frame_${frameNumber}.${this.format}`);
-        fs.writeFileSync(framePath, buffer);
-        console.log(`Saved frame ${frameNumber} to ${framePath}`);
-      }
-
-      // Continue writing to FFmpeg
       this.ffmpegStdin.write(buffer);
     }
   }
@@ -73,13 +86,11 @@ export class ExportingSession {
     if (this.ffmpegStdin) {
       this.ffmpegStdin.end();
     }
-    // Optional: Add fs.rmSync here if you want auto-cleanup after stop
   }
 
   cancel() {
     if (this.ffmpegProc) {
       this.ffmpegProc.kill('SIGINT');
     }
-    // Optional: Add fs.rmSync here if you want auto-cleanup after cancel
   }
 }
