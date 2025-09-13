@@ -1,6 +1,8 @@
 import { nativeImage, clipboard, dialog } from "electron";
 import fs from 'fs'
 import path from "path";
+import { getConfig, updateConfig } from "../../core/config";
+import log from "electron-log/main"
 
 export const copyImageUrl = (dataUrl) => {
   try {
@@ -68,6 +70,24 @@ export const backgroundImagePath = (...args) => {
     return null;
   }
 }
+
+
+export const getUsersPreset = async () => {
+  const data = await getConfig()
+  const key = "presets"
+  if (data[key] === null || undefined) return null;
+  return data[key]
+}
+
+export const updateUserPreset = async (...args) => {
+  const [newPreset] = args
+  log.info("in the main", newPreset)
+  await updateConfig(newPreset)
+  const res = await getUsersPreset()
+  if (res === null) return {}
+  return res
+}
+
 
 export const getFFmpegArgs = (tmpFile) => {
   const platform = process.platform;
