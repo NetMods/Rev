@@ -13,8 +13,8 @@ const Button = ({
       className={cn(
         "btn flex items-center gap-2 no-drag transition-all duration-150",
         pressed
-          ? "btn-active scale-95 shadow-inner" // pressed look
-          : "hover:scale-105 active:scale-95", // hover & active feedback
+          ? "btn-active scale-95 shadow-inner"
+          : "hover:scale-105 active:scale-95",
         className
       )}
     >

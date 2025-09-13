@@ -1,7 +1,7 @@
 import log from "electron-log/renderer"
 import { useAtom, useSetAtom } from "jotai"
 import { currentPresetNameAtom, userPresetAtom, presetTypeAtom, setPresetConfigAtom } from "../../../../store"
-import { PRESERTYPES, DEFAULT_CONFIG } from "../../constants"
+import { PRESET_TYPES, DEFAULT_CONFIG } from "../../constants"
 
 const DeleteModal = () => {
 
@@ -30,8 +30,8 @@ const DeleteModal = () => {
           presets: newPresets
         });
         setuserPreset(newRes);
-        setpresetType(PRESERTYPES.DEFAULT)
-        setcurrentPrestName(PRESERTYPES.DEFAULT)
+        setpresetType(PRESET_TYPES.DEFAULT)
+        setcurrentPrestName(PRESET_TYPES.DEFAULT)
         setConfig(DEFAULT_CONFIG)
         deleteModalDiv.close();
       } else {

@@ -4,7 +4,7 @@ export const OperatingMode = {
   ANNOTATE: "annotate"
 }
 
-export const SCREENSHOTTOOL = Object.freeze({
+export const SCREENSHOT_TOOL = Object.freeze({
   NONE: "none",
   CROP: "crop",
   PEN: "pen",

@@ -1,5 +1,5 @@
-import log from "electron-log/renderer"
-import { useState, useRef, useEffect } from "react";
+// import log from "electron-log/renderer"
+import { useState, useRef } from "react";
 
 const MIN_DISTANCE = 5;
 
@@ -31,7 +31,6 @@ export const useDrawingLogic = (config, applyEffect, historyStack) => {
       case "eraser":
         lastPoint.current = pos;
         setPencilLines((prev) => {
-          // ✅ Save deep copy of old state
           historyStack.push({
             type: "pen",
             state: JSON.parse(JSON.stringify(prev)),
@@ -51,7 +50,7 @@ export const useDrawingLogic = (config, applyEffect, historyStack) => {
 
       case "arrow":
         tempArrowStart.current = { x: pos.x, y: pos.y };
-        setTempArrowEnd({ x: pos.x, y: pos.y }); // Initialize with start position
+        setTempArrowEnd({ x: pos.x, y: pos.y });
         break;
 
       case "pixelate":

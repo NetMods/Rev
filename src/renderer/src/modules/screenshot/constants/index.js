@@ -1,6 +1,4 @@
-export const PADDING = 20
-
-export const PRESERTYPES = Object.freeze({
+export const PRESET_TYPES = Object.freeze({
   DEFAULT: "default preset",
   NEW: "new preset",
   CUSTOM: "custom preset"
@@ -13,4 +11,6 @@ export const DEFAULT_CONFIG = {
   shadow: 0,
   backgroundcolor: "#FFFFFF"
 }
+
+export const PADDING = 20
 

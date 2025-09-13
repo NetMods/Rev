@@ -48,6 +48,7 @@ const SidePanel = () => {
         selected={config.backgroundcolor}
         setSelected={setConfig}
       />
+      {/* this ratio selector is to be worked on */}
       {/*<RatioSelector ratios={ratios} selected={ratio} setSelected={setRatio} />*/}
     </div>
   )

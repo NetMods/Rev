@@ -1,9 +1,9 @@
 import { atom } from "jotai"
-import { SCREENSHOTTOOL } from "../shared/constants"
-import { PRESERTYPES } from "../modules/screenshot/constants"
+import { SCREENSHOT_TOOL } from "../shared/constants"
+import { PRESET_TYPES } from "../modules/screenshot/constants"
 
 const presetConfigAtom = atom({
-  tool: SCREENSHOTTOOL.NONE,
+  tool: SCREENSHOT_TOOL.NONE,
   padding: 10,
   rounded: 5,
   shadow: 0,
@@ -35,4 +35,4 @@ export const setCanvasRedoAtom = atom(null, (_, set, update) => set(canvasRedoAt
 
 export const userPresetAtom = atom({})
 export const currentPresetNameAtom = atom("default preset")
-export const presetTypeAtom = atom(PRESERTYPES.DEFAULT)
+export const presetTypeAtom = atom(PRESET_TYPES.DEFAULT)

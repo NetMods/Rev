@@ -14,14 +14,13 @@ export const useImageProcessor = (
   const canvasRef = useRef(null);
   const [konvaImage, setKonvaImage] = useState(null);
 
-  // Effect 0: Load the image from the source URL without external libraries
   useEffect(() => {
     if (!src) return;
 
     setStatus("loading");
     const img = new window.Image();
     img.src = src;
-    img.crossOrigin = "Anonymous"; // Handle potential CORS issues
+    img.crossOrigin = "Anonymous";
 
     const handleLoad = () => {
       setStatus("loaded");
@@ -42,7 +41,6 @@ export const useImageProcessor = (
     };
   }, [src]);
 
-  // Effect 1: Calculate initial image dimensions to fit the stage with clamping logic
   useEffect(() => {
     if (!image || status !== "loaded" || !stageWidth || !stageHeight) return;
 
@@ -58,7 +56,6 @@ export const useImageProcessor = (
       targetHeight = image.height * clampScale;
     }
 
-    // Apply scaling to fit within stage if necessary
     const fitScale = Math.min(
       (stageWidth - padding * 2) / targetWidth,
       (stageHeight - padding * 2) / targetHeight
@@ -90,7 +87,6 @@ export const useImageProcessor = (
     setKonvaImage(offCanvas);
   }, [image, status, stageWidth, stageHeight, padding]);
 
-  // Calculate display dimensions with crop, without expanding
   const displayDims = useMemo(() => {
     if (!image || !dims) return null;
     if (!cropRect || cropRect.width < 40 || cropRect.height < 40) {
@@ -100,13 +96,11 @@ export const useImageProcessor = (
       };
     }
 
-    // Normalize crop rectangle to handle any direction
     const cropX = (Math.min(cropRect.x, cropRect.x + cropRect.width) - dims.x) / dims.scale;
     const cropY = (Math.min(cropRect.y, cropRect.y + cropRect.height) - dims.y) / dims.scale;
     const cropW = Math.abs(cropRect.width) / dims.scale;
     const cropH = Math.abs(cropRect.height) / dims.scale;
 
-    // Clamp values to image boundaries
     const clampedCropX = Math.max(0, Math.min(cropX, image.width));
     const clampedCropY = Math.max(0, Math.min(cropY, image.height));
     const clampedCropW = Math.max(
@@ -119,11 +113,9 @@ export const useImageProcessor = (
     );
 
 
-    // Use the original scale for the cropped area, no expansion
     const displayW = clampedCropW * dims.scale;
     const displayH = clampedCropH * dims.scale;
 
-    // Ensure it fits within stage if necessary, accounting for padding
     const fitScale = Math.min(
       (stageWidth - padding * 2) / displayW,
       (stageHeight - padding * 2) / displayH
@@ -145,7 +137,6 @@ export const useImageProcessor = (
     };
   }, [cropRect, dims, image, stageWidth, stageHeight, padding]);
 
-  // Fixed pixelate effect to account for padding
   const applyEffect = (effectType, stageX, stageY) => {
     if (!canvasRef.current || !dims || !displayDims) return;
     const ctx = canvasRef.current.getContext("2d");

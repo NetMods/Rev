@@ -1,7 +1,7 @@
 // import log from "electron-log/renderer";
 import Button from "../commons/button";
 import { useSetAtom, useAtomValue } from "jotai";
-import { SCREENSHOTTOOL } from "../../../../shared/constants";
+import { SCREENSHOT_TOOL } from "../../../../shared/constants";
 import { getcanvasRedoAtom, getPresetConfigAtom, setPresetConfigAtom } from "../../../../store";
 import { getDataUrl } from "../../utils/download";
 import { MdDelete as DeleteIcon } from "react-icons/md";
@@ -26,7 +26,7 @@ const ToolPanel = ({ stageRef, displayDims, setCropRect }) => {
   const handleRedo = () => {
     setCropRect(null)
     setConfig({
-      tool: SCREENSHOTTOOL.NONE,
+      tool: SCREENSHOT_TOOL.NONE,
       padding: 10,
       rounded: 5,
       shadow: 0,
@@ -70,11 +70,11 @@ const ToolPanel = ({ stageRef, displayDims, setCropRect }) => {
     <div className="bg-base-300/80 col-start-1 col-end-3 p-1 border-t border-t-base-content/50">
       <div className="border-black h-full w-full flex gap-4 justify-around items-center">
         <div className="flex gap-1 justify-center items-center no-drag">
-          <Button className="btn-neutral" pressed={config.tool === SCREENSHOTTOOL.CROP} icon={CropIcon} onClick={() => handleTools(SCREENSHOTTOOL.CROP)} />
-          <Button className="btn-neutral" pressed={config.tool === SCREENSHOTTOOL.PIXELATE} icon={BlurIcon} onClick={() => handleTools(SCREENSHOTTOOL.PIXELATE)} />
-          {/*<Button pressed={config.tool === SCREENSHOTTOOL.PEN} icon={PencilIcon} onClick={() => handleTools(SCREENSHOTTOOL.PEN)} /> */}
-          {/* <Button pressed={config.tool === SCREENSHOTTOOL.ARROW} icon={ArrowIcon} onClick={() => handleTools(SCREENSHOTTOOL.ARROW)} /> */}
-          {/*<Button pressed={config.tool === SCREENSHOTTOOL.ERASER} icon={EraserIcon} onClick={() => handleTools(SCREENSHOTTOOL.ERASER)} />*/}
+          <Button className="btn-neutral" pressed={config.tool === SCREENSHOT_TOOL.CROP} icon={CropIcon} onClick={() => handleTools(SCREENSHOT_TOOL.CROP)} />
+          <Button className="btn-neutral" pressed={config.tool === SCREENSHOT_TOOL.PIXELATE} icon={BlurIcon} onClick={() => handleTools(SCREENSHOT_TOOL.PIXELATE)} />
+          {/*<Button pressed={config.tool === SCREENSHOT_TOOL.PEN} icon={PencilIcon} onClick={() => handleTools(SCREENSHOT_TOOL.PEN)} /> */}
+          {/* <Button pressed={config.tool === SCREENSHOT_TOOL.ARROW} icon={ArrowIcon} onClick={() => handleTools(SCREENSHOT_TOOL.ARROW)} /> */}
+          {/*<Button pressed={config.tool === SCREENSHOT_TOOL.ERASER} icon={EraserIcon} onClick={() => handleTools(SCREENSHOT_TOOL.ERASER)} />*/}
         </div>
         <div className="flex justify-center items-center no-drag">
           <Button className="btn-neutral" text={copyStatus === true ? "Saved" : "Copy"} icon={CopyIcon} onClick={handleCopy} />
