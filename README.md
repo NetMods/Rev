@@ -6,7 +6,6 @@ Todos:
 - ~~setup backend to get a simple recorded video~~
 - ~~get the mouse clicks (with coordinates) and keyboard presses during recording with their timestamps~~
 - ~~anotate the screen~~
-- ~~anotate for linux~~
 - ~~get the video directly on the canvas~~
 - ~~make zoom in and out effect on the user activity~~
 - ~~add screenshot functionality~~
@@ -16,11 +15,14 @@ Todos:
 - find a better way for crop and pixelate effect
 - ~~shift to a common UI (daisy UI)~~
 - ~~add webcam and audio~~
+- feat: add audio in exported video
 - feat: clips and effects ui
 - feat: mouse record pause and resume
 - feat: update effects from timeline
 - feat: video play on space
 - feat: play/pause on fullscreen
+- ~~fix: zoom and pan for macos~~
+- ~~fix: remove effects that exceed time duration~~
 - fix: speed up pan effect
 - fix: timeline padding
 - fix: minor timestamps marks
@@ -44,7 +46,6 @@ Quality Improvments
 - maintain a active processes set
 - add system audio
 - debounce multiple clicks
-
 
 Future Insights
 

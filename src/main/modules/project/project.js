@@ -17,7 +17,7 @@ export const createProjectWithData = async (data = {}, core) => {
     const configFilePath = join(projectDir, "data.json")
     const configData = {
       status: "in-progress",
-      startedAt: new Date().toISOString(),
+      startedAt: new Date(),
       ...data
     }
 
@@ -61,14 +61,17 @@ export const updateProjectData = async (projectId, data, core) => {
       return false;
     }
 
+    const configData = readJsonSync(configFilePath)
+
+    const duration = (data.finishedAt - configData.startedAt) / 1000
+
     if (data.mouseClickRecords && data.mouseDragRecords) {
-      data['effects'] = core.modules.editor.createEffects(data.mouseClickRecords, data.mouseDragRecords)
+      data['effects'] = core.modules.editor.createEffects(data.mouseClickRecords, data.mouseDragRecords, duration)
 
       delete data.mouseClickRecords
       delete data.mouseDragRecords
     }
 
-    const configData = readJsonSync(configFilePath)
     const updatedData = { ...configData, ...data }
 
     writeFileSync(configFilePath, JSON.stringify(updatedData, null, 2), { encoding: fileEncoding });

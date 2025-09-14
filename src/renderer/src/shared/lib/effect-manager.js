@@ -60,11 +60,13 @@ export class EffectsManager {
       effect.initialTranslateX = this.currentTranslateX;
       effect.initialTranslateY = this.currentTranslateY;
 
-      const worldX = (center.x - effect.initialTranslateX) / effect.initialScale;
-      const worldY = (center.y - effect.initialTranslateY) / effect.initialScale;
+      const dpr = window.devicePixelRatio || 1
+      const centerX = center.x * dpr, centerY = center.y * dpr
+      const worldX = (centerX - effect.initialTranslateX) / effect.initialScale;
+      const worldY = (centerY - effect.initialTranslateY) / effect.initialScale;
 
-      effect.targetTranslateX = center.x - (level * worldX);
-      effect.targetTranslateY = center.y - (level * worldY);
+      effect.targetTranslateX = centerX - (level * worldX);
+      effect.targetTranslateY = centerY - (level * worldY);
 
       effect.targetTranslateX = Math.abs(effect.targetTranslateX) < 200 ? 0 : effect.targetTranslateX
       effect.targetTranslateY = Math.abs(effect.targetTranslateY) < 200 ? 0 : effect.targetTranslateY
@@ -86,14 +88,25 @@ export class EffectsManager {
     const { startTime, endTime, path } = effect;
     const totalDuration = parseFloat(endTime) - parseFloat(startTime);
 
+    console.log(effect)
     if (!effect._started) {
       effect._started = true;
       effect.initialTranslateX = this.currentTranslateX;
       effect.initialTranslateY = this.currentTranslateY;
       effect.initialScale = this.currentScale;
 
-      // Convert path times to relative progress values and calculate cumulative distances
-      effect.processedPath = this.processPathForInterpolation(path, startTime, endTime);
+      // ADD THIS: Get DPR here, same as in zoom
+      const dpr = window.devicePixelRatio || 1;
+
+      // UPDATE THIS: Scale the entire path by DPR upfront (assuming recorded path coords are in logical pixels)
+      const scaledPath = path.map(point => ({
+        x: point.x * dpr,
+        y: point.y * dpr,
+        time: point.time
+      }));
+
+      // UPDATE THIS: Process the scaled path instead
+      effect.processedPath = this.processPathForInterpolation(scaledPath, startTime, endTime);
     }
 
     const currentProgress = Math.min((currentTime - parseFloat(startTime)) / totalDuration, 1);
@@ -114,7 +127,6 @@ export class EffectsManager {
     ctx.translate(this.currentTranslateX, this.currentTranslateY);
     ctx.scale(this.currentScale, this.currentScale);
   }
-
   processPathForInterpolation(path) {
     const processedPath = [];
     let totalDistance = 0;

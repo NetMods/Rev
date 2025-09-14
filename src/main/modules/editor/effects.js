@@ -1,24 +1,27 @@
-import { screen } from 'electron'
+// import { screen } from 'electron'
 import { randomUUID as uuid } from "crypto"
 
-export const createZoomAndPanEffects = (mouseClicks, mouseDrags) => {
+export const createZoomAndPanEffects = (mouseClicks, mouseDrags, videoDuration) => {
   const effects = [];
 
   const getScreenRelativeCoords = (x, y) => {
     const point = { x, y };
-    const { bounds, scaleFactor } = screen.getDisplayNearestPoint(point);
-    const screenWidth = bounds.x * scaleFactor;
-    const screenHeight = bounds.y * scaleFactor;
-    return {
-      x: x - screenWidth,
-      y: y - screenHeight
-    };
+    return point
+    // const { bounds, scaleFactor } = screen.getDisplayNearestPoint(point);
+    // const screenWidth = bounds.x * scaleFactor;
+    // const screenHeight = bounds.y * scaleFactor;
+    // return {
+    //   x: x - screenWidth,
+    //   y: y - screenHeight
+    // };
   };
 
   const createZoomEffect = (record) => {
     const { x: relX, y: relY } = getScreenRelativeCoords(record.x, record.y);
     const duration = 1;
     const startTime = parseFloat(Math.max(0, record.elapsedTime - duration)).toFixed(3);
+
+    if (record.elapsedTime > videoDuration) return
 
     return {
       id: uuid().slice(0, 8),
@@ -40,6 +43,8 @@ export const createZoomAndPanEffects = (mouseClicks, mouseDrags) => {
 
     const startTime = startRecord.elapsedTime || startRecord.startTime;
     const endTime = endRecord.elapsedTime || endRecord.endTime;
+
+    if (endTime > videoDuration) return
 
     const dragDuration = endTime - startTime;
     const effectDuration = Math.max(300, Math.min(dragDuration * 1000, 2000));

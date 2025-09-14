@@ -73,7 +73,7 @@ export default {
         status: 'completed',
         mouseClickRecords: clicks,
         mouseDragRecords: drags,
-        finishedAt: new Date().toISOString(),
+        finishedAt: new Date()
       }
 
       const videoPath = await this.session.stop();
