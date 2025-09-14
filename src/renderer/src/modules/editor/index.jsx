@@ -43,10 +43,11 @@ export default function Page() {
 
       {showExportModal && createPortal(
         <Export
-          onClose={() => setShowExportModal(false)}
+          projectId={id}
           videoPath={data.videoPath}
           webcamPath={data.webcamPath}
           effects={data.effects}
+          onClose={() => setShowExportModal(false)}
         />,
         document.body
       )}

@@ -31,7 +31,7 @@ const settingOptions = {
   ],
 };
 
-export default function ExportModal({ onClose, videoPath, webcamPath, effects }) {
+export default function ExportModal({ onClose, projectId, videoPath, webcamPath, effects }) {
   const modalRef = useRef(null);
   useModalFocus(modalRef);
 
@@ -53,7 +53,7 @@ export default function ExportModal({ onClose, videoPath, webcamPath, effects })
     exporterRef.current = exporter;
     if (!exporter) return
 
-    exporter.init(videoPath, webcamPath, effects)
+    exporter.init(videoPath, webcamPath, effects, projectId)
 
     exporter.onExportProgress = ({ current, total }) => {
       setFrames({ currentFrame: current, totalFrames: total });

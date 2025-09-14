@@ -20,7 +20,7 @@ export class VideoExporter {
     this.onExportError = null;
   }
 
-  init(videoPath, webcamPath, effects) {
+  init(videoPath, webcamPath, effects, projectId) {
     this.videoManager.init(videoPath)
     if (webcamPath) {
       this.webcamManager = new VideoManager();
@@ -28,6 +28,8 @@ export class VideoExporter {
     }
 
     this.effectsManager.init(effects)
+
+    this.projectId = projectId
 
     this.videoManager.onLoadedData = () => {
       const defaultFps = 30;
@@ -72,7 +74,8 @@ export class VideoExporter {
       fps: this.fps,
       width: this.width,
       height: this.height,
-      format: this.format
+      format: this.format,
+      projectId: this.projectId
     })
 
     try {
