@@ -1,4 +1,10 @@
-export const SCREENSHOTTOOL = Object.freeze({
+export const OperatingMode = {
+  VIDEO: "video",
+  SCREENSHOT: "screenshot",
+  ANNOTATE: "annotate"
+}
+
+export const SCREENSHOT_TOOL = Object.freeze({
   NONE: "none",
   CROP: "crop",
   PEN: "pen",
