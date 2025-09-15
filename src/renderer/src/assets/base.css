@@ -57,6 +57,7 @@ code {
 @layer components {
   .drag {
     -webkit-app-region: drag;
+    cursor: grab !important;
   }
 
   .no-drag {
@@ -71,4 +72,18 @@ code {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+button:hover .scroll-container {
+  animation: marquee 13s linear infinite;
 }

@@ -2,17 +2,21 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { mkdirSync, moveSync, rmSync } from 'fs-extra';
 import log from 'electron-log/main';
-import { spawnScreenCapture, mergeVideoClips, gracefullyStopProcess } from './ffmpeg';
+import { spawnScreenCapture, spawnWebcamCapture, mergeVideoClips, gracefullyStopProcess } from './ffmpeg';
+import { existsSync } from 'fs';
 
 export class RecordingSession {
-  constructor(projectId, core) {
+  constructor(projectId, opts, core) {
     this.projectId = projectId;
     this.core = core;
     this.tempDirectory = join(tmpdir(), core.paths.applicationName, projectId);
     this.clipIndex = 0;
     this.clipPaths = [];
+    this.webcamClipPaths = [];
     this.currentProcess = null;
+    this.currentWebcamProcess = null;
     this.isPaused = false;
+    this.opts = opts;
 
     mkdirSync(this.tempDirectory, { recursive: true });
     log.info(`Recording session started for project ${projectId}. Temp dir: ${this.tempDirectory}`);
@@ -24,13 +28,19 @@ export class RecordingSession {
     this.clipPaths.push(outputPath);
 
     const ffmpegPath = await this.core.paths.getFFmpegPath();
-    this.currentProcess = spawnScreenCapture(ffmpegPath, outputPath);
+    this.currentProcess = await spawnScreenCapture(ffmpegPath, outputPath, this.opts, this.core);
     log.verbose(`Started new clip: clip${this.clipIndex}.mkv`);
+
+    if (this.opts.videoDevice !== null) {
+      const webcamOutputPath = join(this.tempDirectory, `webcam${this.clipIndex}.mkv`);
+      this.webcamClipPaths.push(webcamOutputPath);
+      this.currentWebcamProcess = spawnWebcamCapture(ffmpegPath, webcamOutputPath, this.opts);
+      log.verbose(`Started new webcam clip: webcam${this.clipIndex}.mkv`);
+    }
   }
 
   async start() {
     await this._startNewClip();
-    this.isPaused = false;
   }
 
   async pause() {
@@ -38,6 +48,12 @@ export class RecordingSession {
 
     await gracefullyStopProcess(this.currentProcess);
     this.currentProcess = null;
+
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess) {
+      await gracefullyStopProcess(this.currentWebcamProcess);
+      this.currentWebcamProcess = null;
+    }
+
     this.isPaused = true;
     log.info('Recording paused.');
   }
@@ -56,22 +72,55 @@ export class RecordingSession {
       await gracefullyStopProcess(this.currentProcess);
       this.currentProcess = null;
     }
-
-    const ffmpegPath = await this.core.paths.getFFmpegPath();
-    const { outputPath, videoName } = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory);
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess) {
+      await gracefullyStopProcess(this.currentWebcamProcess);
+      this.currentWebcamProcess = null;
+    }
 
     const projectsDirectory = this.core.paths.projectsDirectory;
-    const finalPath = join(projectsDirectory, this.projectId, videoName);
-    moveSync(outputPath, finalPath, { overwrite: true });
+    const ffmpegPath = await this.core.paths.getFFmpegPath();
 
-    log.info(`Final video saved to: ${finalPath}`);
-    return finalPath;
+    // Merge screen clips
+    const screenVideoName = 'screen.mkv'
+    const finalScreenPath = join(projectsDirectory, this.projectId, screenVideoName);
+
+    let screenOutputPath = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory, screenVideoName);
+
+    if (existsSync(screenOutputPath)) {
+      moveSync(screenOutputPath, finalScreenPath, { overwrite: true });
+    } else {
+      screenOutputPath = ""
+    }
+
+    log.info(`Final screen video saved to: ${finalScreenPath}`);
+
+    let finalWebcamPath = null;
+    const webcamVideoName = 'webcam.mkv';
+    if (this.opts.videoDevice !== null && this.webcamClipPaths.length > 0) {
+      finalWebcamPath = join(projectsDirectory, this.projectId, webcamVideoName);
+
+      let webcamOutputPath = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, webcamVideoName);
+
+      if (existsSync(webcamOutputPath)) {
+        moveSync(webcamOutputPath, finalWebcamPath, { overwrite: true });
+      } else {
+        webcamOutputPath = ""
+      }
+
+      log.info(`Final webcam video saved to: ${finalWebcamPath}`);
+    }
+
+    return this.opts.videoDevice !== null ? { screen: finalScreenPath, webcam: finalWebcamPath } : finalScreenPath;
   }
 
   cleanup() {
     if (this.currentProcess && this.currentProcess.exitCode === null) {
       log.info(`Killing the current running ffmpeg process`);
       this.currentProcess.kill('SIGKILL');
+    }
+    if (this.opts.videoDevice !== null && this.currentWebcamProcess && this.currentWebcamProcess.exitCode === null) {
+      log.info(`Killing the current running webcam ffmpeg process`);
+      this.currentWebcamProcess.kill('SIGKILL');
     }
     log.info(`Cleaning up temp directory: ${this.tempDirectory}`);
     rmSync(this.tempDirectory, { recursive: true, force: true });

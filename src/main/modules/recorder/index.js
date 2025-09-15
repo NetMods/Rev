@@ -20,7 +20,7 @@ export default {
     log.info('Recording module initialized');
   },
 
-  async startRecording() {
+  async startRecording(opts) {
     if (this.session) {
       throw new Error('Recording is already in progress.');
     }
@@ -31,7 +31,7 @@ export default {
 
       const currentProjectId = await this.core.modules.project.createProject();
 
-      this.session = new RecordingSession(currentProjectId, this.core);
+      this.session = new RecordingSession(currentProjectId, opts, this.core);
       await this.session.start();
 
       log.verbose('Recording started successfully.');
@@ -49,7 +49,7 @@ export default {
       return;
     }
     await this.session.pause();
-    this.mouseTracker.pause();
+    // this.mouseTracker.pause();
   },
 
   async resumeRecording() {
@@ -58,7 +58,7 @@ export default {
       return;
     }
     await this.session.resume();
-    this.mouseTracker.resume();
+    // this.mouseTracker.resume();
   },
 
   async stopRecording() {
@@ -69,17 +69,23 @@ export default {
 
     try {
       const { clicks, drags } = this.mouseTracker.stop();
-
-      const videoPath = await this.session.stop();
-      const { projectId } = this.session;
-
-      const data = {
-        videoPath: `app://${videoPath}`,
+      let data = {
         status: 'completed',
         mouseClickRecords: clicks,
         mouseDragRecords: drags,
         finishedAt: new Date().toISOString(),
-      };
+      }
+
+      const videoPath = await this.session.stop();
+
+      if (typeof videoPath === 'string') {
+        data['videoPath'] = `app://${videoPath}`
+      } else {
+        data['videoPath'] = `app://${videoPath.screen}`
+        data['webcamPath'] = `app://${videoPath.webcam}`
+      }
+
+      const { projectId } = this.session;
 
       await this.core.modules.project.updateProject(projectId, data, this.core);
 
@@ -97,7 +103,6 @@ export default {
 
   async handleBeforeQuit() {
     if (!this.session) return;
-
     log.info('Recording in progress. Stopping gracefully before quit...');
 
     try {
@@ -148,12 +153,13 @@ export default {
       log.error('A critical error occurred during project cleanup:', scanError);
     }
   },
+
   getIPCHandlers() {
     return {
       'recording:start': async (_, ...args) => this.startRecording(...args),
       'recording:pause': async (_, ...args) => this.pauseRecording(...args),
       'recording:resume': async (_, ...args) => this.resumeRecording(...args),
-      'recording:stop': async (_, ...args) => this.stopRecording(...args),
+      'recording:stop': async (_, ...args) => this.stopRecording(...args)
     };
   },
 };
