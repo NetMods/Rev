@@ -15,7 +15,7 @@ Todos:
 - find a better way for crop and pixelate effect
 - ~~shift to a common UI (daisy UI)~~
 - ~~add webcam and audio~~
-- feat: add audio in exported video
+- ~~feat: add audio in exported video~~
 - feat: clips and effects ui
 - feat: mouse record pause and resume
 - feat: update effects from timeline
