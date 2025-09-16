@@ -46,6 +46,7 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
     totalFrames: 0,
   });
   const [exportStatus, setExportStatus] = useState("idle");
+  const [statusMessage, setStatusMessage] = useState("Ready to export");
   const exporterRef = useRef(null);
 
   useEffect(() => {
@@ -59,8 +60,13 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
       setFrames({ currentFrame: current, totalFrames: total });
     };
 
-    exporter.onExportComplete = () => setExportStatus(prev => (prev !== "cancelled" ? "completed" : prev));;
+    exporter.onExportComplete = () => setExportStatus(prev => (prev !== "cancelled" ? "completed" : prev));
     exporter.onExportError = () => setExportStatus("error");
+
+    // New status message handler
+    exporter.onStatusMessage = (message) => {
+      setStatusMessage(message);
+    };
 
     return () => {
       exporter.destroy();
@@ -121,14 +127,14 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
                 options={settingOptions.Format}
                 value={exportSettings.Format}
                 onChange={(newValue) => handleSettingChange('Format', newValue)}
-                isDisabled={true}
+                isDisabled={exportStatus === "exporting"}
               />
               <Select
                 label="Fps"
                 options={settingOptions.Fps}
                 value={exportSettings.Fps}
                 onChange={(newValue) => handleSettingChange('Fps', newValue)}
-                isDisabled={true}
+                isDisabled={exportStatus === "exporting"}
               />
               <Select
                 label="Resolution"
@@ -140,9 +146,8 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
             </div>
           </div>
 
-          {/* PROGRESS (No changes here) */}
+          {/* PROGRESS - Updated with dynamic status messages */}
           {exportStatus !== 'idle' && (
-            // ... The rest of your progress JSX is unchanged ...
             <div className="mb-4">
               <div className="flex justify-between items-center pb-1">
                 <div className="font-semibold inline-flex justify-center items-center text-base-content gap-1">
@@ -166,39 +171,40 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
                 </span>
               </div>
 
+              {/* Dynamic status messages from the exporter */}
               <div className="text-center pb-4">
                 {exportStatus === "completed" ? (
                   <div className="text-success font-medium inline-flex items-center gap-1">
                     <Check size={20} />
-                    Export completed successfully!
+                    {statusMessage}
                   </div>
                 ) : exportStatus === "exporting" ? (
                   <div className="text-base-content/80 font-medium">
-                    Exporting your video...
+                    {statusMessage}
                   </div>
                 ) : exportStatus === "cancelled" ? (
                   <div className="text-warning font-medium">
-                    Export aborted by user.
+                    {statusMessage || "Export cancelled by user"}
                   </div>
                 ) : exportStatus === "error" ? (
                   <div className="text-error font-medium">
-                    Export failed due to an error.
+                    {statusMessage || "Export failed due to an error"}
                   </div>
                 ) : (
-                  <div className="text-base-content/80">Ready to export</div>
+                  <div className="text-base-content/80">{statusMessage}</div>
                 )}
               </div>
             </div>
           )}
 
-          {/* BUTTONS (No changes here) */}
+          {/* BUTTONS */}
           <div className="flex flex-col items-center gap-2">
-            {/* ... Your button JSX is unchanged ... */}
             {exportStatus !== 'exporting' ? (
               <div className="flex gap-3">
                 <button
                   className="btn bg-primary/80 hover:bg-primary text-primary-content w-40 inline-flex items-center gap-2"
                   onClick={handleStartExport}
+                  disabled={exportStatus === "exporting"}
                 >
                   <Start />
                   Start Exporting

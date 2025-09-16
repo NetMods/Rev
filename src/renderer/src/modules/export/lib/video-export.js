@@ -18,6 +18,7 @@ export class VideoExporter {
     this.onExportProgress = null;
     this.onExportComplete = null;
     this.onExportError = null;
+    this.onStatusMessage = null; // New callback for status messages
   }
 
   init(videoPath, webcamPath, effects, projectId) {
@@ -28,12 +29,17 @@ export class VideoExporter {
     }
 
     this.effectsManager.init(effects)
-
     this.projectId = projectId
 
     this.videoManager.onLoadedData = () => {
       const defaultFps = 30;
       this.totalFrames = Math.floor(this.videoManager.duration * defaultFps);
+    }
+  }
+
+  _updateStatus(message) {
+    if (this.onStatusMessage) {
+      this.onStatusMessage(message);
     }
   }
 
@@ -69,39 +75,55 @@ export class VideoExporter {
     // Recalculate total frames based on actual export settings
     this.totalFrames = Math.floor(duration * this.fps);
 
-    window.api?.export?.start({
+    this._updateStatus("Initializing export...");
+
+    // Wait for FFmpeg to be ready before sending frames
+    const exportReady = await window.api?.export?.start({
       totalFrames: this.totalFrames,
       fps: this.fps,
       width: this.width,
       height: this.height,
       format: this.format,
       projectId: this.projectId
-    })
+    });
+
+    if (!exportReady) {
+      throw new Error('Failed to initialize export process');
+    }
+
+    this._updateStatus("FFmpeg initialized, starting frame processing...");
 
     try {
-      // Loop is correct, but the progress calculation was slightly off
+      // Process frames with proper synchronization
       for (let i = 0; i < this.totalFrames; i++) {
         if (!this.isExporting) {
+          this._updateStatus("Export cancelled by user");
           break;
         }
 
         const currentTime = startTime + (i * frameInterval);
-        await this.seekToFrame(currentTime);
 
+        this._updateStatus(`Processing frame ${i + 1} of ${this.totalFrames}...`);
+
+        await this.seekToFrame(currentTime);
         this.canvasRenderer.drawFrame(this.videoManager.video, this.webcamManager?.video, currentTime);
 
-        const blob = await this.canvasToBlob(imageFormat)
+        const blob = await this.canvasToBlob(imageFormat);
         const frameData = await this.blobToBase64(blob);
 
-        window.api?.export?.pushFrame({
+        // Wait for frame to be processed before continuing
+        const frameProcessed = await window.api?.export?.pushFrame({
           frameNumber: i,
           timestamp: currentTime,
           data: frameData,
           format: imageFormat
-        })
+        });
+
+        if (!frameProcessed) {
+          throw new Error(`Failed to process frame ${i}`);
+        }
 
         this.currentFrame = i + 1;
-        // Corrected progress calculation
         this.progress = (this.currentFrame / this.totalFrames) * 100;
 
         if (this.onExportProgress) {
@@ -113,26 +135,38 @@ export class VideoExporter {
           });
         }
 
-        if (i % 10 === 0) {
-          await this.delay(10);
+        // Reduce delay frequency but keep it for UI responsiveness
+        if (i % 5 === 0) {
+          await this.delay(5);
         }
       }
 
       this.isExporting = false;
 
-      window.api?.export?.stop({
-        totalFrames: this.currentFrame,
-        duration: duration
-      })
+      if (this.currentFrame > 0) {
+        this._updateStatus("Finalizing video export...");
 
-      if (this.onExportComplete) {
-        this.onExportComplete({
+        const exportResult = await window.api?.export?.stop({
           totalFrames: this.currentFrame,
           duration: duration
         });
+
+        if (exportResult?.success) {
+          this._updateStatus(`Export completed successfully! Saved to: ${exportResult.outputPath}`);
+          if (this.onExportComplete) {
+            this.onExportComplete({
+              totalFrames: this.currentFrame,
+              duration: duration,
+              outputPath: exportResult.outputPath
+            });
+          }
+        } else {
+          throw new Error('Failed to finalize export');
+        }
       }
     } catch (error) {
       this.isExporting = false;
+      this._updateStatus(`Export failed: ${error.message}`);
 
       if (this.onExportError) {
         this.cancelExport()
@@ -142,21 +176,25 @@ export class VideoExporter {
     }
   }
 
-  // ... rest of the class remains the same
   seekToFrame(time) {
     return new Promise((resolve) => {
       const video = this.videoManager.video;
       video.pause();
+
       if (Math.abs(video.currentTime - time) < 0.001) {
         resolve();
         return;
       }
+
       const onSeeked = () => {
         video.removeEventListener('seeked', onSeeked);
-        setTimeout(resolve, 50);
+        // Reduced timeout for faster processing
+        setTimeout(resolve, 30);
       };
+
       video.addEventListener('seeked', onSeeked);
       this.videoManager.seekTo(time);
+
       if (this.webcamManager) {
         this.webcamManager.seekTo(time);
       }
@@ -185,7 +223,8 @@ export class VideoExporter {
 
   cancelExport() {
     this.isExporting = false;
-    window.api?.export?.cancel()
+    this._updateStatus("Cancelling export...");
+    window.api?.export?.cancel();
   }
 
   destroy() {
@@ -204,5 +243,6 @@ export class VideoExporter {
     this.onExportProgress = null;
     this.onExportComplete = null;
     this.onExportError = null;
+    this.onStatusMessage = null;
   }
 }

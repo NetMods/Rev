@@ -12,11 +12,18 @@ export default {
 
   getIPCHandlers() {
     return {
-      "export:start": async (_, data) => { this.session.start(data, this.core) },
-      "export:pushFrame": async (_, data) => { this.session.pushFrame(data) },
-      "export:stop": async (_, data) => { this.session.stop(data) },
-      "export:cancel": () => { this.session.cancel() }
+      "export:start": async (_, data) => {
+        return await this.session.start(data, this.core);
+      },
+      "export:pushFrame": async (_, data) => {
+        return await this.session.pushFrame(data);
+      },
+      "export:stop": async (_, data) => {
+        return await this.session.stop(data);
+      },
+      "export:cancel": () => {
+        this.session.cancel();
+      }
     };
   }
 };
-

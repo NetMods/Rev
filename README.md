@@ -50,6 +50,7 @@ Quality Improvments
 Future Insights
 
 - make users save video/screenshot to cloud
+- auto cut the silenced time during the video
 - using AI in annotation to answer whats happening on the screen using annotation
 
 And we are done
