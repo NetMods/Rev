@@ -2,7 +2,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { mkdirSync, moveSync, rmSync } from 'fs-extra';
 import log from 'electron-log/main';
-import { spawnScreenCapture, spawnWebcamCapture, mergeVideoClips, gracefullyStopProcess } from './ffmpeg';
+import { spawnScreenCapture, spawnWebcamCapture, mergeVideoClips, gracefullyStopProcess, extractAudio } from './ffmpeg';
 import { existsSync } from 'fs';
 
 export class RecordingSession {
@@ -80,37 +80,55 @@ export class RecordingSession {
     const projectsDirectory = this.core.paths.projectsDirectory;
     const ffmpegPath = await this.core.paths.getFFmpegPath();
 
+    const returnedPaths = {
+      videoPath: null,
+      webcamPath: null,
+      audioPath: null,
+    };
+
     // Merge screen clips
     const screenVideoName = 'screen.mkv'
     const finalScreenPath = join(projectsDirectory, this.projectId, screenVideoName);
 
-    let screenOutputPath = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory, screenVideoName);
+    try {
+      const screenOutputPath = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory, screenVideoName);
 
-    if (existsSync(screenOutputPath)) {
-      moveSync(screenOutputPath, finalScreenPath, { overwrite: true });
-    } else {
-      screenOutputPath = ""
-    }
+      if (existsSync(screenOutputPath)) {
+        moveSync(screenOutputPath, finalScreenPath, { overwrite: true });
+        returnedPaths.videoPath = finalScreenPath;
+        log.info(`Final screen video saved to: ${finalScreenPath}`);
 
-    log.info(`Final screen video saved to: ${finalScreenPath}`);
-
-    let finalWebcamPath = null;
-    const webcamVideoName = 'webcam.mkv';
-    if (this.opts.videoDevice !== null && this.webcamClipPaths.length > 0) {
-      finalWebcamPath = join(projectsDirectory, this.projectId, webcamVideoName);
-
-      let webcamOutputPath = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, webcamVideoName);
-
-      if (existsSync(webcamOutputPath)) {
-        moveSync(webcamOutputPath, finalWebcamPath, { overwrite: true });
-      } else {
-        webcamOutputPath = ""
+        const audioName = 'audio.aac';
+        const finalAudioPath = join(projectsDirectory, this.projectId, audioName);
+        try {
+          await extractAudio(ffmpegPath, finalScreenPath, finalAudioPath);
+          returnedPaths.audioPath = finalAudioPath;
+        } catch (error) {
+          log.error('Failed to extract audio from screen recording:', error);
+        }
       }
-
-      log.info(`Final webcam video saved to: ${finalWebcamPath}`);
+    } catch (error) {
+      log.error("Failed to merge screen clips:", error)
     }
 
-    return this.opts.videoDevice !== null ? { screen: finalScreenPath, webcam: finalWebcamPath } : finalScreenPath;
+    if (this.opts.videoDevice !== null && this.webcamClipPaths.length > 0) {
+      const webcamVideoName = 'webcam.mkv';
+      const finalWebcamPath = join(projectsDirectory, this.projectId, webcamVideoName);
+
+      try {
+        const webcamOutputPath = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, webcamVideoName);
+
+        if (existsSync(webcamOutputPath)) {
+          moveSync(webcamOutputPath, finalWebcamPath, { overwrite: true });
+          returnedPaths.webcamPath = finalWebcamPath;
+          log.info(`Final webcam video saved to: ${finalWebcamPath}`);
+        }
+      } catch (error) {
+        log.error("Failed to merge webcam clips:", error)
+      }
+    }
+
+    return returnedPaths;
   }
 
   cleanup() {

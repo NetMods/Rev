@@ -44,4 +44,11 @@ contextBridge.exposeInMainWorld('api', {
     minimizeWindow: () => ipcRenderer.send('window:minimize'),
     toggleMaximizeWindow: () => ipcRenderer.send('window:maximize')
   },
+
+  export: {
+    start: (...args) => ipcRenderer.invoke('export:start', ...args),
+    pushFrame: (...args) => ipcRenderer.invoke('export:pushFrame', ...args),
+    stop: (...args) => ipcRenderer.invoke('export:stop', ...args),
+    cancel: () => ipcRenderer.send('export:cancel')
+  }
 });

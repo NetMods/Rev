@@ -8,7 +8,7 @@ const VideoPreview = ({ className, data }) => {
 
   return (
     <div className={cn("rounded border-2 py-1 border-base-content/10 bg-base-200", className)}>
-      <div className="flex justify-center items-center h-full w-2/3 ">
+      <div className="flex justify-center items-center h-full w-2/3 bg-base-300/40">
         <canvas ref={canvasRef} className="border rounded-sm border-base-content/40" />
       </div>
     </div>

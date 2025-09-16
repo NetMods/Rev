@@ -1,6 +1,6 @@
-import { CanvasRenderer } from "./canvas-renderer";
-import { EffectsManager } from "./effect-manager";
-import { VideoManager } from "./video-manager";
+import { CanvasRenderer } from "../../../shared/lib/canvas-renderer";
+import { EffectsManager } from "../../../shared/lib//effect-manager";
+import { VideoManager } from "../../../shared/lib/video-manager";
 import bgUrl from '../../../assets/background.jpg';
 
 export class VideoPreview {
@@ -24,8 +24,10 @@ export class VideoPreview {
       this.webcamManager = new VideoManager();
       this.webcamManager.init(webcamPath);
     }
+
     this.effectsManager.init(effects);
-    this.canvasRenderer.init(canvasElement, this.effectsManager, this.webcamManager);
+
+    this.canvasRenderer.init(canvasElement, this.effectsManager, { isOffScreen: false })()
     this.canvasRenderer.loadBackground(bgUrl).catch(err => console.warn('bg failed', err));
 
     this.onTimeUpdate = onTimeUpdate;
@@ -42,7 +44,7 @@ export class VideoPreview {
 
       this.resizeObserver = new ResizeObserver(() => {
         this.canvasRenderer.resizeCanvas(video.videoWidth, video.videoHeight);
-        this.canvasRenderer.drawFrame(video, this.videoManager.currentTime);
+        this.canvasRenderer.drawFrame(video, this.webcamManager.video, this.videoManager.currentTime);
       });
 
       this.canvasRenderer.canvas?.parentElement &&
@@ -80,7 +82,7 @@ export class VideoPreview {
 
   startRenderLoop() {
     const render = () => {
-      this.canvasRenderer.drawFrame(this.videoManager.video, this.videoManager.currentTime);
+      this.canvasRenderer.drawFrame(this.videoManager.video, this.webcamManager.video, this.videoManager.currentTime);
 
       if (this.isPlaying) {
         if (this.onTimeUpdate) {
@@ -131,7 +133,7 @@ export class VideoPreview {
     this.effectsManager.updateEffects(newEffects);
 
     if (this.videoManager.video && this.videoManager.video.readyState >= 2) {
-      this.canvasRenderer.drawFrame(this.videoManager.video, this.videoManager.currentTime);
+      this.canvasRenderer.drawFrame(this.videoManager.video, this.webcamManager.video, this.videoManager.currentTime);
     }
   }
 
