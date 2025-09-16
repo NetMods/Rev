@@ -113,6 +113,8 @@ export class CanvasRenderer {
 
     this.effectsManager.applyEffects(this.ctx, video, currentTime);
 
+    this.ctx.filter = `contrast(104%)`;
+
     this.ctx.drawImage(video, videoX, videoY, drawWidth, drawHeight);
 
     this.ctx.restore();

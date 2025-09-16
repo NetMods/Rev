@@ -87,12 +87,16 @@ export class VideoManager {
 
   togglePlayPause() {
     if (!this.video) return;
-    // Using promises for play is a good modern practice
-    const playPromise = this.video.play();
-    if (playPromise !== undefined) {
-      playPromise.then(() => { }).catch(() => {
-        // Play was interrupted, usually by a pause. This is fine.
-      });
+
+    if (this.video.paused) {
+      const playPromise = this.video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.warn('Play interrupted:', error);
+        });
+      }
+    } else {
+      this.video.pause();
     }
   }
 
