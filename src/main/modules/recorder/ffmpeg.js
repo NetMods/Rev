@@ -158,6 +158,39 @@ export const mergeVideoClips = (ffmpegPath, clipPaths, tempDirectory, videoName)
   });
 };
 
+export const extractAudio = (ffmpegPath, inputVideoPath, outputAudioPath) => {
+  log.info(`Extracting audio from ${inputVideoPath} to ${outputAudioPath}`);
+
+  return new Promise((resolve, reject) => {
+    const args = [
+      '-i', inputVideoPath, // Input video file
+      '-vn',                // Disable video recording (no video)
+      '-c:a', 'copy',       // Copy the audio stream without re-encoding
+      outputAudioPath,      // Output audio file
+    ];
+
+    const ffmpegExtract = spawn(ffmpegPath, args);
+
+    ffmpegExtract.stderr.on('data', (data) => {
+      log.verbose(`[ffmpeg extract audio stderr]: ${data}`);
+    });
+
+    ffmpegExtract.on('error', (err) => {
+      log.error('Failed to start ffmpeg for audio extraction:', err);
+      reject(err);
+    });
+
+    ffmpegExtract.on('exit', (code) => {
+      if (code === 0) {
+        log.info(`Successfully extracted audio to ${outputAudioPath}`);
+        resolve(outputAudioPath);
+      } else {
+        reject(new Error(`ffmpeg audio extraction failed with exit code ${code}`));
+      }
+    });
+  });
+};
+
 export const gracefullyStopProcess = (process) => {
   if (!process || process.exitCode !== null) {
     return Promise.resolve();

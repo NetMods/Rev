@@ -31,7 +31,7 @@ const settingOptions = {
   ],
 };
 
-export default function ExportModal({ onClose, projectId, videoPath, webcamPath, effects }) {
+export default function ExportModal({ onClose, projectId, videoPath, webcamPath, audioPath, effects }) {
   const modalRef = useRef(null);
   useModalFocus(modalRef);
 
@@ -47,6 +47,7 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
   });
   const [exportStatus, setExportStatus] = useState("idle");
   const [statusMessage, setStatusMessage] = useState("Ready to export");
+  const [exportInfo, setExportInfo] = useState({ hasAudio: false, hasMuxedAudio: false });
   const exporterRef = useRef(null);
 
   useEffect(() => {
@@ -54,13 +55,21 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
     exporterRef.current = exporter;
     if (!exporter) return
 
-    exporter.init(videoPath, webcamPath, effects, projectId)
+    exporter.init(videoPath, webcamPath, audioPath, effects, projectId)
 
     exporter.onExportProgress = ({ current, total }) => {
       setFrames({ currentFrame: current, totalFrames: total });
     };
 
-    exporter.onExportComplete = () => setExportStatus(prev => (prev !== "cancelled" ? "completed" : prev));
+    exporter.onExportComplete = (result) => {
+      setExportStatus(prev => (prev !== "cancelled" ? "completed" : prev));
+      if (result) {
+        setExportInfo({
+          hasAudio: result.hasAudio || false,
+          hasMuxedAudio: result.hasMuxedAudio || false
+        });
+      }
+    };
     exporter.onExportError = () => setExportStatus("error");
 
     // New status message handler
@@ -172,9 +181,19 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
 
               <div className="text-center pb-4">
                 {exportStatus === "completed" ? (
-                  <div className="text-success font-medium inline-flex items-center gap-1">
-                    <Check size={20} />
-                    {statusMessage}
+                  <div className="font-medium">
+                    <div className="text-success inline-flex items-center gap-1 mb-2">
+                      <Check size={20} />
+                      {statusMessage}
+                    </div>
+                    {exportInfo.hasAudio && (
+                      <div className="text-xs text-base-content/80">
+                        {exportInfo.hasMuxedAudio ?
+                          "Video exported with audio track" :
+                          "Video exported but audio muxing failed"
+                        }
+                      </div>
+                    )}
                   </div>
                 ) : exportStatus === "exporting" ? (
                   <div className="text-base-content/80 font-medium">

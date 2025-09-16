@@ -69,20 +69,20 @@ export default {
 
     try {
       const { clicks, drags } = this.mouseTracker.stop();
+
+      const returnedPaths = await this.session.stop();
+
+      const paths = Object.keys(returnedPaths).reduce((obj, key) => {
+        obj[key] = `app://${returnedPaths[key]}`;
+        return obj;
+      }, {});
+
       let data = {
         status: 'completed',
         mouseClickRecords: clicks,
         mouseDragRecords: drags,
-        finishedAt: new Date()
-      }
-
-      const videoPath = await this.session.stop();
-
-      if (typeof videoPath === 'string') {
-        data['videoPath'] = `app://${videoPath}`
-      } else {
-        data['videoPath'] = `app://${videoPath.screen}`
-        data['webcamPath'] = `app://${videoPath.webcam}`
+        finishedAt: new Date(),
+        ...paths
       }
 
       const { projectId } = this.session;

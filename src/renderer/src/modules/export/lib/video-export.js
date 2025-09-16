@@ -21,7 +21,7 @@ export class VideoExporter {
     this.onStatusMessage = null
   }
 
-  init(videoPath, webcamPath, effects, projectId) {
+  init(videoPath, webcamPath, audioPath, effects, projectId) {
     this.videoManager.init(videoPath)
     if (webcamPath) {
       this.webcamManager = new VideoManager()
@@ -30,6 +30,7 @@ export class VideoExporter {
 
     this.effectsManager.init(effects)
     this.projectId = projectId
+    this.audioPath = audioPath
 
     this.videoManager.onLoadedData = () => {
       const defaultFps = 30
@@ -38,6 +39,7 @@ export class VideoExporter {
   }
 
   _updateStatus(message) {
+    console.log(`[Export Status] ${message}`);
     if (this.onStatusMessage) {
       this.onStatusMessage(message)
     }
@@ -74,60 +76,56 @@ export class VideoExporter {
     this.isExporting = true
     this.progress = 0
     this.currentFrame = 0
-
-    // Recalculate total frames based on actual export settings
     this.totalFrames = Math.floor(duration * this.fps)
 
     this._updateStatus('Initializing export...')
 
-    // Wait for FFmpeg to be ready before sending frames
     const exportReady = await window.api?.export?.start({
       totalFrames: this.totalFrames,
       fps: this.fps,
       width: this.width,
       height: this.height,
       format: this.format,
-      projectId: this.projectId
+      projectId: this.projectId,
+      audioPath: this.audioPath
     })
 
     if (!exportReady) {
-      throw new Error('Failed to initialize export process')
+      throw new Error('Failed to initialize export process in main process.')
     }
 
-    this._updateStatus('FFmpeg initialized, starting frame processing...')
+    this._updateStatus('Main process ready. Starting frame processing...')
 
     try {
-      // Process frames with proper synchronization
       for (let i = 0; i < this.totalFrames; i++) {
         if (!this.isExporting) {
-          this._updateStatus('Export cancelled by user')
+          this._updateStatus('Export cancelled by user.')
           break
         }
 
         const currentTime = startTime + i * frameInterval
+        console.time(`Frame ${i}`); // Start timer for the whole frame process
 
         this._updateStatus(`Processing frame ${i + 1} of ${this.totalFrames}...`)
 
-        await this.seekToFrame(currentTime)
+        await this.seekToFrame(currentTime);
+
         this.canvasRenderer.drawFrame(
           this.videoManager.video,
           this.webcamManager?.video,
           currentTime
         )
 
-        const blob = await this.canvasToBlob(imageFormat)
-        const frameData = await this.blobToBase64(blob)
+        const blob = await this.canvasToBlob(imageFormat);
+        const frameData = await this.blobToBase64(blob);
 
-        // Wait for frame to be processed before continuing
         const frameProcessed = await window.api?.export?.pushFrame({
           frameNumber: i,
-          timestamp: currentTime,
           data: frameData,
-          format: imageFormat
-        })
+        });
 
         if (!frameProcessed) {
-          throw new Error(`Failed to process frame ${i}`)
+          throw new Error(`Main process failed to save frame ${i}. Check main process logs.`);
         }
 
         this.currentFrame = i + 1
@@ -141,75 +139,73 @@ export class VideoExporter {
             currentTime: currentTime
           })
         }
-
-        if (i % 5 === 0) {
-          await this.delay(5)
-        }
       }
 
       this.isExporting = false
 
       if (this.currentFrame > 0) {
         this._updateStatus('Finalizing video export...')
-
-        const exportResult = await window.api?.export?.stop({
-          totalFrames: this.currentFrame,
-          duration: duration
-        })
-
+        const exportResult = await window.api?.export?.stop()
         if (exportResult?.success) {
           this._updateStatus(`Export completed successfully! Saved to: ${exportResult.outputPath}`)
-          if (this.onExportComplete) {
-            this.onExportComplete({
-              totalFrames: this.currentFrame,
-              duration: duration,
-              outputPath: exportResult.outputPath
-            })
-          }
+          if (this.onExportComplete) this.onExportComplete(exportResult);
         } else {
-          throw new Error('Failed to finalize export')
+          throw new Error(`Failed to finalize export. Error: ${exportResult?.error || 'Unknown'}`);
         }
       }
     } catch (error) {
       this.isExporting = false
       this._updateStatus(`Export failed: ${error.message}`)
-
-      if (this.onExportError) {
-        this.cancelExport()
-        this.onExportError(error)
-      }
+      this.cancelExport();
+      if (this.onExportError) this.onExportError(error);
       throw error
     }
   }
 
   seekToFrame(time) {
-    return new Promise((resolve) => {
-      const video = this.videoManager.video
-      video.pause()
-
-      if (Math.abs(video.currentTime - time) < 0.001) {
-        resolve()
-        return
+    const seekPromise = (video, resolve, reject) => {
+      if (Math.abs(video.currentTime - time) < 0.01) {
+        return resolve();
       }
 
       const onSeeked = () => {
-        video.removeEventListener('seeked', onSeeked)
-        setTimeout(resolve, 30)
-      }
+        video.removeEventListener('seeked', onSeeked);
+        video.removeEventListener('error', onError);
+        resolve();
+      };
 
-      video.addEventListener('seeked', onSeeked)
-      this.videoManager.seekTo(time)
+      const onError = () => {
+        video.removeEventListener('seeked', onSeeked);
+        video.removeEventListener('error', onError);
+        reject(new Error("Error during video seek."));
+      };
 
-      if (this.webcamManager) {
-        this.webcamManager.seekTo(time)
-      }
-    })
+      video.addEventListener('seeked', onSeeked);
+      video.addEventListener('error', onError);
+      video.currentTime = time;
+    };
+
+    const promises = [];
+    promises.push(new Promise((resolve, reject) => seekPromise(this.videoManager.video, resolve, reject)));
+
+    if (this.webcamManager) {
+      promises.push(new Promise((resolve, reject) => seekPromise(this.webcamManager.video, resolve, reject)));
+    }
+
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`Seek timed out at ${time}s`)), 5000);
+    });
+
+    return Promise.race([
+      Promise.all(promises),
+      timeoutPromise
+    ]);
   }
 
   canvasToBlob(format) {
     return new Promise((resolve) => {
       const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png'
-      this.offScreenCanvas.toBlob((blob) => resolve(blob), mimeType, this.quality)
+      this.offScreenCanvas.toBlob(resolve, mimeType, this.quality)
     })
   }
 
@@ -222,13 +218,11 @@ export class VideoExporter {
     })
   }
 
-  delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
-  }
-
   cancelExport() {
-    this.isExporting = false
-    this._updateStatus('Cancelling export...')
+    if (this.isExporting) {
+      this.isExporting = false
+      this._updateStatus('Cancelling export...')
+    }
     window.api?.export?.cancel()
   }
 

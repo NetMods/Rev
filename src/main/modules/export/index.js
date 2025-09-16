@@ -12,8 +12,8 @@ export default {
   },
 
   async startExport(data) {
-    this.session = new ExportingSession()
-    return await this.session.start(data, this.core)
+    this.session = new ExportingSession(this.core)
+    return await this.session.start(data)
   },
 
   async pushExportFrame(data) {

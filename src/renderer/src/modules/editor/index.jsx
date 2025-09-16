@@ -46,6 +46,7 @@ export default function Page() {
           projectId={id}
           videoPath={data.videoPath}
           webcamPath={data.webcamPath}
+          audioPath={data.audioPath}
           effects={data.effects}
           onClose={() => setShowExportModal(false)}
         />,
