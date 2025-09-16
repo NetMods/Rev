@@ -17,7 +17,7 @@ Todos:
 - ~~add webcam and audio~~
 - ~~feat: add audio in exported video~~
 - feat: clips and effects ui
-- feat: mouse record pause and resume
+- ~~feat: mouse record pause and resume~~
 - feat: update effects from timeline
 - feat: video play on space
 - feat: play/pause on fullscreen

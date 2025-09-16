@@ -15,6 +15,9 @@ export class MouseTracker {
     this.dragging = false
     this.activeDrag = null
     this.isTracking = false
+    this.isPaused = false
+    this.pausedTime = null
+    this.totalPausedDuration = 0n
   }
 
   isInsideMainWindow(mouseX, mouseY, win) {
@@ -37,6 +40,18 @@ export class MouseTracker {
     )
   }
 
+  getElapsedTime() {
+    const currentTime = process.hrtime.bigint()
+    let adjustedElapsed = currentTime - this.startTime - this.totalPausedDuration
+
+    // If currently paused, subtract the current pause duration
+    if (this.isPaused && this.pausedTime) {
+      adjustedElapsed -= (currentTime - this.pausedTime)
+    }
+
+    return Number(adjustedElapsed) / 1_000_000_000
+  }
+
   start(mainWindow) {
     if (this.isTracking) {
       log.warn("Mouse tracking is already active")
@@ -45,17 +60,20 @@ export class MouseTracker {
 
     this.cleanup()
     this.startTime = process.hrtime.bigint()
+    this.totalPausedDuration = 0n
+    this.isPaused = false
+    this.pausedTime = null
 
     this.onMouseDown = (event) => {
+      if (this.isPaused) return
+
       try {
         if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
       } catch (err) {
         log.error("Error in onMouseDown:", err)
       }
 
-      const currentTime = process.hrtime.bigint()
-      const elapsedNanoseconds = currentTime - this.startTime
-      const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
+      const elapsedSeconds = this.getElapsedTime()
 
       this.clicks.push({
         type: 'click',
@@ -74,16 +92,16 @@ export class MouseTracker {
     }
 
     this.onMouseMove = (event) => {
+      if (this.isPaused) return
+
       try {
         if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
       } catch (err) {
-        log.error("Error in onMouseDown:", err)
+        log.error("Error in onMouseMove:", err)
       }
 
       if (this.activeDrag) {
-        const currentTime = process.hrtime.bigint()
-        const elapsedNanoseconds = currentTime - this.startTime
-        const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
+        const elapsedSeconds = this.getElapsedTime()
 
         this.dragging = true
         this.activeDrag.path.push({
@@ -95,16 +113,16 @@ export class MouseTracker {
     }
 
     this.onMouseUp = (event) => {
+      if (this.isPaused) return
+
       try {
         if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
       } catch (err) {
-        log.error("Error in onMouseDown:", err)
+        log.error("Error in onMouseUp:", err)
       }
 
       if (this.activeDrag) {
-        const currentTime = process.hrtime.bigint()
-        const elapsedNanoseconds = currentTime - this.startTime
-        const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
+        const elapsedSeconds = this.getElapsedTime()
 
         if (this.dragging) {
           this.activeDrag.endTime = elapsedSeconds.toFixed(3)
@@ -139,6 +157,47 @@ export class MouseTracker {
     uIOhook.on('mouseup', this.onMouseUp)
     uIOhook.start()
     this.isTracking = true
+  }
+
+  pause() {
+    if (!this.isTracking) {
+      log.warn("Mouse tracking is not active, cannot pause")
+      return false
+    }
+
+    if (this.isPaused) {
+      log.warn("Mouse tracking is already paused")
+      return false
+    }
+
+    this.isPaused = true
+    this.pausedTime = process.hrtime.bigint()
+
+    log.verbose("Mouse tracking paused")
+    return true
+  }
+
+  resume() {
+    if (!this.isTracking) {
+      log.warn("Mouse tracking is not active, cannot resume")
+      return false
+    }
+
+    if (!this.isPaused) {
+      log.warn("Mouse tracking is not paused, cannot resume")
+      return false
+    }
+
+    if (this.pausedTime) {
+      const pauseDuration = process.hrtime.bigint() - this.pausedTime
+      this.totalPausedDuration += pauseDuration
+    }
+
+    this.isPaused = false
+    this.pausedTime = null
+
+    log.verbose("Mouse tracking resumed")
+    return true
   }
 
   stop() {
@@ -184,5 +243,17 @@ export class MouseTracker {
     this.dragging = false
     this.activeDrag = null
     this.isTracking = false
+    this.isPaused = false
+    this.pausedTime = null
+    this.totalPausedDuration = 0n
+  }
+
+  // Utility methods to check status
+  getStatus() {
+    return {
+      isTracking: this.isTracking,
+      isPaused: this.isPaused,
+      totalRecords: this.clicks.length + this.drags.length
+    }
   }
 }
