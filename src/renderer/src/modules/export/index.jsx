@@ -127,14 +127,14 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
                 options={settingOptions.Format}
                 value={exportSettings.Format}
                 onChange={(newValue) => handleSettingChange('Format', newValue)}
-                isDisabled={exportStatus === "exporting"}
+                isDisabled={true}
               />
               <Select
                 label="Fps"
                 options={settingOptions.Fps}
                 value={exportSettings.Fps}
                 onChange={(newValue) => handleSettingChange('Fps', newValue)}
-                isDisabled={exportStatus === "exporting"}
+                isDisabled={true}
               />
               <Select
                 label="Resolution"
@@ -146,7 +146,6 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
             </div>
           </div>
 
-          {/* PROGRESS - Updated with dynamic status messages */}
           {exportStatus !== 'idle' && (
             <div className="mb-4">
               <div className="flex justify-between items-center pb-1">
@@ -171,7 +170,6 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
                 </span>
               </div>
 
-              {/* Dynamic status messages from the exporter */}
               <div className="text-center pb-4">
                 {exportStatus === "completed" ? (
                   <div className="text-success font-medium inline-flex items-center gap-1">
