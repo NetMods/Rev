@@ -11,6 +11,7 @@ export default {
   },
 
   async createScreenshot(data) {
+    log.info("preparing screenshot")
     return createScreenshotWindow(data, this.core)
   },
 

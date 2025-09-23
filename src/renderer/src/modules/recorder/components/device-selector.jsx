@@ -3,14 +3,36 @@ import {
   IoMicOutline as Mic,
   IoArrowBack as BackIcon,
 } from 'react-icons/io5';
+import { RiScreenshotLine as Screenshot } from "react-icons/ri";
 
 export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, selectedDevice }) {
-  let filteredDevices = deviceType === 'Video' ? devices.videoDevices : devices.audioDevices;
+  let filteredDevices = ["Video", "Screenshot"].includes(deviceType) ? devices.videoDevices : devices.audioDevices;
+  let iconComponent;
 
   if (deviceType === 'Video') {
     filteredDevices = filteredDevices.filter(
       (device) => !device.name.toLowerCase().includes('capture screen')
     );
+  } else if (deviceType === "Screenshot") {
+    filteredDevices = filteredDevices.filter(
+      (device) => device.name.toLowerCase().includes('capture screen')
+    )
+    filteredDevices.push({
+      name: "Select An Area",
+      id: -1 * filteredDevices[0].id
+    })
+  }
+
+
+  switch (deviceType.toLowerCase()) {
+    case 'video':
+      iconComponent = <Camera size={20} className="shrink-0" />
+      break
+    case 'audio':
+      iconComponent = <Mic size={20} className="shrink-0" />
+      break;
+    case 'screenshot':
+      iconComponent = <Screenshot size={20} className='shrink-0' />
   }
 
   const handleDeviceClick = (device) => {
@@ -24,12 +46,12 @@ export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, se
   return (
     <div className='drag'>
       <button
-        className="mb-2 absolute top-1 left-1 bg-base-100 p-1 rounded-md hover:bg-base-300 cursor-pointer"
+        className="absolute mb-2 top-1 left-1 bg-base-100 p-1 rounded-md hover:bg-base-300 cursor-pointer"
         onClick={onBack}
       >
         <BackIcon size={16} />
       </button>
-      <h2 className="absolute top-1 left-8 text-md font-semibold text-base-content">
+      <h2 className="top-1 absolute left-8 text-md font-semibold text-base-content">
         Select {deviceType} Device
       </h2>
 
@@ -42,13 +64,7 @@ export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, se
               onClick={() => handleDeviceClick(device)}
             >
               <span className="inline-flex items-center justify-start whitespace-nowrap scroll-container">
-                <span>
-                  {deviceType.toLowerCase() === 'video' ? (
-                    <Camera size={20} className="shrink-0" />
-                  ) : (
-                    <Mic size={20} className="shrink-0" />
-                  )}
-                </span>
+                <span> {iconComponent} </span>
                 <span className="pl-2 text-left pr-5">{device.name}</span>
               </span>
             </button>

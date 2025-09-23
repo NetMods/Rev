@@ -4,6 +4,7 @@ import Editor from "./modules/editor"
 import Screenshot from "./modules/screenshot"
 import AnnotatePanel from "./modules/annotation/panel"
 import AnnotateBackground from "./modules/annotation/background"
+import ScreenshotBuffer from './modules/screenshot/screenshot-buffer'
 
 function App() {
   const router = createHashRouter([
@@ -11,7 +12,8 @@ function App() {
     { path: "/editor", element: <Editor /> },
     { path: "/annotation-panel", element: <AnnotatePanel /> },
     { path: "/annotation-background", element: <AnnotateBackground /> },
-    { path: "/screenshot", element: <Screenshot /> }
+    { path: "/screenshot", element: <Screenshot /> },
+    { path: "/screenshotBuffer", element: <ScreenshotBuffer /> }
   ]);
 
   return (

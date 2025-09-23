@@ -1,3 +1,4 @@
+import log from 'electron-log/renderer'
 import {
   IoVideocamOutline as Camera,
   IoMicOutline as Mic,
@@ -16,6 +17,7 @@ import dslrSound from '../../assets/dslr.wav';
 import tickSound from '../../assets/click.wav';
 import { playSound } from '../../shared/utils';
 import { DeviceSelector } from './components/device-selector';
+// import { SiAlacritty } from 'react-icons/si';
 
 const hoverSound = new Audio(tickSound);
 hoverSound.volume = 0.05;
@@ -80,6 +82,10 @@ export default function Page() {
     } else if (type === 'Audio') {
       setSelectedAudioDevice(device);
       await window.api.core.updateConfig({ audioDeviceId: device?.id || null });
+    } else if (type === 'Screenshot') {
+      playSound(screenshotSound)
+      log.info("taking screenshot")
+      window.api.screenshot.create({ deviceIndex: device.id })
     }
   };
 
@@ -104,10 +110,11 @@ export default function Page() {
     },
     {
       icon: <Screenshot size={26} />,
-      action: () => {
-        playSound(screenshotSound)
-        window.api.screenshot.create()
-      },
+      // action: () => {
+      //   playSound(screenshotSound)
+      //   window.api.screenshot.create()
+      // },
+      action: () => fetchDevices('Screenshot'),
       label: 'Screenshot',
       isDisabled: false
     },
