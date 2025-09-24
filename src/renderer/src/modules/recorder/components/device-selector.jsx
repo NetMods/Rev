@@ -4,23 +4,44 @@ import {
   IoArrowBack as BackIcon,
 } from 'react-icons/io5';
 import { RiScreenshotLine as Screenshot } from "react-icons/ri";
+import { getOS } from '../../../shared/utils';
+import log from 'electron-log/renderer'
 
 export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, selectedDevice }) {
   let filteredDevices = ["Video", "Screenshot"].includes(deviceType) ? devices.videoDevices : devices.audioDevices;
   let iconComponent;
+  const platform = getOS()
 
   if (deviceType === 'Video') {
     filteredDevices = filteredDevices.filter(
       (device) => !device.name.toLowerCase().includes('capture screen')
     );
   } else if (deviceType === "Screenshot") {
-    filteredDevices = filteredDevices.filter(
-      (device) => device.name.toLowerCase().includes('capture screen')
-    )
-    filteredDevices.push({
-      name: "Select An Area",
-      id: -1 * filteredDevices[0].id
-    })
+    log.info(filteredDevices)
+    const screenDevice = filteredDevices.find(device =>
+      device.name.toLowerCase().includes("capture screen")
+    );
+    filteredDevices = []
+    if (platform === "mac") {
+      filteredDevices.push({
+        name: "Full-screen",
+        id: screenDevice.id
+      })
+      filteredDevices.push({
+        name: "Select An Area",
+        id: -1 * screenDevice.id
+      })
+    } else {
+      filteredDevices.push({
+        name: "Full-screen",
+        id: 1
+      })
+      filteredDevices.push({
+        name: "Select An Area",
+        id: -1
+      })
+
+    }
   }
 
 

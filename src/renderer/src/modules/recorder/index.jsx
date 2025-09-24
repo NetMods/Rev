@@ -47,8 +47,8 @@ export default function Page() {
         const savedVideoId = config?.videoDeviceId;
         const savedAudioId = config?.audioDeviceId;
 
-        setSelectedVideoDevice(deviceList.videoDevices.find(d => d.id === savedVideoId) || null);
-        setSelectedAudioDevice(deviceList.audioDevices.find(d => d.id === savedAudioId) || null);
+        setSelectedVideoDevice(deviceList.videoDevices.find(d => d.id === savedVideoId));
+        setSelectedAudioDevice(deviceList.audioDevices.find(d => d.id === savedAudioId));
 
         if (!savedVideoId && selectedVideoDevice) {
           await window.api.core.updateConfig({ videoDeviceId: selectedVideoDevice.id });
@@ -78,10 +78,10 @@ export default function Page() {
   const handleSelectDevice = async (type, device) => {
     if (type === 'Video') {
       setSelectedVideoDevice(device);
-      await window.api.core.updateConfig({ videoDeviceId: device?.id || null });
+      await window.api.core.updateConfig({ videoDeviceId: device?.id });
     } else if (type === 'Audio') {
       setSelectedAudioDevice(device);
-      await window.api.core.updateConfig({ audioDeviceId: device?.id || null });
+      await window.api.core.updateConfig({ audioDeviceId: device?.id });
     } else if (type === 'Screenshot') {
       playSound(screenshotSound)
       log.info("taking screenshot")

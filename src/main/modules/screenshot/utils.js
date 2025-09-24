@@ -133,13 +133,26 @@ export const getFFmpegArgs = (tmpFile, screenIndex, ...args) => {
   }
 
   if (platform === "win32") {
-    return [
-      "-f", "gdigrab",
-      "-framerate", "30",
-      "-i", "desktop",
-      "-frames:v", "1",
-      tmpFile,
-    ];
+    if (!cropCords) {
+      return [
+        "-f", "gdigrab",
+        "-framerate", "30",
+        "-i", "desktop",
+        "-frames:v", "1",
+        tmpFile,
+      ];
+    } else {
+      return [
+        "-f", "gdigrab",
+        "-framerate", "30",
+        "-video_size", `${width}x${height}`,
+        "-offset_x", `${x}`,
+        "-offset_y", `${y}`,
+        "-i", "desktop",
+        "-frames:v", "1",
+        tmpFile,
+      ];
+    }
   }
 
   if (platform === "linux") {

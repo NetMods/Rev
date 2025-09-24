@@ -17,7 +17,7 @@ export const getBufferWindow = async (core) => {
     hasShadow: false,
     skipTaskbar: true,
     movable: false,
-    focusable: true,
+    focusable: false,
     acceptFirstMouse: true,
     path: 'screenshotBuffer',
   }
