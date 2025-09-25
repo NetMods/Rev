@@ -15,6 +15,7 @@ export function useTimeline({
   currentTime,
   setCurrentTime,
   effects,
+  handleEffectsChange
 }) {
   const timelineContainer = useRef(null);
   const playheadRef = useRef(null);
@@ -43,7 +44,7 @@ export function useTimeline({
   const handleTimelineClick = useTimelineClick(timelineContainer, videoDuration, videoWidth, preview, setCurrentTime, isDragging);
 
   {/*Lay down Effects on the row*/ }
-  useTimelineEffects(effects, effectsRowRef, pixelsPerSecond)
+  useTimelineEffects(effects, effectsRowRef, pixelsPerSecond, handleEffectsChange)
 
   return {
     ticks,

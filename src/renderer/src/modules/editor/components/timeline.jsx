@@ -3,7 +3,7 @@ import { useTimeline } from "../hooks/use-timeline/index";
 import { cn } from "../../../shared/utils";
 
 const Timeline = ({ className, data }) => {
-  const { videoDuration, preview, currentTime, setCurrentTime, zoomLevel, effects } = data;
+  const { videoDuration, preview, currentTime, setCurrentTime, zoomLevel, handleEffectsChange, effects } = data;
 
   const {
     ticks,
@@ -13,7 +13,7 @@ const Timeline = ({ className, data }) => {
     timelineContainer,
     playheadRef,
     effectsRowRef
-  } = useTimeline({ preview, videoDuration, currentTime, setCurrentTime, effects, zoomLevel });
+  } = useTimeline({ preview, videoDuration, currentTime, setCurrentTime, effects, handleEffectsChange, zoomLevel });
 
   return (
     <div className={cn("rounded border-2 border-base-content/10 bg-base-200", className)}>

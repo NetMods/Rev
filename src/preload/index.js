@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('api', {
 
   project: {
     get: (...args) => ipcRenderer.invoke('project:get', ...args),
+    updateEffects: (...args) => ipcRenderer.invoke('project:updateEffects', ...args),
   },
 
   editor: {

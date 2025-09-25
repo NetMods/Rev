@@ -34,7 +34,7 @@ export default function Page() {
 
       <div className="flex-1 relative">
         {data ? (
-          <Editor data={data} onExportModalOpen={openExportModal} />
+          <Editor id={id} data={data} onExportModalOpen={openExportModal} />
         ) : (
           <div className="h-full flex items-center justify-center text-sm opacity-60">Loading…</div>
         )}

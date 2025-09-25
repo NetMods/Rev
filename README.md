@@ -9,7 +9,7 @@ Todos:
 - ~~get the video directly on the canvas~~
 - ~~make zoom in and out effect on the user activity~~
 - ~~add screenshot functionality~~
-- add presets feature to screenshot
+- ~~add presets feature to screenshot~~
 - add redo feature in screenshot
 - refine the undo functionality
 - find a better way for crop and pixelate effect
@@ -17,17 +17,21 @@ Todos:
 - ~~add webcam and audio~~
 - ~~feat: add audio in exported video~~
 - feat: clips and effects ui
-- feat: mouse record pause and resume
+- ~~feat: mouse record pause and resume~~
 - feat: update effects from timeline
 - feat: video play on space
 - feat: play/pause on fullscreen
+- feat: auto updater
 - ~~fix: zoom and pan for macos~~
 - ~~fix: remove effects that exceed time duration~~
+- fix: sync UI with the main process
 - fix: speed up pan effect
 - fix: timeline padding
 - fix: minor timestamps marks
 - fix: canvas edges while zooming
 - fix: pan effect when coords are near the edge
+- fix: playhead dragging should update teh preview
+- fix: timeline should scroll complete width on playhead overflow
 - ~~fix: title bar text and maximise button~~
 - ~~fix: macos recording~~
 
