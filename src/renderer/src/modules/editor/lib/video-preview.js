@@ -74,6 +74,14 @@ export class VideoPreview {
       }
     };
 
+
+    window.addEventListener("keypress", (e) => {
+      if (e.key === ' ') {
+        e.preventDefault();
+        this.togglePlayPause()
+      }
+    })
+
     document.addEventListener("fullscreenchange", () => {
       this.isFullscreen = !!document.fullscreenElement;
       this.onPreviewStateUpdate({ isPlaying: this.isPlaying, isFullscreen: this.isFullscreen });

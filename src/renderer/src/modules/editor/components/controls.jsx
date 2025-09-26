@@ -38,6 +38,16 @@ export const Controls = ({ className, data }) => {
           <Plus size={20} />
         </button>
 
+        {/*
+          <button
+            onClick={() => preview.toggleFullscreen()}
+            className="z-50 p-1 cursor-pointer rounded-full hover:bg-base-300"
+          >
+            <Fullscreen size={20} />
+          </button>
+      */
+        }
+
         <button
           onClick={onExportModalOpen}
           className="z-50 p-1 text-xs cursor-pointer rounded-sm px-2 hover:bg-base-300 inline-flex justify-center items-center gap-2"
@@ -46,6 +56,6 @@ export const Controls = ({ className, data }) => {
           Export
         </button>
       </div>
-    </div>
+    </div >
   )
 }
