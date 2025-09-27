@@ -4,8 +4,8 @@ import { Controls } from "./controls";
 import Timeline from "./timeline";
 import { useRef } from "react";
 
-export const Editor = ({ data, onExportModalOpen }) => {
-  const { id, videoPath, effects: savedEffects } = data
+export const Editor = ({ id, data, onExportModalOpen }) => {
+  const { videoPath, effects: savedEffects } = data
 
   const webcamPath = data?.webcamPath ?? null
 

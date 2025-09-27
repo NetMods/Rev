@@ -15,6 +15,10 @@ export class MouseTracker {
     this.dragging = false
     this.activeDrag = null
     this.isTracking = false
+    this.lastClickTime = 0
+    this.debounceTime = 0.5 // seconds; for clicks
+    this.lastDragTime = 0
+    this.dragDebounceTime = 0.5 // seconds; for drags
   }
 
   isInsideMainWindow(mouseX, mouseY, win) {
@@ -57,12 +61,15 @@ export class MouseTracker {
       const elapsedNanoseconds = currentTime - this.startTime
       const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
 
-      this.clicks.push({
-        type: 'click',
-        elapsedTime: elapsedSeconds.toFixed(3),
-        x: event.x,
-        y: event.y
-      })
+      if (elapsedSeconds - this.lastClickTime > this.debounceTime) {
+        this.clicks.push({
+          type: 'click',
+          elapsedTime: elapsedSeconds.toFixed(3),
+          x: event.x,
+          y: event.y
+        })
+        this.lastClickTime = elapsedSeconds
+      }
 
       this.dragging = false
       this.activeDrag = {
@@ -77,7 +84,7 @@ export class MouseTracker {
       try {
         if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
       } catch (err) {
-        log.error("Error in onMouseDown:", err)
+        log.error("Error in onMouseMove:", err)
       }
 
       if (this.activeDrag) {
@@ -98,7 +105,7 @@ export class MouseTracker {
       try {
         if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
       } catch (err) {
-        log.error("Error in onMouseDown:", err)
+        log.error("Error in onMouseUp:", err)
       }
 
       if (this.activeDrag) {
@@ -115,17 +122,22 @@ export class MouseTracker {
           const duration = parseFloat(elapsedSeconds.toFixed(3)) - parseFloat(this.activeDrag.startTime)
           if (duration <= 1) return;
 
-          this.drags.push({
-            type: 'drag',
-            startTime: this.activeDrag.startTime,
-            endTime: this.activeDrag.endTime,
-            duration: this.activeDrag.duration,
-            startX: this.activeDrag.startX,
-            startY: this.activeDrag.startY,
-            endX: this.activeDrag.endX,
-            endY: this.activeDrag.endY,
-            path: this.activeDrag.path
-          })
+          if (elapsedSeconds - this.lastDragTime > this.dragDebounceTime) {
+            this.drags.push({
+              type: 'drag',
+              startTime: this.activeDrag.startTime,
+              endTime: this.activeDrag.endTime,
+              duration: this.activeDrag.duration,
+              startX: this.activeDrag.startX,
+              startY: this.activeDrag.startY,
+              endX: this.activeDrag.endX,
+              endY: this.activeDrag.endY,
+              path: this.activeDrag.path
+            })
+            this.lastDragTime = elapsedSeconds
+          } else {
+            log.verbose("Drag event debounced due to overlapping time")
+          }
         }
 
         this.activeDrag = null
@@ -184,5 +196,7 @@ export class MouseTracker {
     this.dragging = false
     this.activeDrag = null
     this.isTracking = false
+    this.lastClickTime = 0
+    this.lastDragTime = 0
   }
 }

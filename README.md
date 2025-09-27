@@ -9,34 +9,41 @@ Todos:
 - ~~get the video directly on the canvas~~
 - ~~make zoom in and out effect on the user activity~~
 - ~~add screenshot functionality~~
-- add presets feature to screenshot
-- add redo feature in screenshot
-- refine the undo functionality
-- find a better way for crop and pixelate effect
+- ~~add presets feature to screenshot~~
 - ~~shift to a common UI (daisy UI)~~
 - ~~add webcam and audio~~
 - ~~feat: add audio in exported video~~
-- feat: clips and effects ui
-- feat: mouse record pause and resume
-- feat: update effects from timeline
-- feat: video play on space
-- feat: play/pause on fullscreen
+- ~~feat: mouse record pause and resume~~
+- ~~feat: update effects from timeline~~
+- ~~feat: video play on space~~
+- ~~feat: clips and effects ui~~
+- ~~fix: canvas edges while zooming~~
+- ~~fix: debounce the mouse click~~
+- ~~fix: timeline padding~~
+- ~~fix: minor timestamps marks~~
+- fix: playhead dragging should update the preview
+- fix: effect going beyond video duration in macos
+- fix: timeline should scroll complete width on playhead overflow
+- feat: skeleton for the timeline
 - ~~fix: zoom and pan for macos~~
 - ~~fix: remove effects that exceed time duration~~
-- fix: speed up pan effect
-- fix: timeline padding
-- fix: minor timestamps marks
-- fix: canvas edges while zooming
-- fix: pan effect when coords are near the edge
 - ~~fix: title bar text and maximise button~~
 - ~~fix: macos recording~~
+- feat: add padding to resolution during exporting
+- feat: sound waves on the clip
+- fix: sync UI with the main process
+- feat: padding/ radius and bg-changer
+- feat: auto updater
+- feat: add undo/redo feature in editors
 
 
 Quality Improvments
 
 - ~~find a way to make HMR work for background and anotate panel instead fo using file load using url~~
 - ~~UI improvements for mac (a screen flash when closing app and while recording)~~
+- find a better way for crop and pixelate effect
 - improve ffmpeg hits for a correct screen in macOS
+- play/pause on fullscreen
 - add more error handling in codebase
 - stay zoomed when typing
 - add a big cursor with click sound
@@ -45,7 +52,7 @@ Quality Improvments
 - trim 1s from start and end
 - maintain a active processes set
 - add system audio
-- debounce multiple clicks
+- feat: add shadow below the camera
 
 Future Insights
 

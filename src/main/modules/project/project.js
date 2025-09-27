@@ -83,4 +83,26 @@ export const updateProjectData = async (projectId, data, core) => {
   }
 };
 
+export const updateProjectEffects = async (projectId, effects, core) => {
+  const projectsDirectory = core.paths.projectsDirectory;
+  const projectDir = join(projectsDirectory, projectId);
+  const configFilePath = join(projectDir, "data.json");
 
+  try {
+    if (!existsSync(configFilePath)) {
+      log.error(`Project ${projectId} does not exist`);
+      return false;
+    }
+
+    const configData = readJsonSync(configFilePath);
+
+    const updatedData = { ...configData, effects };
+
+    writeFileSync(configFilePath, JSON.stringify(updatedData, null, 2), { encoding: fileEncoding });
+    log.verbose(`Updated effects for project ${projectId}`);
+    return true;
+  } catch (error) {
+    log.error(`Error updating effects for project ${projectId}:`, error.message);
+    return false;
+  }
+};

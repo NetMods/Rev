@@ -15,7 +15,7 @@ export function useTimelineScale(zoomLevel, videoDuration, containerWidth) {
     const targetSpacing = 100; // aim for ~100px between major ticks
     let interval = Math.ceil(targetSpacing / localPxPerSec);
 
-    const niceSteps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600];
+    const niceSteps = [1, 2, 5, 10, 15, 30, 60, 120];
     interval = niceSteps.find((step) => step >= interval) || niceSteps[niceSteps.length - 1];
 
     let localMaxSeconds = localFinalWidth / localPxPerSec;
@@ -29,11 +29,16 @@ export function useTimelineScale(zoomLevel, videoDuration, containerWidth) {
         major: true,
       });
 
+
       let divisions = 0;
-      if (interval >= 60) divisions = 5;
+      if (interval >= 120) divisions = 3;
+      else if (interval >= 60) divisions = 1;
+      else if (interval >= 15) divisions = 2;
       else if (interval >= 10) divisions = 4;
-      else if (interval >= 5) divisions = 5;
+      else if (interval >= 5) divisions = 4;
+      else if (interval >= 2) divisions = 1;
       else if (interval > 1) divisions = interval;
+      else if (interval === 1 && localPxPerSec === 256) divisions = 1;
       else divisions = 0;
 
       if (divisions > 0) {
