@@ -17,23 +17,23 @@ Todos:
 - ~~feat: update effects from timeline~~
 - ~~feat: video play on space~~
 - ~~feat: clips and effects ui~~
-- fix: speed up pan effect
-- fix: canvas edges while zooming
-- fix: pan effect when coords are near the edge
-- fix: timeline padding
-- fix: minor timestamps marks
+- ~~fix: canvas edges while zooming~~
+- ~~fix: debounce the mouse click~~
+- ~~fix: timeline padding~~
+- ~~fix: minor timestamps marks~~
 - fix: playhead dragging should update the preview
 - fix: effect going beyond video duration in macos
 - fix: timeline should scroll complete width on playhead overflow
+- feat: skeleton for the timeline
 - ~~fix: zoom and pan for macos~~
 - ~~fix: remove effects that exceed time duration~~
 - ~~fix: title bar text and maximise button~~
 - ~~fix: macos recording~~
-- fix: sync UI with the main process
-- feat: auto updater
-- feat: skeleton for the timeline
+- feat: add padding to resolution during exporting
 - feat: sound waves on the clip
-- feat: add shadow below the camera
+- fix: sync UI with the main process
+- feat: padding/ radius and bg-changer
+- feat: auto updater
 - feat: add undo/redo feature in editors
 
 
@@ -52,7 +52,7 @@ Quality Improvments
 - trim 1s from start and end
 - maintain a active processes set
 - add system audio
-- debounce multiple clicks
+- feat: add shadow below the camera
 
 Future Insights
 

@@ -33,15 +33,20 @@ export class EffectsManager {
       this.isResetting = false;
       activeEffects.forEach(effect => {
         if (effect.type === 'zoom') {
-          this.applyZoomEffect(effect, currentTime, ctx);
+          this.applyZoomEffect(effect, currentTime);
         }
         if (effect.type === 'pan') {
-          this.applyPanEffect(effect, currentTime, ctx);
+          this.applyPanEffect(effect, currentTime);
         }
       });
+
+      ctx.translate(this.currentTranslateX, this.currentTranslateY);
+      ctx.scale(this.currentScale, this.currentScale);
     } else {
       if (this.currentScale !== 1 || this.currentTranslateX !== 0 || this.currentTranslateY !== 0) {
-        this.resetZoomEffect(ctx, currentTime)
+        this.resetZoomEffect(currentTime)
+        ctx.translate(this.currentTranslateX, this.currentTranslateY);
+        ctx.scale(this.currentScale, this.currentScale);
       }
       else {
         this.isResetting = false;
@@ -49,7 +54,7 @@ export class EffectsManager {
     }
   }
 
-  applyZoomEffect(effect, currentTime, ctx) {
+  applyZoomEffect(effect, currentTime) {
     const { startTime, endTime, center, level } = effect
     const duration = endTime - startTime
 
@@ -68,8 +73,8 @@ export class EffectsManager {
       effect.targetTranslateX = centerX - (level * worldX);
       effect.targetTranslateY = centerY - (level * worldY);
 
-      effect.targetTranslateX = Math.abs(effect.targetTranslateX) < 200 ? 0 : effect.targetTranslateX
-      effect.targetTranslateY = Math.abs(effect.targetTranslateY) < 200 ? 0 : effect.targetTranslateY
+      effect.targetTranslateX = Math.abs(effect.targetTranslateX) < 300 ? 0 : effect.targetTranslateX
+      effect.targetTranslateY = Math.abs(effect.targetTranslateY) < 300 ? 0 : effect.targetTranslateY
     }
 
     const targetScale = level;
@@ -79,16 +84,12 @@ export class EffectsManager {
     this.currentScale = effect.initialScale + (targetScale - effect.initialScale) * eased
     this.currentTranslateX = effect.initialTranslateX + (effect.targetTranslateX - effect.initialTranslateX) * eased;
     this.currentTranslateY = effect.initialTranslateY + (effect.targetTranslateY - effect.initialTranslateY) * eased;
-
-    ctx.translate(this.currentTranslateX, this.currentTranslateY);
-    ctx.scale(this.currentScale, this.currentScale);
   }
 
-  applyPanEffect(effect, currentTime, ctx) {
+  applyPanEffect(effect, currentTime) {
     const { startTime, endTime, path } = effect;
     const totalDuration = parseFloat(endTime) - parseFloat(startTime);
 
-    console.log(effect)
     if (!effect._started) {
       effect._started = true;
       effect.initialTranslateX = this.currentTranslateX;
@@ -123,10 +124,8 @@ export class EffectsManager {
     this.currentTranslateX = effect.initialTranslateX + panOffsetX;
     this.currentTranslateY = effect.initialTranslateY + panOffsetY;
     this.currentScale = effect.initialScale; // Maintain current scale during pan
-
-    ctx.translate(this.currentTranslateX, this.currentTranslateY);
-    ctx.scale(this.currentScale, this.currentScale);
   }
+
   processPathForInterpolation(path) {
     const processedPath = [];
     let totalDistance = 0;
@@ -193,7 +192,7 @@ export class EffectsManager {
     };
   }
 
-  resetZoomEffect(ctx, currentTime) {
+  resetZoomEffect(currentTime) {
     if (!this.isResetting) {
       this.isResetting = true;
       this.resetStartTime = currentTime;
@@ -208,9 +207,6 @@ export class EffectsManager {
     this.currentScale = this.resetStartScale + (1 - this.resetStartScale) * eased;
     this.currentTranslateX = this.resetStartTranslateX + (0 - this.resetStartTranslateX) * eased;
     this.currentTranslateY = this.resetStartTranslateY + (0 - this.resetStartTranslateY) * eased;
-
-    ctx.translate(this.currentTranslateX, this.currentTranslateY);
-    ctx.scale(this.currentScale, this.currentScale);
 
     if (progress >= 1) {
       this.isResetting = false;

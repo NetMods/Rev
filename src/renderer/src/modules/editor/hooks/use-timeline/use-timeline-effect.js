@@ -9,8 +9,8 @@ const createEffectDiv = (width, xShift, effect, duration, onDelete) => {
 
   const inner = document.createElement("div");
   inner.className =
-    "flex text-base-content/70 size-full rounded items-center justify-center grain-overlay overflow-hidden";
-  inner.textContent = `${String(duration).split('.')[0]}s`
+    "flex text-base-content/70 text-sm size-full rounded items-center justify-center grain-overlay overflow-hidden";
+  inner.textContent = `${duration.toFixed(1)}s`
 
   const topBar = document.createElement("div");
   topBar.className =
