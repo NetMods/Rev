@@ -62,7 +62,7 @@ app.whenReady().then(async () => {
     input,
     modules: {},
     ipcHandlers: {
-      'devices:get': async (_, ...args) => input.getInputDevices(...args),
+      'devices:get': async (_, ...args) => input.getInputDevices(this, ...args),
       'app:restart': () => restartApp(),
       'window:error': (_, ...args) => showError(...args),
       'window:close': (event) => closeWindow(event),

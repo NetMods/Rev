@@ -275,12 +275,9 @@ export default {
         this.timer = null;
       }
 
-      await this.core.ffmpegManager.killAllProcesses();
-
       log.info('Recording cleanup completed before quit');
     } catch (error) {
       log.error('Error stopping recording on app quit:', error);
-      await this.core.ffmpegManager.killAllProcesses();
     }
   },
 

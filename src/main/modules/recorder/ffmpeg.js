@@ -28,7 +28,7 @@ export const spawnScreenCapture = async (outputPath, opts, core) => {
       args.push('-f', 'dshow', '-i', `audio=${audioDevice}`); // Audio Input: Only if audioDevice is provided
     }
   } else if (platform === 'darwin') {
-    const { videoDevices } = await core.input.getInputDevices()
+    const { videoDevices } = await core.input.getInputDevices(core)
 
     const screenDevice = videoDevices.find(device => device.name.toLowerCase().includes('capture screen'));
     const screenIndex = screenDevice ? screenDevice.id : null

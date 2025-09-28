@@ -3,11 +3,13 @@ import log from "electron-log/main";
 import { getFFmpegPath } from "./path";
 import { showError } from "./error";
 import { randomUUID as uuid } from "crypto";
+import { app } from "electron";
 
 export class FFmpegManager {
   constructor(core) {
     this.core = core;
     this.activeProcesses = new Map(); // Map<processId, proc>
+    app.on('before-quit', this.killAllProcesses);
   }
 
   async spawn(args, opts = {}) {

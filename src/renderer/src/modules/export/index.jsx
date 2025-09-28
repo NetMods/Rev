@@ -182,12 +182,12 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
               <div className="text-center pb-4">
                 {exportStatus === "completed" ? (
                   <div className="font-medium">
-                    <div className="text-success inline-flex items-center gap-1 mb-2">
+                    <div className="border border-base-content/20 bg-base-200 text-base-content/60 rounded px-3 py-1 inline-flex items-center gap-1 mb-2 text-sm">
                       <Check size={20} />
                       {statusMessage}
                     </div>
                     {exportInfo.hasAudio && (
-                      <div className="text-xs text-base-content/80">
+                      <div className="text-xs pt-1 text-base-content/80">
                         {exportInfo.hasMuxedAudio ?
                           "Video exported with audio track" :
                           "Video exported but audio muxing failed"
