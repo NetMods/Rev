@@ -1,4 +1,4 @@
-import log from "electron-log"
+import log from 'electron-log/main';
 import { dialog } from 'electron';
 
 export async function initErrorHandling() {
@@ -42,5 +42,6 @@ ${debugInfo()}
 
 export const showError = (args) => {
   const { error, message } = args
-  dialog.showErrorBox(`${error}`, message);
+  log.error(`${error} - ${message}`)
+  dialog.showErrorBox(error, message);
 }

@@ -2,8 +2,9 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { mkdirSync, moveSync, rmSync } from 'fs-extra';
 import log from 'electron-log/main';
-import { spawnScreenCapture, spawnWebcamCapture, mergeVideoClips, gracefullyStopProcess, extractAudio } from './ffmpeg';
+import { spawnScreenCapture, spawnWebcamCapture, mergeVideoClips, extractAudio } from './ffmpeg';
 import { existsSync } from 'fs';
+import { showError } from '../../core/error';
 
 export class RecordingSession {
   constructor(projectId, opts, core, updateState) {
@@ -29,19 +30,36 @@ export class RecordingSession {
     this.clipPaths.push(outputPath);
 
     try {
-      const ffmpegPath = await this.core.paths.getFFmpegPath();
-      this.currentProcess = await spawnScreenCapture(ffmpegPath, outputPath, this.opts, this.core);
+      this.currentProcess = await spawnScreenCapture(outputPath, this.opts, this.core);
+
+      if (this.currentProcess === null) {
+        const error = new Error('Screen recording is not supported on this platform or failed to initialize. Please check your system configuration.');
+        showError({ error: 'Recording Error', message: error.message });
+        throw error;
+      }
+
       log.verbose(`Started new clip: clip${this.clipIndex}.mkv`);
 
       if (this.opts.videoDevice !== null) {
         const webcamOutputPath = join(this.tempDirectory, `webcam${this.clipIndex}.mkv`);
         this.webcamClipPaths.push(webcamOutputPath);
-        this.currentWebcamProcess = spawnWebcamCapture(ffmpegPath, webcamOutputPath, this.opts);
-        log.verbose(`Started new webcam clip: webcam${this.clipIndex}.mkv`);
+        this.currentWebcamProcess = await spawnWebcamCapture(webcamOutputPath, this.opts, this.core);
+
+        if (this.currentWebcamProcess === null) {
+          log.warn('Webcam capture failed to start, continuing with screen recording only');
+          this.webcamClipPaths.pop();
+          showError({
+            error: 'warning',
+            message: 'Webcam recording failed, continuing with screen recording only'
+          });
+        } else {
+          log.verbose(`Started new webcam clip: webcam${this.clipIndex}.mkv (Process ID: ${this.currentWebcamProcess})`);
+        }
       }
 
       this.updateState({ status: 'clip-started', clipIndex: this.clipIndex });
     } catch (error) {
+      this.clipPaths.pop();
       this.updateState({ status: 'error', message: 'Failed to start new clip', error: error.message });
       throw error;
     }
@@ -55,11 +73,11 @@ export class RecordingSession {
     if (!this.currentProcess || this.isPaused) return;
 
     try {
-      await gracefullyStopProcess(this.currentProcess);
+      await this.core.ffmpegManager.killProcess(this.currentProcess);
       this.currentProcess = null;
 
       if (this.opts.videoDevice !== null && this.currentWebcamProcess) {
-        await gracefullyStopProcess(this.currentWebcamProcess);
+        await this.core.ffmpegManager.killProcess(this.currentWebcamProcess);
         this.currentWebcamProcess = null;
       }
 
@@ -89,18 +107,17 @@ export class RecordingSession {
     this.updateState({ status: 'progress', message: 'Stopping processes...' });
 
     if (this.currentProcess) {
-      await gracefullyStopProcess(this.currentProcess);
+      await this.core.ffmpegManager.killProcess(this.currentProcess);
       this.currentProcess = null;
     }
     if (this.opts.videoDevice !== null && this.currentWebcamProcess) {
-      await gracefullyStopProcess(this.currentWebcamProcess);
+      await this.core.ffmpegManager.killProcess(this.currentWebcamProcess);
       this.currentWebcamProcess = null;
     }
 
     this.updateState({ status: 'progress', message: 'Processing video files...' });
 
     const projectsDirectory = this.core.paths.projectsDirectory;
-    const ffmpegPath = await this.core.paths.getFFmpegPath();
 
     const returnedPaths = {
       videoPath: null,
@@ -114,7 +131,7 @@ export class RecordingSession {
 
     try {
       this.updateState({ status: 'progress', message: 'Merging screen clips...' });
-      const screenOutputPath = await mergeVideoClips(ffmpegPath, this.clipPaths, this.tempDirectory, screenVideoName);
+      const screenOutputPath = await mergeVideoClips(this.clipPaths, this.tempDirectory, screenVideoName, this.core);
 
       if (existsSync(screenOutputPath)) {
         moveSync(screenOutputPath, finalScreenPath, { overwrite: true });
@@ -125,7 +142,7 @@ export class RecordingSession {
         const audioName = 'audio.aac';
         const finalAudioPath = join(projectsDirectory, this.projectId, audioName);
         try {
-          await extractAudio(ffmpegPath, finalScreenPath, finalAudioPath);
+          await extractAudio(finalScreenPath, finalAudioPath, this.core);
           returnedPaths.audioPath = finalAudioPath;
         } catch (error) {
           log.error('Failed to extract audio from screen recording:', error);
@@ -144,7 +161,7 @@ export class RecordingSession {
       const finalWebcamPath = join(projectsDirectory, this.projectId, webcamVideoName);
 
       try {
-        const webcamOutputPath = await mergeVideoClips(ffmpegPath, this.webcamClipPaths, this.tempDirectory, webcamVideoName);
+        const webcamOutputPath = await mergeVideoClips(this.webcamClipPaths, this.tempDirectory, webcamVideoName, this.core);
 
         if (existsSync(webcamOutputPath)) {
           moveSync(webcamOutputPath, finalWebcamPath, { overwrite: true });
@@ -161,14 +178,14 @@ export class RecordingSession {
     return returnedPaths;
   }
 
-  cleanup() {
+  async cleanup() {
     if (this.currentProcess && this.currentProcess.exitCode === null) {
       log.info(`Killing the current running ffmpeg process`);
-      this.currentProcess.kill('SIGKILL');
+      await this.core.ffmpegManager.killProcess(this.currentProcess);
     }
     if (this.opts.videoDevice !== null && this.currentWebcamProcess && this.currentWebcamProcess.exitCode === null) {
       log.info(`Killing the current running webcam ffmpeg process`);
-      this.currentWebcamProcess.kill('SIGKILL');
+      await this.core.ffmpegManager.killProcess(this.currentWebcamProcess);
     }
     log.info(`Cleaning up temp directory: ${this.tempDirectory}`);
     rmSync(this.tempDirectory, { recursive: true, force: true });

@@ -72,15 +72,19 @@ export default {
       throw new Error(error);
     }
 
+    let currentProjectId = null;
+
     try {
       this._updateState({ status: 'starting' });
 
       const mainWindow = this.core.window.getMainWindow();
       this.mouseTracker.start(mainWindow);
 
-      const currentProjectId = await this.core.modules.project.createProject();
+      currentProjectId = await this.core.modules.project.createProject();
 
       this.session = new RecordingSession(currentProjectId, opts, this.core, this._updateState.bind(this));
+
+      // This is where the session will fail if ffmpeg can't start
       await this.session.start();
 
       const startTime = Date.now();
@@ -102,13 +106,42 @@ export default {
       log.verbose('Recording started successfully.');
     } catch (error) {
       log.error('Failed to start recording:', error);
+
+      if (this.session) {
+        try {
+          await this.session.cleanup();
+        } catch (cleanupError) {
+          log.error('Error during session cleanup:', cleanupError);
+        }
+        this.session = null;
+      }
+
+      if (currentProjectId) {
+        try {
+          await this.core.modules.project.deleteProject(currentProjectId);
+          log.info(`Cleaned up failed project: ${currentProjectId}`);
+        } catch (projectCleanupError) {
+          log.error('Error cleaning up failed project:', projectCleanupError);
+        }
+      }
+
+      try {
+        this.mouseTracker.stop();
+      } catch (mouseError) {
+        log.error('Error stopping mouse tracker:', mouseError);
+      }
+
       this._updateState({
         status: 'error',
         error: error.message,
-        isRecording: false
+        isRecording: false,
+        isPaused: false,
+        startTime: null,
+        elapsedTime: 0,
+        pauseStartTime: null,
+        totalPausedTime: 0
       });
-      this.session?.cleanup();
-      this.session = null;
+
       throw error;
     }
   },
@@ -204,7 +237,6 @@ export default {
       await this.core.modules.project.updateProject(projectId, data, this.core);
       this.core.modules.editor.createEditor({ projectId });
 
-      // Reset state
       if (this.timer) {
         clearInterval(this.timer);
         this.timer = null;
@@ -237,12 +269,18 @@ export default {
 
     try {
       await this.session.cleanup();
+
       if (this.timer) {
         clearInterval(this.timer);
         this.timer = null;
       }
+
+      await this.core.ffmpegManager.killAllProcesses();
+
+      log.info('Recording cleanup completed before quit');
     } catch (error) {
       log.error('Error stopping recording on app quit:', error);
+      await this.core.ffmpegManager.killAllProcesses();
     }
   },
 
