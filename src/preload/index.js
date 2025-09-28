@@ -6,6 +6,11 @@ contextBridge.exposeInMainWorld('api', {
     pause: (...args) => ipcRenderer.invoke('recording:pause', ...args),
     resume: (...args) => ipcRenderer.invoke('recording:resume', ...args),
     stop: (...args) => ipcRenderer.invoke('recording:stop', ...args),
+    getState: (...args) => ipcRenderer.invoke('recording:getState', ...args),
+
+    onStateChange: (callback) => ipcRenderer.on('recording:state', callback),
+    onProgress: (callback) => ipcRenderer.on('recording:progress', callback),
+    onError: (callback) => ipcRenderer.on('recording:error', callback),
   },
 
   annotation: {
@@ -29,21 +34,30 @@ contextBridge.exposeInMainWorld('api', {
 
   screenshot: {
     create: (...args) => ipcRenderer.send('screenshot:create-window', ...args),
-    show: (callback) => ipcRenderer.on("screenshot:image-data", (_, data) => callback(data)),
     copyImage: (...args) => ipcRenderer.invoke("screenshot:copy", ...args),
     downloadImage: (...args) => ipcRenderer.invoke("screenshot:download", ...args),
     getbackgroundImage: (...args) => ipcRenderer.invoke("screenshot:backgroundimage-data", ...args), // currently this API is not working need to make sone changes
     getUserPreset: (...args) => ipcRenderer.invoke("screenshot:get-preset", ...args),
-    updateUserPreset: (...args) => ipcRenderer.invoke("screenshot:set-preset", ...args)
+    updateUserPreset: (...args) => ipcRenderer.invoke("screenshot:set-preset", ...args),
+
+    onShow: (callback) => ipcRenderer.on("screenshot:image-data", (_, data) => callback(data)),
   },
 
   core: {
+    getIOdevices: (...args) => ipcRenderer.invoke('devices:get', ...args),
+
     getConfig: () => ipcRenderer.invoke('config:get'),
     updateConfig: (...args) => ipcRenderer.invoke('config:update', ...args),
-    getIOdevices: (...args) => ipcRenderer.invoke('devices:get', ...args),
+
+    showError: (...args) => ipcRenderer.send('window:error', ...args),
     closeWindow: () => ipcRenderer.send('window:close'),
     minimizeWindow: () => ipcRenderer.send('window:minimize'),
-    toggleMaximizeWindow: () => ipcRenderer.send('window:maximize')
+    toggleMaximizeWindow: () => ipcRenderer.send('window:maximize'),
+
+    restart: () => ipcRenderer.send('app:restart'),
+
+    onError: (callback) => ipcRenderer.on('app:error', (_, data) => callback(data)),
+    onStatus: (callback) => ipcRenderer.on('app:status', (_, data) => callback(data)),
   },
 
   export: {
