@@ -1,3 +1,4 @@
+import log from 'electron-log/renderer'
 import {
   IoVideocamOutline as Camera,
   IoMicOutline as Mic,
@@ -16,6 +17,7 @@ import dslrSound from '../../assets/dslr.wav';
 import tickSound from '../../assets/click.wav';
 import { playSound } from '../../shared/utils';
 import { DeviceSelector } from './components/device-selector';
+// import { SiAlacritty } from 'react-icons/si';
 
 const hoverSound = new Audio(tickSound);
 hoverSound.volume = 0.05;
@@ -45,8 +47,8 @@ export default function Page() {
         const savedVideoId = config?.videoDeviceId;
         const savedAudioId = config?.audioDeviceId;
 
-        setSelectedVideoDevice(deviceList.videoDevices.find(d => d.id === savedVideoId) || null);
-        setSelectedAudioDevice(deviceList.audioDevices.find(d => d.id === savedAudioId) || null);
+        setSelectedVideoDevice(deviceList.videoDevices.find(d => d.id === savedVideoId));
+        setSelectedAudioDevice(deviceList.audioDevices.find(d => d.id === savedAudioId));
 
         if (!savedVideoId && selectedVideoDevice) {
           await window.api.core.updateConfig({ videoDeviceId: selectedVideoDevice.id });
@@ -76,10 +78,14 @@ export default function Page() {
   const handleSelectDevice = async (type, device) => {
     if (type === 'Video') {
       setSelectedVideoDevice(device);
-      await window.api.core.updateConfig({ videoDeviceId: device?.id || null });
+      await window.api.core.updateConfig({ videoDeviceId: device?.id });
     } else if (type === 'Audio') {
       setSelectedAudioDevice(device);
-      await window.api.core.updateConfig({ audioDeviceId: device?.id || null });
+      await window.api.core.updateConfig({ audioDeviceId: device?.id });
+    } else if (type === 'Screenshot') {
+      playSound(screenshotSound)
+      log.info("taking screenshot")
+      window.api.screenshot.create({ deviceIndex: device.id })
     }
   };
 
@@ -104,10 +110,11 @@ export default function Page() {
     },
     {
       icon: <Screenshot size={26} />,
-      action: () => {
-        playSound(screenshotSound)
-        window.api.screenshot.create()
-      },
+      // action: () => {
+      //   playSound(screenshotSound)
+      //   window.api.screenshot.create()
+      // },
+      action: () => fetchDevices('Screenshot'),
       label: 'Screenshot',
       isDisabled: false
     },

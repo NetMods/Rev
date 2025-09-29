@@ -4,6 +4,7 @@ import Editor from "./modules/editor"
 import Screenshot from "./modules/screenshot"
 import AnnotatePanel from "./modules/annotation/panel"
 import AnnotateBackground from "./modules/annotation/background"
+import ScreenshotBuffer from './modules/screenshot/screenshot-buffer'
 import { ErrorBoundary } from './shared/ui/error-boundary'
 
 function App() {
@@ -12,7 +13,8 @@ function App() {
     { path: "/editor", element: <Editor />, ErrorBoundary },
     { path: "/annotation-panel", element: <AnnotatePanel />, ErrorBoundary },
     { path: "/annotation-background", element: <AnnotateBackground />, ErrorBoundary },
-    { path: "/screenshot", element: <Screenshot />, ErrorBoundary }
+    { path: "/screenshot", element: <Screenshot />, ErrorBoundary },
+    { path: "/screenshotBuffer", element: <ScreenshotBuffer />, ErrorBoundary }
   ]);
 
   return (

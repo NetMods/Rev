@@ -34,6 +34,8 @@ contextBridge.exposeInMainWorld('api', {
 
   screenshot: {
     create: (...args) => ipcRenderer.send('screenshot:create-window', ...args),
+    createUsingBuffer: (...args) => ipcRenderer.send('screenshot:create-buffer', ...args),
+    show: (callback) => ipcRenderer.on("screenshot:image-data", (_, data) => callback(data)),
     copyImage: (...args) => ipcRenderer.invoke("screenshot:copy", ...args),
     downloadImage: (...args) => ipcRenderer.invoke("screenshot:download", ...args),
     getbackgroundImage: (...args) => ipcRenderer.invoke("screenshot:backgroundimage-data", ...args), // currently this API is not working need to make sone changes
