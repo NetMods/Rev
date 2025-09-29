@@ -62,7 +62,6 @@ code {
 @layer components {
   .drag {
     -webkit-app-region: drag;
-    cursor: grab !important;
   }
 
   .no-drag {
@@ -91,4 +90,8 @@ code {
 
 button:hover .scroll-container {
   animation: marquee 13s linear infinite;
+}
+
+.move {
+  cursor: move !important;
 }

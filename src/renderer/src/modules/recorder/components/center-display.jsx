@@ -50,10 +50,11 @@ export const CentralDisplay = ({ isRecording, stopRecording, hoveredIndex, butto
   return (
     <div
       className={cn(
-        `bg-base-100 btn btn-circle absolute rounded-full text-base-content/80 border border-base-content/20 drag`,
-        `size-20 flex justify-center items-center overflow-hidden z-10`
+        `bg-base-100 btn btn-circle absolute rounded-full text-base-content/80 border border-base-content/20 drag move`,
+        `size-20 flex justify-center items-center overflow-hidden z-10 relative`
       )}
     >
+      <div className='bg-transparent absolute inset-0 -z-10 move pointer-events-none' />
       {renderContent()}
     </div>
   );

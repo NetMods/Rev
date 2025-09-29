@@ -9,7 +9,7 @@ export class FFmpegManager {
   constructor(core) {
     this.core = core;
     this.activeProcesses = new Map(); // Map<processId, proc>
-    app.on('before-quit', this.killAllProcesses);
+    app.on('before-quit', this.killAllProcesses.bind(this));
   }
 
   async spawn(args, opts = {}) {

@@ -5,23 +5,21 @@ import { MainAnnotationControls } from "../constants";
 
 const MainPanel = ({ config, setConfig }) => {
 
-
   const handleToolChange = (tool) => {
     setConfig({
       tool: tool
     })
   }
 
-
   return (
-    <div className="flex flex-col gap-2 items-center no-drag">
+    <div className="flex flex-col gap-2 items-center no-drag w-full">
       <button
         onClick={() => {
           handleToolChange(MainAnnotationControls.PEN)
         }}
         className={cn(
-          "p-1 no-drag rounded w-full inline-flex justify-center",
-          config.tool === "pen" ? "" : ""
+          "p-1 no-drag w-full inline-flex justify-center cursor-pointer transition-all ease-linear hover:bg-base-content/15",
+          config.tool === "pen" ? "bg-base-content/15" : ""
         )}
       >
         <Brush size={23} />
@@ -35,8 +33,8 @@ const MainPanel = ({ config, setConfig }) => {
           window.api.annotation.clear()
         }}
         className={cn(
-          "p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "eraser" ? "" : ""
+          "p-1 no-drag w-full inline-flex justify-center cursor-pointer transition-all ease-linear disabled:opacity-40 disabled:cursor-not-allowed hover:bg-base-content/15",
+          config.tool === "eraser" ? "bg-base-content/15" : ""
         )}
       >
         <Eraser size={20} />
@@ -47,8 +45,8 @@ const MainPanel = ({ config, setConfig }) => {
           handleToolChange(MainAnnotationControls.ARROW)
         }}
         className={cn(
-          " p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "arrow" ? "" : ""
+          " p-1 no-drag w-full inline-flex justify-center cursor-pointer transition-all ease-linear disabled:opacity-40 disabled:cursor-not-allowed hover:bg-base-content/15",
+          config.tool === "arrow" ? "bg-base-content/15" : ""
         )}
       >
         <Arrow size={23} />
@@ -59,8 +57,8 @@ const MainPanel = ({ config, setConfig }) => {
           handleToolChange(MainAnnotationControls.TEXT)
         }}
         className={cn(
-          "p-1 no-drag rounded w-full inline-flex justify-center disabled:opacity-50 disabled:cursor-not-allowed",
-          config.tool === "text" ? "" : ""
+          "p-1 no-drag w-full inline-flex justify-center cursor-pointer transition-all ease-linear disabled:opacity-40 disabled:cursor-not-allowed hover:bg-base-content/15",
+          config.tool === "text" ? "bg-base-content/15" : ""
         )}
       >
         <Text size={20} />
