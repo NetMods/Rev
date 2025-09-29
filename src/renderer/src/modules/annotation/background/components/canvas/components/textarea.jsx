@@ -7,6 +7,7 @@ export default function TextAreas({ textAreas, setTextAreas }) {
       {textAreas.map((area) => (
         <Html key={area.id} groupProps={{ x: area.x, y: area.y }}>
           <textarea
+            className='noscrollbar'
             value={area.text || ''}
             onChange={(e) => {
               setTextAreas((prev) =>

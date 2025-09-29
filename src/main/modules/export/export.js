@@ -1,4 +1,3 @@
-import { spawn } from 'child_process';
 import path from 'path';
 import os from 'os';
 import fs from 'fs/promises';
@@ -10,7 +9,7 @@ export class ExportingSession {
   }
 
   reset() {
-    this.ffmpegProc = null;
+    this.ffmpegProcessId = null;
     this.isReady = false;
     this.frameQueue = [];
     this.processing = false;
@@ -103,7 +102,6 @@ export class ExportingSession {
       const buffer = Buffer.from(data.replace(/^data:image\/\w+;base64,/, ""), "base64");
       await fs.writeFile(framePath, buffer);
 
-      console.log(`Frame ${frameNumber} saved successfully`);
       this.expectedFrameNumber++;
       return true;
     } catch (error) {
@@ -121,10 +119,9 @@ export class ExportingSession {
     }
 
     console.log('Starting audio muxing process...');
-    const ffmpegpath = await this.core.paths.getFFmpegPath();
 
     return new Promise((resolve) => {
-      const muxProc = spawn(ffmpegpath, [
+      const args = [
         '-y', // Overwrite output file
         '-i', this.tempVideoPath, // Video input
         '-i', this.audioPath, // Audio input
@@ -134,24 +131,21 @@ export class ExportingSession {
         '-map', '1:a:0', // Map first audio stream
         '-shortest', // End when shortest stream ends
         this.finalOutputPath
-      ]);
+      ];
 
-      muxProc.stderr.on('data', (data) => {
-        console.log('FFmpeg mux output:', data.toString());
-      });
-
-      muxProc.on('close', async (code) => {
-        console.log(`Audio muxing finished with code: ${code}`);
-        if (code === 0) {
-          await this._cleanupTempVideo();
-        }
-        resolve({
-          success: code === 0,
-          hasMuxedAudio: this.hasAudio
-        });
-      });
-
-      muxProc.on('error', async (error) => {
+      this.core.ffmpegManager.spawn(args, {
+        onClose: async (code) => {
+          console.log(`Audio muxing finished with code: ${code}`);
+          if (code === 0) {
+            await this._cleanupTempVideo();
+          }
+          resolve({
+            success: code === 0,
+            hasMuxedAudio: this.hasAudio
+          });
+        },
+        dialogOnError: false // Don't show dialog for muxing errors, we handle them
+      }).catch(async (error) => {
         console.error('Audio muxing error:', error);
 
         try {
@@ -172,11 +166,10 @@ export class ExportingSession {
 
   async _createVideoFromFrames() {
     console.log('Creating video from frames...');
-    const ffmpegpath = await this.core.paths.getFFmpegPath();
 
     return new Promise((resolve, reject) => {
       try {
-        this.ffmpegProc = spawn(ffmpegpath, [
+        const args = [
           '-y', // Overwrite output file
           '-framerate', String(this.fps),
           '-i', path.join(this.framesDir, 'frame_%06d.png'), // Input pattern
@@ -188,22 +181,21 @@ export class ExportingSession {
           '-fflags', '+genpts', // Generate presentation timestamps
           '-r', String(this.fps), // Output framerate
           this.tempVideoPath, // Export to temp location
-        ]);
+        ];
 
-        this.ffmpegProc.stderr.on('data', (data) => {
-          console.log('FFmpeg video creation output:', data.toString());
-        });
-
-        this.ffmpegProc.on('close', (code) => {
-          console.log(`FFmpeg video creation closed with code: ${code}`);
-          if (code === 0) {
-            resolve(true);
-          } else {
-            reject(new Error(`FFmpeg video creation failed with code: ${code}`));
-          }
-        });
-
-        this.ffmpegProc.on('error', (error) => {
+        this.core.ffmpegManager.spawn(args, {
+          onClose: (code) => {
+            console.log(`FFmpeg video creation closed with code: ${code}`);
+            if (code === 0) {
+              resolve(true);
+            } else {
+              reject(new Error(`FFmpeg video creation failed with code: ${code}`));
+            }
+          },
+          dialogOnError: true // Show error dialog if video creation fails
+        }).then((processId) => {
+          this.ffmpegProcessId = processId;
+        }).catch((error) => {
           console.error('FFmpeg video creation error:', error);
           reject(error);
         });
@@ -243,23 +235,23 @@ export class ExportingSession {
     }
   }
 
-  cancel() {
+  async cancel() {
     console.log('Cancelling export...');
     this.isExporting = false;
     this.isReady = false;
 
-    if (this.ffmpegProc && !this.ffmpegProc.killed) {
-      this.ffmpegProc.kill('SIGTERM');
-      // Force kill if it doesn't respond
-      setTimeout(() => {
-        if (this.ffmpegProc && !this.ffmpegProc.killed) {
-          this.ffmpegProc.kill('SIGKILL');
-        }
-      }, 3000);
+    if (this.ffmpegProcessId !== null) {
+      try {
+        await this.core.ffmpegManager.killProcess(this.ffmpegProcessId);
+        console.log(`Killed FFmpeg process ${this.ffmpegProcessId}`);
+        this.ffmpegProcessId = null;
+      } catch (error) {
+        console.error('Error killing FFmpeg process:', error);
+      }
     }
 
-    this._cleanupFrames();
-    this._cleanupTempVideo();
+    await this._cleanupFrames();
+    await this._cleanupTempVideo();
   }
 
   async _cleanupFrames() {
@@ -285,7 +277,7 @@ export class ExportingSession {
         console.log('Cleaned up temp video file');
         this.tempVideoPath = null;
       } catch (error) {
-        console.warn('Failed to clean up temp video file:', error);
+        console.warn('Failed to clean up temp video file:', error.message);
       }
     }
   }

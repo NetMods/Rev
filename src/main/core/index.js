@@ -7,8 +7,10 @@ import { registerIPCRouter } from './ipc-router';
 import config from './config';
 import paths from "./path"
 import { handleProtocolRequests, registerProtocolScheme } from './protocol';
-import { initializeLogger } from './utils';
+import { initializeLogger, restartApp } from './utils';
 import input from './input';
+import { initErrorHandling, showError } from './error';
+import { FFmpegManager } from "./ffmpeg"
 
 const log = initializeLogger()
 
@@ -30,7 +32,10 @@ if (!gotTheLock) {
   });
 }
 
+
 app.whenReady().then(async () => {
+  await initErrorHandling()
+
   // Set app user model for Windows notifications
   electronApp.setAppUserModelId('com.electron');
 
@@ -45,7 +50,6 @@ app.whenReady().then(async () => {
   handleProtocolRequests(SCHEME_NAME)
 
   const mainWindow = await createMainWindow();
-
   const coreServices = {
     window: {
       createWindow: createWindow,
@@ -54,10 +58,13 @@ app.whenReady().then(async () => {
     },
     config,
     paths,
+    ffmpegManager: new FFmpegManager(this),
     input,
     modules: {},
     ipcHandlers: {
-      'devices:get': async (_, ...args) => input.getInputDevices(...args),
+      'devices:get': async (_, ...args) => input.getInputDevices(this, ...args),
+      'app:restart': () => restartApp(),
+      'window:error': (_, ...args) => showError(...args),
       'window:close': (event) => closeWindow(event),
       'window:minimize': (event) => minimizeWindow(event),
       'window:maximize': (event) => toggleMaximizeWindow(event),

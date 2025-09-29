@@ -1,74 +1,78 @@
 import { spawn } from "child_process";
 import { join } from "path";
-import { getFFmpegPath } from "./path"
 import { readdir, readFile } from "fs-extra";
 
-export const getInputDevices = async () => {
+export const getInputDevices = async (core) => {
   const platform = process.platform;
-  const ffmpegPath = await getFFmpegPath()
 
   let videoDevices = [];
   let audioDevices = [];
 
   if (platform === 'win32') {
-    const cmd = spawn(ffmpegPath, ['-list_devices', 'true', '-f', 'dshow', '-i', 'dummy'])
-    const output = await runCommand(cmd)
-    const lines = output.split('\n')
+    try {
+      const output = await runFFmpegCommand(['-list_devices', 'true', '-f', 'dshow', '-i', 'dummy'], core);
+      const lines = output.split('\n');
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim()
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
 
-      const deviceMatch = line.match(/^\[dshow @ [^\]]+\] "(.+?)"\s*\((video|audio)\)$/i)
-      if (deviceMatch) {
-        const name = deviceMatch[1]
-        const type = deviceMatch[2].toLowerCase()
+        const deviceMatch = line.match(/^\[dshow @ [^\]]+\] "(.+?)"\s*\((video|audio)\)$/i);
+        if (deviceMatch) {
+          const name = deviceMatch[1];
+          const type = deviceMatch[2].toLowerCase();
 
-        const nextLine = lines[i + 1]?.trim()
-        const altNameMatch = nextLine?.match(/Alternative name "(.+?)"/)
+          const nextLine = lines[i + 1]?.trim();
+          const altNameMatch = nextLine?.match(/Alternative name "(.+?)"/);
 
-        const id = altNameMatch ? altNameMatch[1] : name
-        const deviceObj = { name, id }
+          const id = altNameMatch ? altNameMatch[1] : name;
+          const deviceObj = { name, id };
 
-        if (type === 'video') {
-          videoDevices.push(deviceObj)
-        } else if (type === 'audio') {
-          audioDevices.push(deviceObj)
+          if (type === 'video') {
+            videoDevices.push(deviceObj);
+          } else if (type === 'audio') {
+            audioDevices.push(deviceObj);
+          }
         }
       }
+    } catch (error) {
+      console.error('Failed to get Windows devices:', error);
     }
   } else if (platform === 'darwin') {
-    const cmd = spawn(ffmpegPath, ['-f', 'avfoundation', '-list_devices', 'true', '-i', '']);
-    const output = await runCommand(cmd);
-    const lines = output.split('\n');
-    let section
+    try {
+      const output = await runFFmpegCommand(['-f', 'avfoundation', '-list_devices', 'true', '-i', ''], core);
+      const lines = output.split('\n');
+      let section;
 
-    for (const line of lines) {
-      if (!line) continue;
+      for (const line of lines) {
+        if (!line) continue;
 
-      // detect section headers (they might be prefixed by bracketed ffmpeg tags)
-      if (line.includes('AVFoundation video devices:')) {
-        section = 'video';
-        continue;
-      }
-      if (line.includes('AVFoundation audio devices:')) {
-        section = 'audio';
-        continue;
-      }
-
-      // match the device index and name anywhere on the line, e.g. "...] [0] FaceTime HD Camera"
-      const m = line.match(/\[(\d+)\]\s*(.+)$/);
-      if (m && (section === 'video' || section === 'audio')) {
-        const id = Number(m[1]);
-        let name = m[2].trim();
-
-        // remove surrounding quotes if ffmpeg prints them
-        if ((name.startsWith('"') && name.endsWith('"')) || (name.startsWith("'") && name.endsWith("'"))) {
-          name = name.slice(1, -1).trim();
+        // detect section headers (they might be prefixed by bracketed ffmpeg tags)
+        if (line.includes('AVFoundation video devices:')) {
+          section = 'video';
+          continue;
+        }
+        if (line.includes('AVFoundation audio devices:')) {
+          section = 'audio';
+          continue;
         }
 
-        const devices = section === 'video' ? videoDevices : audioDevices;
-        devices.push({ name, id });
+        // match the device index and name anywhere on the line, e.g. "...] [0] FaceTime HD Camera"
+        const m = line.match(/\[(\d+)\]\s*(.+)$/);
+        if (m && (section === 'video' || section === 'audio')) {
+          const id = Number(m[1]);
+          let name = m[2].trim();
+
+          // remove surrounding quotes if ffmpeg prints them
+          if ((name.startsWith('"') && name.endsWith('"')) || (name.startsWith("'") && name.endsWith("'"))) {
+            name = name.slice(1, -1).trim();
+          }
+
+          const devices = section === 'video' ? videoDevices : audioDevices;
+          devices.push({ name, id });
+        }
       }
+    } catch (error) {
+      console.error('Failed to get macOS devices:', error);
     }
   } else {
     // Linux: read file directly from /sys/class/video4linux for video,
@@ -100,7 +104,7 @@ export const getInputDevices = async () => {
           videoDevices.push({ name: `Unknown Video Device (${path})`, id: path });
         });
       } catch (lsErr) {
-        console.error('No video devices, You are hopeless', lsErr);
+        console.error('No video devices found', lsErr);
       }
     }
 
@@ -158,26 +162,46 @@ export const getInputDevices = async () => {
         });
       } catch (shortErr) {
         console.warn('pactl list short failed; trying ALSA', shortErr);
-        const alsaCmd = spawn('arecord', ['-l']);
-        const alsaOutput = await runCommand(alsaCmd);
-        const alsaLines = alsaOutput.split('\n');
-        alsaLines.forEach(line => {
-          if (line.includes('card ') || line.includes('subdevice')) {
-            const match = line.match(/card (\d+): \[([^\]]+)\]/);
-            if (match) {
-              const cardId = match[1];
-              const name = match[2].trim();
-              audioDevices.push({ name, id: `hw:${cardId},0` });
+        try {
+          const alsaCmd = spawn('arecord', ['-l']);
+          const alsaOutput = await runCommand(alsaCmd);
+          const alsaLines = alsaOutput.split('\n');
+          alsaLines.forEach(line => {
+            if (line.includes('card ') || line.includes('subdevice')) {
+              const match = line.match(/card (\d+): \[([^\]]+)\]/);
+              if (match) {
+                const cardId = match[1];
+                const name = match[2].trim();
+                audioDevices.push({ name, id: `hw:${cardId},0` });
+              }
             }
-          }
-        });
+          });
+        } catch (alsaErr) {
+          console.error('ALSA device listing failed:', alsaErr);
+        }
       }
     }
   }
 
-  return { videoDevices, audioDevices }
+  return { videoDevices, audioDevices };
+};
+
+function runFFmpegCommand(args, core) {
+  return new Promise((resolve, reject) => {
+    let output = '';
+
+    core.ffmpegManager.spawn(args, {
+      onData: (data) => { output += data.toString(); },
+      onError: (data) => { output += data.toString(); },
+      onClose: () => { resolve(output); },
+      dialogOnError: false
+    }).catch(err => {
+      reject(err);
+    });
+  });
 }
 
+// Helper function for non-FFmpeg commands (used for Linux audio detection)
 function runCommand(cmd) {
   return new Promise((resolve, reject) => {
     let output = '';
@@ -190,4 +214,4 @@ function runCommand(cmd) {
   });
 }
 
-export default { getInputDevices }
+export default { getInputDevices };

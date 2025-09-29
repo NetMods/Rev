@@ -14,8 +14,6 @@ const AnnotateApp = () => {
   const [openDrawer, setOpenDrawer] = useState(null);
   const [config, setConfig] = useAnnotationConfig()
 
-
-
   const toggleDrawer = (drawer) => {
     setOpenDrawer(prev => (prev === drawer ? null : drawer));
   };
@@ -36,14 +34,14 @@ const AnnotateApp = () => {
     }
   };
 
-  const breaker = (<hr className="" />)
+  const breaker = (<hr className="text-base-content/20 z-40 h-0.5 w-full" />)
 
   return (
-    <div className="py-1 flex gap-1 borderrounded select-none max-w-[53px]">
+    <div className="py-1 rounded select-none max-w-[53px] bg-base-100 text-base-content/70 border border-base-content/30">
       <div
         className={cn(
-          "flex flex-col items-center justify-center w-[50px] transition-transform duration-300 ease-in-out px-2 gap-2",
-          openDrawer ? "translate-x-[-50px]" : "translate-x-0"
+          "flex flex-col items-center justify-center w-[53px] transition-transform duration-300 ease-in-out gap-2",
+          openDrawer ? "translate-x-[-53px]" : "translate-x-0"
         )}
       >
         <MainPanel config={config} setConfig={setConfig} />
@@ -53,7 +51,7 @@ const AnnotateApp = () => {
         <button
           disabled={config.tool === "text" || config.tool === "arrow"}
           onClick={() => toggleDrawer("size")}
-          className="p-1 no-drag rounded w-full flex justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+          className="p-1 no-drag w-full flex cursor-pointer transition-all ease-linear justify-center hover:bg-base-content/15 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <BrushSize size="25" />
         </button>
@@ -61,7 +59,7 @@ const AnnotateApp = () => {
         <button
           disabled={config.tool === "eraser"}
           onClick={() => toggleDrawer("color")}
-          className="p-1 no-drag rounded w-full flex justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-1 no-drag w-full flex cursor-pointer transition-all ease-linear justify-center hover:bg-base-content/15 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Palette size={23} />
         </button>
@@ -71,14 +69,14 @@ const AnnotateApp = () => {
         <div className="flex flex-col items-center gap-1">
           <button
             onClick={handleAnnotationTimer}
-            className="p-1 no-drag rounded w-full flex justify-center"
+            className="p-1 no-drag rounded w-full flex justify-center cursor-pointer active:scale-95"
           >
             <Timer size={23} />
           </button>
           <div className="flex gap-1 max-w-8 opacity-60">
-            <span className={cn('w-4 h-0.5', annotationTimer > 0 ? 'bg-cyan-500' : '')} />
-            <span className={cn('w-4 h-0.5', annotationTimer > 1 ? 'bg-cyan-500' : '')} />
-            <span className={cn('w-4 h-0.5', annotationTimer > 2 ? 'bg-cyan-500' : '')} />
+            <span className={cn('w-4 h-0.5', annotationTimer > 0 ? 'bg-cyan-400' : 'bg-base-content/50')} />
+            <span className={cn('w-4 h-0.5', annotationTimer > 1 ? 'bg-cyan-400' : 'bg-base-content/50')} />
+            <span className={cn('w-4 h-0.5', annotationTimer > 2 ? 'bg-cyan-400' : 'bg-base-content/50')} />
           </div>
         </div>
 
@@ -86,7 +84,7 @@ const AnnotateApp = () => {
 
         <button
           onClick={() => window.api.annotation.stop()}
-          className="p-1 no-drag rounded w-full flex justify-center"
+          className="p-1 no-drag w-full flex justify-center hover:bg-red-900/70 cursor-pointer"
         >
           <Cross size={23} />
         </button>
@@ -94,8 +92,8 @@ const AnnotateApp = () => {
 
       <div
         className={cn(
-          "absolute top-0 left-[50px] w-[50px] h-full transition-transform duration-300 ease-in-out",
-          openDrawer === "color" ? "translate-x-[-50px]" : "translate-x-0"
+          "absolute top-0 left-[53px] w-[50px] h-full transition-transform duration-300 ease-in-out",
+          openDrawer === "color" ? "translate-x-[-53px]" : "translate-x-0"
         )}
       >
         <ColorPanel config={config} setConfig={setConfig} close={() => setOpenDrawer(null)} />
@@ -103,8 +101,8 @@ const AnnotateApp = () => {
 
       <div
         className={cn(
-          "absolute top-0 left-[50px] w-[50px] h-full transition-transform duration-300 ease-in-out",
-          openDrawer === "size" ? "translate-x-[-50px]" : "translate-x-0"
+          "absolute top-0 left-[53px] w-[50px] h-full transition-transform duration-300 ease-in-out",
+          openDrawer === "size" ? "translate-x-[-53px]" : "translate-x-0"
         )}
       >
         <SizePanel config={config} setConfig={setConfig} close={() => setOpenDrawer(null)} />

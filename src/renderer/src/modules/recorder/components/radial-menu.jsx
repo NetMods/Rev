@@ -25,7 +25,6 @@ const getButtonPosition = (index, totalButtons, radius) => {
 };
 
 export const CircularMenu = ({ buttons, dimensions, hoveredIndex, onHover, onLeave, selectedVideoDevice, selectedAudioDevice }) => {
-  console.warn("circular menu rendered")
   const size = Math.min(dimensions.width, dimensions.height);
   const center = size / 2;
 

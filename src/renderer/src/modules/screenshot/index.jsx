@@ -31,7 +31,7 @@ export default function EditorPage() {
   const [stageSize, canvasContainerRef] = useCanvasResize()
 
   useEffect(() => {
-    window.api.screenshot.show((data) => setImageUrl(data));
+    window.api.screenshot.onShow((data) => setImageUrl(data));
   }, []);
 
   const {

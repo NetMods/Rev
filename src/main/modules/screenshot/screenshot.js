@@ -5,8 +5,6 @@ import { getBufferWindow } from "./buffer-window";
 import { openEditorWindow } from "./utils";
 
 export const createScreenshotWindow = async (data, core) => {
-  const mainWindow = core.window.getMainWindow();
-  mainWindow.hide();
   let imageData = null;
   if (data.deviceIndex < 0) {
     await getBufferWindow(core)
