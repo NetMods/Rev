@@ -23,6 +23,8 @@
     "clsx": "^2.1.1",
     "daisyui": "^5.1.7",
     "electron-log": "^5.4.1",
+    "electron-unhandled": "^5.0.0",
+    "electron-util": "^1.0.0",
     "ffmpeg-static": "^5.2.0",
     "fs-extra": "^11.3.0",
     "jotai": "^2.12.5",

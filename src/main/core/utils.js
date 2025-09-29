@@ -1,3 +1,4 @@
+import { app } from "electron";
 import log from "electron-log/main"
 
 export const installExtensions = async () => {
@@ -18,4 +19,10 @@ export function initializeLogger() {
   log.transports.console.format = '\x1b[33m{h}:{i}:{s} \x1b[36m[{level}] \x1b[30m› \x1b[0m{text}';
   log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] › {text}';
   return log
+}
+
+export const restartApp = async () => {
+  log.info('Restarting app...');
+  app.relaunch();
+  app.exit();
 }

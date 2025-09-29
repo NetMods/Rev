@@ -12,6 +12,11 @@ export class MouseTracker {
     this.onMouseUp = null
 
     this.startTime = null
+    this.totalPausedTime = 0n
+    this.pauseStartTime = null
+    this.isPaused = false
+    this.mainWindow = null
+
     this.dragging = false
     this.activeDrag = null
     this.isTracking = false
@@ -47,18 +52,83 @@ export class MouseTracker {
       return
     }
 
+    this.mainWindow = mainWindow
     this.cleanup()
     this.startTime = process.hrtime.bigint()
+    this.totalPausedTime = 0n
+    this.pauseStartTime = null
+    this.isPaused = false
 
+    this._addListeners()
+
+    this.isTracking = true
+  }
+
+  pause() {
+    if (!this.isTracking || this.isPaused) {
+      log.warn("Mouse tracking is not active or already paused")
+      return
+    }
+
+    this.cleanup() // Remove listeners
+    this.pauseStartTime = process.hrtime.bigint()
+    this.isPaused = true
+    log.info("Mouse tracking paused")
+  }
+
+  resume() {
+    if (!this.isTracking || !this.isPaused) {
+      log.warn("Mouse tracking is not paused")
+      return
+    }
+
+    const pausedNs = process.hrtime.bigint() - this.pauseStartTime
+    this.totalPausedTime += pausedNs
+    this.pauseStartTime = null
+    this.isPaused = false
+
+    this._addListeners()
+    log.info("Mouse tracking resumed")
+  }
+
+  stop() {
+    if (!this.isTracking) {
+      log.warn("Mouse tracking is not active")
+      return { clicks: [], drags: [] }
+    }
+
+    if (this.isPaused) {
+      // Optionally add the current pause time if needed
+      const pausedNs = process.hrtime.bigint() - this.pauseStartTime
+      this.totalPausedTime += pausedNs
+    }
+
+    this.cleanup()
+
+    const clickRecords = [...this.clicks]
+    const dragRecords = [...this.drags]
+
+    this.reset()
+    uIOhook.stop()
+
+    return {
+      clicks: clickRecords,
+      drags: dragRecords
+    }
+  }
+
+  _addListeners() {
     this.onMouseDown = (event) => {
+      if (this.isPaused) return
+
       try {
-        if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
+        if (this.isInsideMainWindow(event.x, event.y, this.mainWindow)) return;
       } catch (err) {
         log.error("Error in onMouseDown:", err)
       }
 
       const currentTime = process.hrtime.bigint()
-      const elapsedNanoseconds = currentTime - this.startTime
+      const elapsedNanoseconds = currentTime - this.startTime - this.totalPausedTime
       const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
 
       if (elapsedSeconds - this.lastClickTime > this.debounceTime) {
@@ -81,15 +151,17 @@ export class MouseTracker {
     }
 
     this.onMouseMove = (event) => {
+      if (this.isPaused) return
+
       try {
-        if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
+        if (this.isInsideMainWindow(event.x, event.y, this.mainWindow)) return;
       } catch (err) {
         log.error("Error in onMouseMove:", err)
       }
 
       if (this.activeDrag) {
         const currentTime = process.hrtime.bigint()
-        const elapsedNanoseconds = currentTime - this.startTime
+        const elapsedNanoseconds = currentTime - this.startTime - this.totalPausedTime
         const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
 
         this.dragging = true
@@ -102,15 +174,17 @@ export class MouseTracker {
     }
 
     this.onMouseUp = (event) => {
+      if (this.isPaused) return
+
       try {
-        if (this.isInsideMainWindow(event.x, event.y, mainWindow)) return;
+        if (this.isInsideMainWindow(event.x, event.y, this.mainWindow)) return;
       } catch (err) {
         log.error("Error in onMouseUp:", err)
       }
 
       if (this.activeDrag) {
         const currentTime = process.hrtime.bigint()
-        const elapsedNanoseconds = currentTime - this.startTime
+        const elapsedNanoseconds = currentTime - this.startTime - this.totalPausedTime
         const elapsedSeconds = Number(elapsedNanoseconds) / 1_000_000_000
 
         if (this.dragging) {
@@ -150,27 +224,6 @@ export class MouseTracker {
     uIOhook.on('mousemove', this.onMouseMove)
     uIOhook.on('mouseup', this.onMouseUp)
     uIOhook.start()
-    this.isTracking = true
-  }
-
-  stop() {
-    if (!this.isTracking) {
-      log.warn("Mouse tracking is not active")
-      return { mouseClickRecords: [], mouseDragRecords: [] }
-    }
-
-    this.cleanup()
-
-    const clickRecords = [...this.clicks]
-    const dragRecords = [...this.drags]
-
-    this.reset()
-    uIOhook.stop()
-
-    return {
-      clicks: clickRecords,
-      drags: dragRecords
-    }
   }
 
   cleanup() {
@@ -193,6 +246,10 @@ export class MouseTracker {
     this.clicks = []
     this.drags = []
     this.startTime = null
+    this.totalPausedTime = 0n
+    this.pauseStartTime = null
+    this.isPaused = false
+    this.mainWindow = null
     this.dragging = false
     this.activeDrag = null
     this.isTracking = false

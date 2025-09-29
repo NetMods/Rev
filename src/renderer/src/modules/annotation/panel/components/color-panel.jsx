@@ -21,16 +21,16 @@ const ColorPanel = ({ config, setConfig, close }) => {
   ];
 
   return (
-    <div className="flex flex-col w-[53px] h-full py-1 px-1 gap-1">
+    <div className="flex flex-col w-[53px] h-full py-1  gap-1">
       <div className="flex flex-col items-center justify-between size-full gap-1">
         {colorButtons.map(({ hex, class: colorClass }) => (
           <button
             key={hex}
             onClick={() => handleColorChange(hex)}
             className={cn(
-              "p-1 no-drag w-full rounded flex justify-center items-center h-11 ",
+              "p-1 no-drag w-full flex justify-center items-center h-11 cursor-pointer transition-all ease-linear hover:bg-base-content/15",
               colorClass,
-              config.color === hex ? "" : ""
+              config.color === hex ? "bg-base-content/15" : ""
             )}
           >
             <FaCircle size={24} />
@@ -40,7 +40,7 @@ const ColorPanel = ({ config, setConfig, close }) => {
 
       <button
         onClick={close}
-        className="p-1 py-2 rounded no-drag w-full flex justify-center items-center h-11"
+        className="p-1 py-2 rounded no-drag w-full flex justify-center items-center h-11 cursor-pointer hover:bg-base-content/15"
       >
         <LeftArrow size={20} />
       </button>

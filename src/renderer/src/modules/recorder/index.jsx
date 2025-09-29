@@ -24,7 +24,7 @@ const screenshotSound = new Audio(dslrSound);
 screenshotSound.volume = 0.05;
 
 export default function Page() {
-  const { startRecording, stopRecording, togglePause, isRecording, isPaused } = useRecording();
+  const { startRecording, stopRecording, togglePause, isRecording, isPaused, elapsedTime } = useRecording();
   const dimensions = useWindowSize();
 
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -167,10 +167,10 @@ export default function Page() {
             />
             <CentralDisplay
               isRecording={isRecording}
-              isPaused={isPaused}
               stopRecording={stopRecording}
               hoveredIndex={hoveredIndex}
               buttons={buttons}
+              elapsedTime={elapsedTime}
             />
           </>
         )}
