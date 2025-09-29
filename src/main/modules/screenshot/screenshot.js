@@ -2,10 +2,7 @@ import { screen } from "electron/main";
 import { spawnScreenshotCapture } from "./ffmpeg";
 
 export const createScreenshotWindow = async (data, core) => {
-  const mainWindow = core.window.getMainWindow();
-  mainWindow.hide();
   const image = await spawnScreenshotCapture(core);
-  mainWindow.show();
 
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
