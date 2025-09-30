@@ -11,10 +11,10 @@ const Button = ({
     <button
       onClick={onClick}
       className={cn(
-        "btn flex items-center gap-2 no-drag transition-all duration-150",
+        "btn flex items-center gap-2 no-drag transition-all ease-linear duration-75",
         pressed
           ? "btn-active scale-95 shadow-inner"
-          : "hover:scale-105 active:scale-95",
+          : "active:scale-95",
         className
       )}
     >

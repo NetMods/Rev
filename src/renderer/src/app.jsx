@@ -2,9 +2,9 @@ import { createHashRouter, RouterProvider } from "react-router";
 import Recording from "./modules/recorder"
 import Editor from "./modules/editor"
 import Screenshot from "./modules/screenshot"
+import AreaSelection from './modules/screenshot/components/area/screen-area-select'
 import AnnotatePanel from "./modules/annotation/panel"
 import AnnotateBackground from "./modules/annotation/background"
-import ScreenshotBuffer from './modules/screenshot/screenshot-buffer'
 import { ErrorBoundary } from './shared/ui/error-boundary'
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
     { path: "/annotation-panel", element: <AnnotatePanel />, ErrorBoundary },
     { path: "/annotation-background", element: <AnnotateBackground />, ErrorBoundary },
     { path: "/screenshot", element: <Screenshot />, ErrorBoundary },
-    { path: "/screenshotBuffer", element: <ScreenshotBuffer />, ErrorBoundary }
+    { path: "/screenshot-area-selection", element: <AreaSelection />, ErrorBoundary }
   ]);
 
   return (

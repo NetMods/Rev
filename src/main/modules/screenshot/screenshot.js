@@ -1,23 +1,45 @@
-import { ipcMain } from "electron/main";
 import { spawnScreenshotCapture } from "./ffmpeg";
-import log from 'electron-log/main'
-import { getBufferWindow } from "./buffer-window";
 import { openEditorWindow } from "./utils";
+import { screen } from 'electron'
 
 export const createScreenshotWindow = async (data, core) => {
   const mainWindow = core.window.getMainWindow();
-  mainWindow.hide();
+  await mainWindow.hide();
 
-  let imageData = null;
-  if (data.deviceIndex < 0) {
-    await getBufferWindow(core)
-    ipcMain.on('screenshot:create-buffer', async (_, cord_data) => {
-      imageData = await spawnScreenshotCapture(core, data.deviceIndex, cord_data);
-      openEditorWindow(core, mainWindow, imageData)
-    })
-  } else {
-    log.info("taking the whole screen")
-    imageData = await spawnScreenshotCapture(core, data.deviceIndex);
-    openEditorWindow(core, mainWindow, imageData)
-  }
+  const imageData = await spawnScreenshotCapture(core, data);
+  openEditorWindow(core, mainWindow, imageData)
 };
+
+export const createAreaSelectionWindow = async (core) => {
+  const point = screen.getCursorScreenPoint();
+  const { bounds } = screen.getDisplayNearestPoint(point);
+
+  const options = {
+    width: bounds.width,
+    height: bounds.height,
+    autoHideMenuBar: true,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    hasShadow: false,
+    skipTaskbar: true,
+    movable: false,
+    focusable: false,
+    acceptFirstMouse: true,
+    path: '/screenshot-area-selection',
+  }
+
+  const bufferWindow = await core.window.createWindow(options, "Area Selection");
+
+  bufferWindow.on("ready-to-show", () => {
+    bufferWindow.show()
+    bufferWindow.focus()
+    bufferWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+    bufferWindow.setAlwaysOnTop(true, 'pop-up-menu', 10)
+  });
+
+  if (process.platform === 'darwin') bufferWindow.setWindowButtonVisibility(false)
+
+  return bufferWindow
+}
+

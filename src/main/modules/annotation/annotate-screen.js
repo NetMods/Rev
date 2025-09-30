@@ -34,6 +34,7 @@ const createAnnotationPanel = async (core) => {
     height: 343,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
+    transparent: true,
     fullscreenable: false,
     frame: false,
     alwaysOnTop: true,

@@ -1,13 +1,10 @@
 import log from 'electron-log/renderer'
 import { useAtom, useAtomValue } from 'jotai'
-import { getPresetConfigAtom, userPresetAtom } from '../../../../store'
-
+import { getPresetConfigAtom, userPresetAtom } from '../../../../store/screenshot'
 
 const SaveModal = () => {
-
   const [userPreset, setuserPreset] = useAtom(userPresetAtom)
   const config = useAtomValue(getPresetConfigAtom)
-
 
   const handleSave = async () => {
     const fileInputDiv = document.getElementById("filename-input")
@@ -30,8 +27,6 @@ const SaveModal = () => {
     setuserPreset(res)
     saveModelDiv.close()
   }
-
-
 
   return (
     <dialog id="save_modal" className="modal">

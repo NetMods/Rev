@@ -2,7 +2,7 @@ import { Image, Rect, Group } from "react-konva";
 import { useImageProcessor } from "../../hooks/useImageProcessor";
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { getPresetConfigAtom, getbackgroundImageAtom, setCanvasRedoAtom } from "../../../../store";
+import { getPresetConfigAtom, getbackgroundImageAtom, setCanvasRedoAtom } from "../../../../store/screenshot";
 import log from "electron-log/renderer"
 
 const URLImage = ({
