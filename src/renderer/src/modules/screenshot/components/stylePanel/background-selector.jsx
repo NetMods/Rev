@@ -1,18 +1,14 @@
 import { cn } from '../../../../shared/utils'
 import { TbBackground } from "react-icons/tb";
 import { useSetAtom, useAtomValue } from 'jotai';
-import { setbackgroundImageAtom, getbackgroundImageAtom } from '../../../../store';
+import { setbackgroundImageAtom, getbackgroundImageAtom } from '../../../../store/screenshot';
 import { MdOutlineRemoveCircleOutline as RemoveIcon } from "react-icons/md";
 
 const BackgroundSelector = ({ backgrounds, selected, setSelected }) => {
   const setBackgroundAtom = useSetAtom(setbackgroundImageAtom)
   const backgroundImageAtom = useAtomValue(getbackgroundImageAtom)
 
-
-
-
   const handelFileChange = async (evt) => {
-
     const files = evt?.target?.files;
     if (!files || files.length === 0) {
       return;
@@ -33,7 +29,6 @@ const BackgroundSelector = ({ backgrounds, selected, setSelected }) => {
       return;
     }
 
-
     try {
       const reader = new FileReader();
       reader.onload = () => {
@@ -49,7 +44,6 @@ const BackgroundSelector = ({ backgrounds, selected, setSelected }) => {
     }
   };
 
-
   const clearFile = () => {
     const FileInputDiv = document.getElementById("background-file-input")
     setBackgroundAtom(null)
@@ -58,37 +52,28 @@ const BackgroundSelector = ({ backgrounds, selected, setSelected }) => {
     }
   }
 
-
   return (
-    <div className="mb-6 no-drag">
-      <label className="text-base-content block mb-2 no-drag">Background</label>
-      <div className="grid grid-cols-5 gap-2 no-drag">
+    <div className="pb-4 no-drag">
+      <label className="text-base-content block pb-4 no-drag text-sm">Background</label>
+      <div className="grid grid-cols-5 gap-2 no-drag pb-4">
         {backgrounds.map((bg, idx) => (
           <div
             key={idx}
-            onClick={() => {
-              setSelected({
-                backgroundcolor: bg.value
-              })
-            }}
-            className={cn(
-              "avatar cursor-pointer",
-              selected === bg.value ? "avatar-online" : "avatar-offline"
-            )}
+            onClick={() => { setSelected({ backgroundcolor: bg.value }) }}
+            className={cn("cursor-pointer", selected === bg.value && "rounded-md ring-2 ring-base-content")}
           >
             <div
               style={{ background: bg.value }}
               className={cn("h-12 rounded-md")}
             >
-              {bg.value === "transparent" && (
-                <TbBackground size={50} />
-              )}
+              {bg.value === "transparent" && (<TbBackground size={50} className='border border-base-content/40 rounded-md' />)}
             </div>
           </div>
         ))}
       </div>
+
       <fieldset className="fieldset mt-2">
-        <legend className="fieldset-legend">Pick a BackgroundImage</legend>
+        <legend className="fieldset-legend text-sm">Pick a Background Image</legend>
         <div className='flex flex-row gap-1'>
           <input id='background-file-input' type="file" className="file-input" accept='image/*' onChange={handelFileChange} />
           <button className={cn("btn btn-square", backgroundImageAtom === null ? "btn-disabled" : "")} onClick={clearFile} >

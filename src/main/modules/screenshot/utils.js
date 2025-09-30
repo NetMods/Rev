@@ -91,8 +91,9 @@ export const updateUserPreset = async (...args) => {
 
 export const getFFmpegArgs = (tmpFile, screenIndex, ...args) => {
   const platform = process.platform;
-  const [cropCords] = args
-  log.info("value for  : ", cropCords)
+  const [{ origin, rectPos }] = args
+  const cropCords = rectPos ? { origin, rectPos } : null
+
   let x, y, width, height;
 
   if (cropCords) {
@@ -102,8 +103,6 @@ export const getFFmpegArgs = (tmpFile, screenIndex, ...args) => {
     width = sw;
     height = sh
   }
-
-
 
   if (platform === "darwin") {
     const display = `${Math.abs(screenIndex)}:none`
@@ -181,7 +180,6 @@ export const getFFmpegArgs = (tmpFile, screenIndex, ...args) => {
 }
 
 export const openEditorWindow = async (core, mainWindow, imageData) => {
-  mainWindow.show();
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
 
@@ -211,34 +209,24 @@ export const openEditorWindow = async (core, mainWindow, imageData) => {
 
   screenshotWindow.webContents.on("did-finish-load", () => {
     screenshotWindow.webContents.send("screenshot:image-data", imageData);
+    mainWindow.show();
   });
 
 }
 
 
 const getConstraints = (cropCords) => {
-
   const x0 = Math.min(cropCords.origin.x, cropCords.rectPos.x);
   const y0 = Math.min(cropCords.origin.y, cropCords.rectPos.y);
   const w = Math.abs(cropCords.rectPos.x - cropCords.origin.x);
   const h = Math.abs(cropCords.rectPos.y - cropCords.origin.y);
 
-  const centerPoint = { x: Math.round(x0 + w / 2), y: Math.round(y0 + h / 2) };
-  const display = screen.getDisplayNearestPoint(centerPoint);
-  const scale = display.scaleFactor || 1;
+  const sx = Math.round(x0);
+  const sy = Math.round(y0);
+  const sw = Math.round(w);
+  const sh = Math.round(h);
 
-  // convert to device pixels for ffmpeg
-  const sx = Math.round(x0 * scale);
-  const sy = Math.round(y0 * scale);
-  const sw = Math.round(w * scale);
-  const sh = Math.round(h * scale);
-
-  return {
-    sx,
-    sy,
-    sw,
-    sh
-  }
+  return { sx, sy, sw, sh }
 
 }
 

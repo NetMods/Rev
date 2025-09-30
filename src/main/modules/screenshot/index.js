@@ -1,5 +1,5 @@
 import log from 'electron-log/main';
-import { createScreenshotWindow } from './screenshot';
+import { createScreenshotWindow, createAreaSelectionWindow } from './screenshot';
 import { copyImageUrl, downloadImageUrl, backgroundImagePath, getUsersPreset, updateUserPreset } from './utils';
 
 export default {
@@ -11,13 +11,13 @@ export default {
   },
 
   async createScreenshot(data) {
-    log.info("preparing screenshot")
     return createScreenshotWindow(data, this.core)
   },
 
   getIPCHandlers() {
     return {
       "screenshot:create-window": (_, data) => this.createScreenshot(data),
+      'screenshot:area': () => createAreaSelectionWindow(this.core),
       "screenshot:copy": async (_, dataUrl) => copyImageUrl(dataUrl),
       "screenshot:download": async (_, ...args) => downloadImageUrl(...args),
       "screenshot:backgroundimage-data": async (_, ...args) => backgroundImagePath(...args),

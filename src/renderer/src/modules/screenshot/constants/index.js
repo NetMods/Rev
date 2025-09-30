@@ -1,7 +1,7 @@
 export const PRESET_TYPES = Object.freeze({
-  DEFAULT: "default preset",
-  NEW: "new preset",
-  CUSTOM: "custom preset"
+  DEFAULT: "Default Preset",
+  NEW: "New Preset",
+  CUSTOM: "Custom Preset"
 })
 
 export const DEFAULT_CONFIG = {

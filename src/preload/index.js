@@ -34,11 +34,15 @@ contextBridge.exposeInMainWorld('api', {
 
   screenshot: {
     create: (...args) => ipcRenderer.send('screenshot:create-window', ...args),
-    createUsingBuffer: (...args) => ipcRenderer.send('screenshot:create-buffer', ...args),
+    createFromArea: (...args) => ipcRenderer.send('screenshot:selected-area', ...args),
     show: (callback) => ipcRenderer.on("screenshot:image-data", (_, data) => callback(data)),
+
+    openAreaSelection: () => ipcRenderer.send('screenshot:area'),
+
     copyImage: (...args) => ipcRenderer.invoke("screenshot:copy", ...args),
     downloadImage: (...args) => ipcRenderer.invoke("screenshot:download", ...args),
     getbackgroundImage: (...args) => ipcRenderer.invoke("screenshot:backgroundimage-data", ...args), // currently this API is not working need to make sone changes
+
     getUserPreset: (...args) => ipcRenderer.invoke("screenshot:get-preset", ...args),
     updateUserPreset: (...args) => ipcRenderer.invoke("screenshot:set-preset", ...args),
 

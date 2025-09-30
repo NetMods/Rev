@@ -32,7 +32,6 @@ if (!gotTheLock) {
   });
 }
 
-
 app.whenReady().then(async () => {
   await initErrorHandling()
 

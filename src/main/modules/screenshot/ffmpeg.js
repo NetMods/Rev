@@ -3,8 +3,8 @@ import path from "path";
 import fs from "fs";
 import { getFFmpegArgs } from "./utils";
 
-export const spawnScreenshotCapture = async (core, deviceIndex, ...args) => {
-  const ffmpegCmd = await core.paths.getFFmpegPath()
+export const spawnScreenshotCapture = async (core, ...args) => {
+  const [{ deviceIndex }] = args
   let screenIndex = deviceIndex
 
   if (screenIndex === undefined || null) {
@@ -12,8 +12,9 @@ export const spawnScreenshotCapture = async (core, deviceIndex, ...args) => {
     const screenDevice = videoDevices.find(device => device.name.toLowerCase().includes('capture screen'));
     screenIndex = screenDevice ? screenDevice.id : null
   }
+
   return new Promise((resolve, reject) => {
-    const tmpFile = path.join(os.tmpdir(), `screenshot_${Date.now()}.png`);
+    const tmpFile = path.join(os.tmpdir(), `${Date.now()}.png`);
     const ffmpegArgs = getFFmpegArgs(tmpFile, screenIndex, ...args);
 
     core.ffmpegManager.spawn(ffmpegArgs, {

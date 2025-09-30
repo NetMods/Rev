@@ -1,6 +1,6 @@
 import log from "electron-log/renderer"
 import { useAtom, useSetAtom } from "jotai"
-import { currentPresetNameAtom, userPresetAtom, presetTypeAtom, setPresetConfigAtom } from "../../../../store"
+import { currentPresetNameAtom, userPresetAtom, presetTypeAtom, setPresetConfigAtom } from "../../../../store/screenshot"
 import { PRESET_TYPES, DEFAULT_CONFIG } from "../../constants"
 
 const DeleteModal = () => {

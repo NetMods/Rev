@@ -36,9 +36,11 @@ export default function Select({ label, options, value, onChange, isDisabled }) 
       onClick={() => !isDisabled && setIsOpen(!isOpen)}
       className="relative font-sans  bg-base-200 rounded-md shadow-md shadow-base-100/30 border border-base-content/10 p-3">
       {/* Label */}
-      <div className={cn("text-[11px] uppercase tracking-wide text-base-content/60 font-medium pb-1")}>
-        {label.toUpperCase()}
-      </div>
+      {label &&
+        <div className={cn("text-[11px] uppercase tracking-wide text-base-content/60 font-medium pb-1")}>
+          {label.toUpperCase()}
+        </div>
+      }
 
       {/* The visible part of the select button */}
       <button
