@@ -18,7 +18,7 @@ export class VideoPreview {
     this.resizeObserver = null;
   }
 
-  init(canvasElement, videoPath, webcamPath, onTimeUpdate, onPreviewStateUpdate, effects) {
+  init(canvasElement, videoPath, webcamPath, effects, onTimeUpdate, onPreviewStateUpdate) {
     this.videoManager.init(videoPath);
     if (webcamPath) {
       this.webcamManager = new VideoManager();

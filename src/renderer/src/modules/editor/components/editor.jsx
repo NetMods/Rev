@@ -1,60 +1,19 @@
-import { useState } from "react";
 import Preview from "./preview"
 import { Controls } from "./controls";
 import Timeline from "./timeline";
-import { useRef } from "react";
 
-export const Editor = ({ id, data, onExportModalOpen }) => {
-  const { videoPath, effects: savedEffects } = data
-
-  const webcamPath = data?.webcamPath ?? null
-
-  const [currentTime, setCurrentTime] = useState(0)
-  const [videoDuration, setVideoDuration] = useState(0)
-  const [zoomLevel, setZoomLevel] = useState(6);
-
-  const [effects, setEffects] = useState(savedEffects || [])
-
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const videoPreviewInstance = useRef(null)
-
-  const handleTimeUpdate = (time, duration) => {
-    setCurrentTime(time);
-    setVideoDuration(duration);
-  };
-
-  const handleEffectsChange = async (newEffects) => {
-    setEffects(newEffects);
-    videoPreviewInstance.current.updateEffects(newEffects);
-    await window.api.project.updateEffects(id, newEffects);
-  };
-
-  const handlePreviewState = ({ isPlaying: p, isFullscreen: f }) => {
-    setIsPlaying(p);
-    setIsFullscreen(f);
-  };
-
-  const increaseZoom = () => setZoomLevel(prev => Math.min(8, prev + 1))
-  const decreaseZoom = () => setZoomLevel(prev => Math.max(0, prev - 1))
+export const Editor = ({ onExportModalOpen }) => {
 
   return (
     <div className='flex flex-col h-full gap-1 no-drag'>
-      <Preview
-        className="h-2/3 flex justify-center"
-        data={{ videoPreviewInstance, videoPath, webcamPath, handleTimeUpdate, handlePreviewState, effects }}
-      />
+      <Preview className="h-2/3 flex justify-center" />
 
       <Controls
         className="h-8 flex justify-between items-center"
-        data={{ preview: videoPreviewInstance.current, onExportModalOpen, videoDuration, currentTime, isPlaying, isFullscreen, increaseZoom, decreaseZoom }}
+        onExportModalOpen={onExportModalOpen}
       />
 
-      <Timeline
-        className="h-1/3 flex justify-center"
-        data={{ preview: videoPreviewInstance.current, videoDuration, currentTime, setCurrentTime, effects, handleEffectsChange, zoomLevel }}
-      />
+      <Timeline className="h-1/3 flex justify-center" />
     </div>
   )
 }

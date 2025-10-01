@@ -18,6 +18,7 @@ export const spawnScreenshotCapture = async (core, ...args) => {
     const ffmpegArgs = getFFmpegArgs(tmpFile, screenIndex, ...args);
 
     core.ffmpegManager.spawn(ffmpegArgs, {
+      name: "screenshot",
       onClose: (code) => {
         if (code !== 0) {
           return reject(new Error(`FFmpeg screenshot capture failed with exit code ${code}`));

@@ -1,6 +1,9 @@
 import { useEffect } from "react";
+import { useVideoEditor } from "../use-video-editor";
 
-export function useAutoScroll(timelineContainer, playheadRef, currentTime, videoDuration, videoWidth, isDragging) {
+export function useAutoScroll(timelineContainer, playheadRef, videoWidth, isDragging) {
+  const { videoDuration, currentTime } = useVideoEditor()
+
   useEffect(() => {
     if (!playheadRef?.current || !videoDuration) return;
     if (!timelineContainer?.current) return;

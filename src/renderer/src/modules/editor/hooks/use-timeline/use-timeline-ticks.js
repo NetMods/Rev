@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { formatTime } from "../../utils";
+import { useVideoEditor } from "../use-video-editor";
 
-export function useTimelineScale(zoomLevel, videoDuration, containerWidth) {
+export function useTimelineScale(containerWidth) {
   const [ticks, setTicks] = useState([]);
   const [pixelsPerSecond, setPixelsPerSecond] = useState(10);
   const [videoWidth, setVideoWidth] = useState(0);
+
+  const { zoomLevel, videoDuration } = useVideoEditor()
 
   useEffect(() => {
     if (containerWidth <= 0 || !videoDuration) return;

@@ -1,6 +1,9 @@
 import { useEffect } from "react";
+import { useVideoEditor } from "../use-video-editor";
 
-export function useTimelineWheel(timelineContainer, zoomLevel, videoDuration) {
+export function useTimelineWheel(timelineContainer) {
+  const { zoomLevel, videoDuration } = useVideoEditor()
+
   useEffect(() => {
     const timelineElement = timelineContainer.current;
     if (!timelineElement || videoDuration <= 0) return;

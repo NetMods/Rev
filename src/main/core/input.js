@@ -1,8 +1,9 @@
 import { spawn } from "child_process";
 import { join } from "path";
 import { readdir, readFile } from "fs-extra";
+import { ffmpegManager } from "./ffmpeg";
 
-export const getInputDevices = async (core) => {
+export const getInputDevices = async () => {
   const platform = process.platform;
 
   let videoDevices = [];
@@ -10,7 +11,7 @@ export const getInputDevices = async (core) => {
 
   if (platform === 'win32') {
     try {
-      const output = await runFFmpegCommand(['-list_devices', 'true', '-f', 'dshow', '-i', 'dummy'], core);
+      const output = await runFFmpegCommand(['-list_devices', 'true', '-f', 'dshow', '-i', 'dummy']);
       const lines = output.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
@@ -39,7 +40,7 @@ export const getInputDevices = async (core) => {
     }
   } else if (platform === 'darwin') {
     try {
-      const output = await runFFmpegCommand(['-f', 'avfoundation', '-list_devices', 'true', '-i', ''], core);
+      const output = await runFFmpegCommand(['-f', 'avfoundation', '-list_devices', 'true', '-i', '']);
       const lines = output.split('\n');
       let section;
 
@@ -186,11 +187,12 @@ export const getInputDevices = async (core) => {
   return { videoDevices, audioDevices };
 };
 
-function runFFmpegCommand(args, core) {
+function runFFmpegCommand(args) {
   return new Promise((resolve, reject) => {
     let output = '';
 
-    core.ffmpegManager.spawn(args, {
+    ffmpegManager.spawn(args, {
+      name: "input-devices",
       onData: (data) => { output += data.toString(); },
       onError: (data) => { output += data.toString(); },
       onClose: () => { resolve(output); },
