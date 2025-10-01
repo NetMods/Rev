@@ -5,7 +5,7 @@ import { showError } from "./error";
 import { randomUUID as uuid } from "crypto";
 import { app } from "electron";
 
-export class FFmpegManager {
+class FFmpegManager {
   constructor(core) {
     this.core = core;
     this.activeProcesses = new Map(); // Map<processId, proc>
@@ -108,3 +108,6 @@ export class FFmpegManager {
     log.info(`Killed all FFmpeg processes`);
   }
 }
+
+
+export const ffmpegManager = new FFmpegManager()

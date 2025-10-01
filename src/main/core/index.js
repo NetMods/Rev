@@ -10,7 +10,7 @@ import { handleProtocolRequests, registerProtocolScheme } from './protocol';
 import { initializeLogger, restartApp } from './utils';
 import input from './input';
 import { initErrorHandling, showError } from './error';
-import { FFmpegManager } from "./ffmpeg"
+import { ffmpegManager } from "./ffmpeg"
 
 const log = initializeLogger()
 
@@ -57,11 +57,11 @@ app.whenReady().then(async () => {
     },
     config,
     paths,
-    ffmpegManager: new FFmpegManager(this),
+    ffmpegManager,
     input,
     modules: {},
     ipcHandlers: {
-      'devices:get': async (_, ...args) => input.getInputDevices(this, ...args),
+      'devices:get': async (_, ...args) => input.getInputDevices(...args),
       'app:restart': () => restartApp(),
       'window:error': (_, ...args) => showError(...args),
       'window:close': (event) => closeWindow(event),
