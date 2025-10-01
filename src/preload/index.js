@@ -55,6 +55,7 @@ contextBridge.exposeInMainWorld('api', {
     getConfig: () => ipcRenderer.invoke('config:get'),
     updateConfig: (...args) => ipcRenderer.invoke('config:update', ...args),
 
+    report: (...args) => ipcRenderer.send('window:error:report', ...args),
     showError: (...args) => ipcRenderer.send('window:error', ...args),
     closeWindow: () => ipcRenderer.send('window:close'),
     minimizeWindow: () => ipcRenderer.send('window:minimize'),

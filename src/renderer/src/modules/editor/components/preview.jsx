@@ -1,10 +1,8 @@
 import { cn } from "../../../shared/utils"
 import { useVideoPreview } from "../hooks/use-video-preview";
 
-const VideoPreview = ({ className, data }) => {
-  const { videoPreviewInstance, videoPath, webcamPath, handleTimeUpdate, handlePreviewState, effects } = data
-
-  const { canvasRef } = useVideoPreview({ videoPreviewInstance, videoPath, webcamPath, handleTimeUpdate, handlePreviewState, effects });
+const VideoPreview = ({ className }) => {
+  const { canvasRef } = useVideoPreview();
 
   return (
     <div className={cn("rounded border-2 py-1 border-base-content/10 bg-base-200", className)}>

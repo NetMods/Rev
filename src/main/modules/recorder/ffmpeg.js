@@ -52,6 +52,7 @@ export const spawnScreenCapture = async (outputPath, opts, core) => {
 
   try {
     const processId = await core.ffmpegManager.spawn(args, {
+      name: "screen-capture",
       onClose: (code) => {
         if (code !== 0) {
           log.error(`Screen capture process closed with code ${code}`);
@@ -103,6 +104,7 @@ export const spawnWebcamCapture = async (outputPath, opts, core) => {
 
   try {
     const processId = await core.ffmpegManager.spawn(args, {
+      name: "webcam-capture",
       onClose: (code) => {
         if (code !== 0) {
           log.error(`Webcam capture process closed with code ${code}`);
@@ -143,6 +145,7 @@ export const mergeVideoClips = async (clipPaths, tempDirectory, videoName, core)
 
   return new Promise((resolve, reject) => {
     core.ffmpegManager.spawn(args, {
+      name: "merge-videos",
       onClose: (code) => {
         if (code === 0) {
           log.info(`Successfully merged clips into ${outputPath}`);
@@ -170,6 +173,7 @@ export const extractAudio = async (inputVideoPath, outputAudioPath, core) => {
 
   return new Promise((resolve, reject) => {
     core.ffmpegManager.spawn(args, {
+      name: "extract-audio",
       onClose: (code) => {
         if (code === 0) {
           log.info(`Successfully extracted audio to ${outputAudioPath}`);

@@ -1,9 +1,10 @@
 import { TbVideo as ClipIcon } from "react-icons/tb";
 import { useTimeline } from "../hooks/use-timeline/index";
 import { cn } from "../../../shared/utils";
+import { useVideoEditor } from "../hooks/use-video-editor";
 
-const Timeline = ({ className, data }) => {
-  const { videoDuration, preview, currentTime, setCurrentTime, zoomLevel, handleEffectsChange, effects } = data;
+const Timeline = ({ className }) => {
+  const { videoDuration } = useVideoEditor()
 
   const {
     ticks,
@@ -13,7 +14,7 @@ const Timeline = ({ className, data }) => {
     timelineContainer,
     playheadRef,
     effectsRowRef
-  } = useTimeline({ preview, videoDuration, currentTime, setCurrentTime, effects, handleEffectsChange, zoomLevel });
+  } = useTimeline();
 
   return (
     <div className={cn("rounded border-2 border-base-content/10 bg-base-200", className)}>
@@ -56,31 +57,35 @@ const Timeline = ({ className, data }) => {
           ))}
         </div>
 
-        {/*Clip row*/}
-        <div
-          className="w-full h-1/2 rounded relative flex overflow-hidden"
-          style={{ width: `${videoWidth > containerWidth ? videoWidth : containerWidth}px` }}
-        >
-          <div style={{ width: `${videoWidth}px` }} className="rounded relative group">
-            <div className="absolute top-0 left-0 flex gap-1 justify-center items-center bg-accent/60 w-full">
-              <ClipIcon className="text-accent-content" />
-              <span className="pl-1 text-accent-content text-sm"> Clip </span>
-              <span className="pl-1 text-accent-content text-sm">{String(videoDuration).split('.')[0]}s</span>
+
+        {videoDuration > 0 && (
+          <>
+            <div
+              className="w-full h-1/2 rounded relative flex overflow-hidden"
+              style={{ width: `${videoWidth > containerWidth ? videoWidth : containerWidth}px` }}
+            >
+              <div style={{ width: `${videoWidth}px` }} className="rounded relative group">
+                <div className="absolute top-0 left-0 flex gap-1 justify-center items-center bg-accent/60 w-full">
+                  <ClipIcon className="text-accent-content" />
+                  <span className="pl-1 text-accent-content text-sm"> Clip </span>
+                  <span className="pl-1 text-accent-content text-sm">{String(videoDuration).split('.')[0]}s</span>
+                </div>
+
+                <div className="flex size-full rounded items-center justify-center border-1 border-accent/70 bg-accent/55 grain-overlay" />
+
+                <div className="absolute left-1 top-1/2 h-1/2 w-1 translate-y-[-50%] bg-accent-content/70 cursor-ew-resize z-50 rounded hidden group-hover:hidden" />
+                <div className="absolute right-1 top-1/2 h-1/2 w-1 translate-y-[-50%] bg-accent-content/70 cursor-ew-resize z-50 rounded hidden group-hover:hidden" />
+              </div>
             </div>
 
-            <div className="flex size-full rounded items-center justify-center border-1 border-accent/70 bg-accent/55 grain-overlay" />
-
-            <div className="absolute left-1 top-1/2 h-1/2 w-1 translate-y-[-50%] bg-accent-content/70 cursor-ew-resize z-50 rounded hidden group-hover:hidden" />
-            <div className="absolute right-1 top-1/2 h-1/2 w-1 translate-y-[-50%] bg-accent-content/70 cursor-ew-resize z-50 rounded hidden group-hover:hidden" />
-          </div>
-        </div>
-
-        {/*Effects row*/}
-        <div
-          ref={effectsRowRef}
-          className="w-full h-1/2 rounded relative flex overflow-hidden"
-          style={{ width: `${videoWidth > containerWidth ? videoWidth : containerWidth}px` }}
-        ></div>
+            <div
+              ref={effectsRowRef}
+              className="w-full h-1/2 rounded relative flex overflow-hidden"
+              style={{ width: `${videoWidth > containerWidth ? videoWidth : containerWidth}px` }}
+            ></div>
+          </>
+        )
+        }
       </div>
     </div>
   );

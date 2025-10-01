@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from "react";
+import { useVideoEditor } from "../use-video-editor";
 
 export function usePlayheadDrag(
   playheadRef,
-  preview,
-  currentTime,
-  setCurrentTime,
-  videoDuration,
   videoWidth,
   pixelsPerSecond,
 ) {
+  const { videoPreviewInstance, videoDuration, setCurrentTime } = useVideoEditor()
+
   const [isDragging, setIsDragging] = useState(false);
   const rafRef = useRef(null);
   const pendingTimeRef = useRef(null);
@@ -36,8 +35,8 @@ export function usePlayheadDrag(
           const px = (t / videoDuration) * videoWidth;
           applyPlayheadTransform(px);
 
-          if (preview) {
-            preview.seekTo(t);
+          if (videoPreviewInstance) {
+            videoPreviewInstance.seekTo(t);
           }
 
           const now = Date.now();
@@ -66,7 +65,7 @@ export function usePlayheadDrag(
       applyPlayheadTransform(finalPx);
 
       setCurrentTime(finalTime);
-      if (preview) preview.seekTo(finalTime);
+      if (videoPreviewInstance) videoPreviewInstance.seekTo(finalTime);
 
       pendingTimeRef.current = null;
     };
@@ -84,7 +83,7 @@ export function usePlayheadDrag(
         rafRef.current = null;
       }
     };
-  }, [isDragging, pixelsPerSecond, videoDuration, videoWidth, preview, setCurrentTime, playheadRef]);
+  }, [isDragging, pixelsPerSecond, videoDuration, videoWidth, videoPreviewInstance, setCurrentTime, playheadRef]);
 
   return { isDragging };
 }

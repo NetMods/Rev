@@ -1,6 +1,35 @@
 import { useEffect } from "react";
+import { useVideoEditor } from "../use-video-editor";
 
-const createEffectDiv = (width, xShift, effect, duration, onDelete) => {
+export const useTimelineEffects = (effectsRowRef, pixelsPerSecond, onEffectsChange) => {
+  const { effects } = useVideoEditor()
+
+  useEffect(() => {
+    const effectsRow = effectsRowRef.current;
+    if (!effectsRow) return;
+
+    effectsRow.innerHTML = "";
+
+    effects.forEach((effect) => {
+      const { startTime, endTime, id } = effect;
+
+      const duration = (endTime - startTime) || 0;
+      const xShift = startTime * pixelsPerSecond;
+      const width = duration * pixelsPerSecond;
+
+      if (width <= 0) return;
+
+      const effectDiv = createEffectDiv(width, xShift, effect, duration, () => {
+        const updatedEffects = effects.filter((e) => e.id !== id);
+        onEffectsChange(updatedEffects);
+      });
+      effectsRow.appendChild(effectDiv);
+    });
+  }, [effects, pixelsPerSecond, effectsRowRef, onEffectsChange]);
+};
+
+
+function createEffectDiv(width, xShift, effect, duration, onDelete) {
   const effectDiv = document.createElement("div");
   effectDiv.style.width = `${width}px`;
   effectDiv.style.transform = `translateX(${xShift}px)`;
@@ -58,27 +87,3 @@ const createEffectDiv = (width, xShift, effect, duration, onDelete) => {
   return effectDiv;
 };
 
-export const useTimelineEffects = (effects, effectsRowRef, pixelsPerSecond, onEffectsChange) => {
-  useEffect(() => {
-    const effectsRow = effectsRowRef.current;
-    if (!effectsRow) return;
-
-    effectsRow.innerHTML = "";
-
-    effects.forEach((effect) => {
-      const { startTime, endTime, id } = effect;
-
-      const duration = (endTime - startTime) || 0;
-      const xShift = startTime * pixelsPerSecond;
-      const width = duration * pixelsPerSecond;
-
-      if (width <= 0) return;
-
-      const effectDiv = createEffectDiv(width, xShift, effect, duration, () => {
-        const updatedEffects = effects.filter((e) => e.id !== id);
-        onEffectsChange(updatedEffects);
-      });
-      effectsRow.appendChild(effectDiv);
-    });
-  }, [effects, pixelsPerSecond, effectsRowRef, onEffectsChange]);
-};

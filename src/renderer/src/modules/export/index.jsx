@@ -11,6 +11,8 @@ import {
 import useModalFocus from "./hooks/use-modal-focus";
 import { VideoExporter } from "./lib/video-export";
 import Select from "../../shared/ui/select";
+import { useAtomValue } from "jotai";
+import { projectAtom } from "../../store/editor";
 
 const settingOptions = {
   Format: [
@@ -31,7 +33,10 @@ const settingOptions = {
   ],
 };
 
-export default function ExportModal({ onClose, projectId, videoPath, webcamPath, audioPath, effects }) {
+export default function ExportModal({ onClose }) {
+  const { id, data } = useAtomValue(projectAtom)
+  const { videoPath, webcamPath, audioPath, effects } = data
+
   const modalRef = useRef(null);
   useModalFocus(modalRef);
 
@@ -55,7 +60,7 @@ export default function ExportModal({ onClose, projectId, videoPath, webcamPath,
     exporterRef.current = exporter;
     if (!exporter) return
 
-    exporter.init(videoPath, webcamPath, audioPath, effects, projectId)
+    exporter.init(videoPath, webcamPath, audioPath, effects, id)
 
     exporter.onExportProgress = ({ current, total }) => {
       setFrames({ currentFrame: current, totalFrames: total });
