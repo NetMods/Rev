@@ -1,7 +1,7 @@
 import { useVideoEditor } from "../use-video-editor";
 
-export function useTimelineClick(timelineContainer, videoWidth, videoPreviewInstance, isDragging) {
-  const { videoDuration, setCurrentTime } = useVideoEditor()
+export function useTimelineClick(timelineContainer, videoWidth, isDragging) {
+  const { videoDuration, setCurrentTime, videoPreviewInstance } = useVideoEditor()
 
   const handleTimelineClick = (e) => {
     if (isDragging) return;

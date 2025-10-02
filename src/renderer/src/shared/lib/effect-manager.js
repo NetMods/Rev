@@ -1,129 +1,172 @@
+import { getOS } from "../utils";
+
 export class EffectsManager {
   constructor() {
     this.effects = [];
+    this.resetDuration = 1; // Smoother 0.5 second reset
+    this.dpr = 1;
+
     this.currentScale = 1;
     this.currentTranslateX = 0;
     this.currentTranslateY = 0;
-
-    this.isResetting = false;
-    this.resetStartTime = 0;
-    this.resetDuration = 1;
-    this.resetStartScale = 1;
-    this.resetStartTranslateX = 0;
-    this.resetStartTranslateY = 0;
   }
 
   init(effects) {
-    this.effects = effects;
-  }
-
-  getActiveEffectsAtTime(currentTime) {
-    return this.effects.filter(effect => {
-      const start = parseFloat(effect.startTime);
-      const end = parseFloat(effect.endTime);
-      return currentTime >= start && currentTime <= end;
-    });
+    this.effects = effects.sort((a, b) => parseFloat(a.startTime) - parseFloat(b.startTime));
+    if (getOS() !== 'mac') this.dpr = window.devicePixelRatio || 1;
   }
 
   applyEffects(ctx, video, currentTime) {
     if (!video || !ctx) return;
-    const activeEffects = this.getActiveEffectsAtTime(currentTime);
 
-    if (activeEffects.length > 0) {
-      this.isResetting = false;
-      activeEffects.forEach(effect => {
-        if (effect.type === 'zoom') {
-          this.applyZoomEffect(effect, currentTime);
-        }
-        if (effect.type === 'pan') {
-          this.applyPanEffect(effect, currentTime);
-        }
-      });
+    const transform = this.calculateTransformAtTime(currentTime);
 
-      ctx.translate(this.currentTranslateX, this.currentTranslateY);
-      ctx.scale(this.currentScale, this.currentScale);
-    } else {
-      if (this.currentScale !== 1 || this.currentTranslateX !== 0 || this.currentTranslateY !== 0) {
-        this.resetZoomEffect(currentTime)
-        ctx.translate(this.currentTranslateX, this.currentTranslateY);
-        ctx.scale(this.currentScale, this.currentScale);
-      }
-      else {
-        this.isResetting = false;
-      }
-    }
+    // Store the calculated values (can be useful for debugging)
+    this.currentScale = transform.scale;
+    this.currentTranslateX = transform.translateX;
+    this.currentTranslateY = transform.translateY;
+
+    // Apply the final, correct transformation to the canvas
+    ctx.translate(transform.translateX, transform.translateY);
+    ctx.scale(transform.scale, transform.scale);
   }
 
-  applyZoomEffect(effect, currentTime) {
-    const { startTime, endTime, center, level } = effect
-    const duration = endTime - startTime
 
-    if (!effect._started) {
-      effect._started = true;
-      effect.initialScale = this.currentScale;
+  calculateTransformAtTime(currentTime) {
+    // 1. Define the base transform
+    let baseTransform = {
+      scale: 1,
+      translateX: 0,
+      translateY: 0
+    };
 
-      effect.initialTranslateX = this.currentTranslateX;
-      effect.initialTranslateY = this.currentTranslateY;
+    // 2. Find all effects that have fully completed before the currentTime
+    const completedEffects = this.effects.filter(
+      effect => parseFloat(effect.endTime) <= currentTime
+    );
 
-      const dpr = window.devicePixelRatio || 1
-      const centerX = center.x * dpr, centerY = center.y * dpr
-      const worldX = (centerX - effect.initialTranslateX) / effect.initialScale;
-      const worldY = (centerY - effect.initialTranslateY) / effect.initialScale;
-
-      effect.targetTranslateX = centerX - (level * worldX);
-      effect.targetTranslateY = centerY - (level * worldY);
-
-      effect.targetTranslateX = Math.abs(effect.targetTranslateX) < 300 ? 0 : effect.targetTranslateX
-      effect.targetTranslateY = Math.abs(effect.targetTranslateY) < 300 ? 0 : effect.targetTranslateY
+    // 3. Apply the final state of each completed effect cumulatively
+    for (const effect of completedEffects) {
+      baseTransform = this.getEffectEndState(effect, baseTransform);
     }
 
+    // 4. Find the currently active effect
+    const activeEffect = this.effects.find(effect => {
+      const start = parseFloat(effect.startTime);
+      const end = parseFloat(effect.endTime);
+      return currentTime >= start && currentTime <= end;
+    });
+
+    // 5. If an effect is active, calculate its progress based on the cumulative state
+    if (activeEffect) {
+      return this.calculateEffectInProgress(activeEffect, currentTime, baseTransform);
+    }
+
+    // 6. If no effect is active, check if a reset is needed
+    const lastEffect = this.effects[this.effects.length - 1];
+    const lastEffectEndTime = lastEffect ? parseFloat(lastEffect.endTime) : 0;
+
+    if (currentTime > lastEffectEndTime) {
+      // We are after the last effect, so we need to reset
+      return this.calculateResetInProgress(currentTime, lastEffectEndTime, baseTransform);
+    }
+
+    // If we are between effects, hold the state of the last completed effect
+    return baseTransform;
+  }
+
+  getEffectEndState(effect, initialTransform) {
+    return this.calculateEffectInProgress(effect, parseFloat(effect.endTime), initialTransform);
+  }
+
+
+  calculateEffectInProgress(effect, currentTime, initialTransform) {
+    const start = parseFloat(effect.startTime);
+    const end = parseFloat(effect.endTime);
+    const duration = end - start;
+    const progress = duration > 0 ? Math.min((currentTime - start) / duration, 1) : 1;
+    const eased = this.ease(progress);
+
+    if (effect.type === 'zoom') {
+      return this.calculateZoom(effect, eased, initialTransform);
+    }
+    if (effect.type === 'pan') {
+      return this.calculatePan(effect, eased, initialTransform);
+    }
+    return initialTransform;
+  }
+
+  /**
+   * Calculates the transformation for a reset animation that is in progress.
+   */
+  calculateResetInProgress(currentTime, lastEffectEndTime, initialTransform) {
+    const resetStartTime = lastEffectEndTime;
+    const progress = Math.min((currentTime - resetStartTime) / this.resetDuration, 1);
+    const eased = this.ease(progress);
+
+    if (progress >= 1) {
+      return { scale: 1, translateX: 0, translateY: 0 };
+    }
+
+    // Interpolate from the last known state back to the default
+    const scale = initialTransform.scale + (1 - initialTransform.scale) * eased;
+    const translateX = initialTransform.translateX + (0 - initialTransform.translateX) * eased;
+    const translateY = initialTransform.translateY + (0 - initialTransform.translateY) * eased;
+
+    return { scale, translateX, translateY };
+  }
+
+  /**
+   * Pure calculation function for a zoom effect.
+   */
+  calculateZoom(effect, easedProgress, initialTransform) {
+    const { center, level } = effect;
     const targetScale = level;
-    const progress = Math.min((currentTime - startTime) / duration, 1)
-    const eased = this.ease(progress)
 
-    this.currentScale = effect.initialScale + (targetScale - effect.initialScale) * eased
-    this.currentTranslateX = effect.initialTranslateX + (effect.targetTranslateX - effect.initialTranslateX) * eased;
-    this.currentTranslateY = effect.initialTranslateY + (effect.targetTranslateY - effect.initialTranslateY) * eased;
+    // Calculate the target translation needed to zoom towards the center point
+    const centerX = center.x * this.dpr;
+    const centerY = center.y * this.dpr;
+
+    const worldX = (centerX - initialTransform.translateX) / initialTransform.scale;
+    const worldY = (centerY - initialTransform.translateY) / initialTransform.scale;
+
+    const targetTranslateX = centerX - (targetScale * worldX);
+    const targetTranslateY = centerY - (targetScale * worldY);
+
+    // Interpolate scale and translation
+    const currentScale = initialTransform.scale + (targetScale - initialTransform.scale) * easedProgress;
+    const currentTranslateX = initialTransform.translateX + (targetTranslateX - initialTransform.translateX) * easedProgress;
+    const currentTranslateY = initialTransform.translateY + (targetTranslateY - initialTransform.translateY) * easedProgress;
+
+    return {
+      scale: currentScale,
+      translateX: currentTranslateX,
+      translateY: currentTranslateY,
+    };
   }
 
-  applyPanEffect(effect, currentTime) {
-    const { startTime, endTime, path } = effect;
-    const totalDuration = parseFloat(endTime) - parseFloat(startTime);
-
-    if (!effect._started) {
-      effect._started = true;
-      effect.initialTranslateX = this.currentTranslateX;
-      effect.initialTranslateY = this.currentTranslateY;
-      effect.initialScale = this.currentScale;
-
-      // ADD THIS: Get DPR here, same as in zoom
-      const dpr = window.devicePixelRatio || 1;
-
-      // UPDATE THIS: Scale the entire path by DPR upfront (assuming recorded path coords are in logical pixels)
-      const scaledPath = path.map(point => ({
-        x: point.x * dpr,
-        y: point.y * dpr,
-        time: point.time
-      }));
-
-      // UPDATE THIS: Process the scaled path instead
-      effect.processedPath = this.processPathForInterpolation(scaledPath, startTime, endTime);
+  /**
+   * Pure calculation function for a pan effect.
+   */
+  calculatePan(effect, easedProgress, initialTransform) {
+    if (!effect.processedPath) {
+      // Pre-process and cache the path if it hasn't been done yet.
+      const scaledPath = effect.path.map(p => ({ x: p.x * this.dpr, y: p.y * this.dpr }));
+      effect.processedPath = this.processPathForInterpolation(scaledPath);
     }
 
-    const currentProgress = Math.min((currentTime - parseFloat(startTime)) / totalDuration, 1);
-    const easedProgress = this.ease(currentProgress);
-
-    // Find the current position along the path
     const currentPosition = this.interpolateAlongPath(effect.processedPath, easedProgress);
+    const startPosition = effect.processedPath[0];
 
-    // Calculate the pan offset (negative because we're moving the canvas, not the content)
-    const panOffsetX = -(currentPosition.x - effect.processedPath[0].x);
-    const panOffsetY = -(currentPosition.y - effect.processedPath[0].y);
+    // The offset is the difference between the current path point and the start point
+    const panOffsetX = -(currentPosition.x - startPosition.x);
+    const panOffsetY = -(currentPosition.y - startPosition.y);
 
-    // Apply the pan offset to the current transformation
-    this.currentTranslateX = effect.initialTranslateX + panOffsetX;
-    this.currentTranslateY = effect.initialTranslateY + panOffsetY;
-    this.currentScale = effect.initialScale; // Maintain current scale during pan
+    return {
+      scale: initialTransform.scale, // Pan does not change scale
+      translateX: initialTransform.translateX + panOffsetX,
+      translateY: initialTransform.translateY + panOffsetY,
+    };
   }
 
   processPathForInterpolation(path) {
@@ -133,91 +176,38 @@ export class EffectsManager {
     for (let i = 0; i < path.length; i++) {
       const point = path[i];
       let segmentDistance = 0;
-
       if (i > 0) {
         const prevPoint = path[i - 1];
-        segmentDistance = Math.sqrt(
-          Math.pow(point.x - prevPoint.x, 2) +
-          Math.pow(point.y - prevPoint.y, 2)
-        );
+        segmentDistance = Math.sqrt(Math.pow(point.x - prevPoint.x, 2) + Math.pow(point.y - prevPoint.y, 2));
         totalDistance += segmentDistance;
       }
-
-      processedPath.push({
-        x: point.x,
-        y: point.y,
-        time: parseFloat(point.time),
-        cumulativeDistance: totalDistance,
-        segmentDistance: segmentDistance
-      });
+      processedPath.push({ ...point, cumulativeDistance: totalDistance });
     }
 
-    // Normalize distances to 0-1 range for easier interpolation
     processedPath.forEach(point => {
       point.normalizedDistance = totalDistance > 0 ? point.cumulativeDistance / totalDistance : 0;
     });
-
     return processedPath;
   }
 
   interpolateAlongPath(processedPath, progress) {
-    if (processedPath.length === 0) return { x: 0, y: 0 };
-    if (processedPath.length === 1) return { x: processedPath[0].x, y: processedPath[0].y };
-    if (progress <= 0) return { x: processedPath[0].x, y: processedPath[0].y };
-    if (progress >= 1) return { x: processedPath[processedPath.length - 1].x, y: processedPath[processedPath.length - 1].y };
+    if (!processedPath || processedPath.length === 0) return { x: 0, y: 0 };
+    if (progress <= 0) return processedPath[0];
+    if (progress >= 1) return processedPath[processedPath.length - 1];
 
-    // Find the segment where the current progress falls
-    for (let i = 0; i < processedPath.length - 1; i++) {
-      const currentPoint = processedPath[i];
-      const nextPoint = processedPath[i + 1];
-
-      if (progress >= currentPoint.normalizedDistance && progress <= nextPoint.normalizedDistance) {
-        // Calculate local progress within this segment
-        const segmentRange = nextPoint.normalizedDistance - currentPoint.normalizedDistance;
-        const localProgress = segmentRange > 0 ?
-          (progress - currentPoint.normalizedDistance) / segmentRange : 0;
-
-        // Linear interpolation between the two points
+    for (let i = 1; i < processedPath.length; i++) {
+      const p1 = processedPath[i - 1];
+      const p2 = processedPath[i];
+      if (progress >= p1.normalizedDistance && progress <= p2.normalizedDistance) {
+        const segmentRange = p2.normalizedDistance - p1.normalizedDistance;
+        const localProgress = segmentRange > 0 ? (progress - p1.normalizedDistance) / segmentRange : 0;
         return {
-          x: currentPoint.x + (nextPoint.x - currentPoint.x) * localProgress,
-          y: currentPoint.y + (nextPoint.y - currentPoint.y) * localProgress
+          x: p1.x + (p2.x - p1.x) * localProgress,
+          y: p1.y + (p2.y - p1.y) * localProgress,
         };
       }
     }
-
-    // Fallback to the last point
-    return {
-      x: processedPath[processedPath.length - 1].x,
-      y: processedPath[processedPath.length - 1].y
-    };
-  }
-
-  resetZoomEffect(currentTime) {
-    if (!this.isResetting) {
-      this.isResetting = true;
-      this.resetStartTime = currentTime;
-      this.resetStartScale = this.currentScale;
-      this.resetStartTranslateX = this.currentTranslateX;
-      this.resetStartTranslateY = this.currentTranslateY;
-    }
-
-    const progress = Math.min((currentTime - this.resetStartTime) / this.resetDuration, 1);
-    const eased = this.ease(progress);
-
-    this.currentScale = this.resetStartScale + (1 - this.resetStartScale) * eased;
-    this.currentTranslateX = this.resetStartTranslateX + (0 - this.resetStartTranslateX) * eased;
-    this.currentTranslateY = this.resetStartTranslateY + (0 - this.resetStartTranslateY) * eased;
-
-    if (progress >= 1) {
-      this.isResetting = false;
-      this.currentScale = 1;
-      this.currentTranslateX = 0;
-      this.currentTranslateY = 0;
-    }
-  }
-
-  updateEffects(newEffects) {
-    this.effects = newEffects || [];
+    return processedPath[processedPath.length - 1];
   }
 
   ease(x) {
@@ -225,6 +215,6 @@ export class EffectsManager {
   }
 
   destroy() {
-    this.effects = []
+    this.effects = [];
   }
 }
