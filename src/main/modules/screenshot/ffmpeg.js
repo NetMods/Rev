@@ -36,14 +36,14 @@ export const spawnScreenshotCapture = async (core, ...args) => {
                 console.warn(`Failed to cleanup temporary screenshot file: ${unlinkErr.message}`);
               }
             });
-
+            console.log("resolving dataurl")
             resolve(dataUrl);
           } catch (conversionErr) {
             reject(new Error(`Failed to convert screenshot to base64: ${conversionErr.message}`));
           }
         });
       },
-      dialogOnError: true // Show error dialog if screenshot fails
+      dialogOnError: true
     }).catch(err => {
       reject(new Error(`Failed to start FFmpeg for screenshot: ${err.message}`));
     });

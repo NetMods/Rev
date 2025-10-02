@@ -27,7 +27,7 @@ export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, se
 
     filteredDevices.push({
       name: "Select An Area",
-      id: screenDevice?.id ? -1 * screenDevice?.id : -1
+      id: -1 * screenDevice?.id || -1
     })
   }
 

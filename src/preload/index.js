@@ -35,9 +35,8 @@ contextBridge.exposeInMainWorld('api', {
   screenshot: {
     create: (...args) => ipcRenderer.send('screenshot:create-window', ...args),
     createFromArea: (...args) => ipcRenderer.send('screenshot:selected-area', ...args),
-    show: (callback) => ipcRenderer.on("screenshot:image-data", (_, data) => callback(data)),
 
-    openAreaSelection: () => ipcRenderer.send('screenshot:area'),
+    openAreaSelection: (...args) => ipcRenderer.send('screenshot:area', ...args),
 
     copyImage: (...args) => ipcRenderer.invoke("screenshot:copy", ...args),
     downloadImage: (...args) => ipcRenderer.invoke("screenshot:download", ...args),
@@ -47,6 +46,7 @@ contextBridge.exposeInMainWorld('api', {
     updateUserPreset: (...args) => ipcRenderer.invoke("screenshot:set-preset", ...args),
 
     onShow: (callback) => ipcRenderer.on("screenshot:image-data", (_, data) => callback(data)),
+    getImageData: (...args) => ipcRenderer.invoke("screenshot:get-image", ...args),
   },
 
   core: {

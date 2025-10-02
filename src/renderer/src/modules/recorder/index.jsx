@@ -83,7 +83,7 @@ export default function Page() {
     } else if (type === 'Screenshot') {
       playSound(screenshotSound)
       if (device.id > 0) window.api.screenshot.create({ deviceIndex: device?.id })
-      else window.api.screenshot.openAreaSelection()
+      else window.api.screenshot.openAreaSelection({ deviceIndex: device?.id })
       setDeviceSelectionMode(null)
     }
   };

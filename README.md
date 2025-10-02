@@ -35,6 +35,8 @@ Todos:
 - feat: padding/ radius and bg-changer
 - feat: auto updater
 - feat: add undo/redo feature in editors
+- fix: crop working for only one direction
+- fix: avoid multiple crops
 
 
 Quality Improvments
