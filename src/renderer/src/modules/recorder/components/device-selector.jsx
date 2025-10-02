@@ -3,44 +3,14 @@ import {
   IoMicOutline as Mic,
   IoArrowBack as BackIcon,
 } from 'react-icons/io5';
-import { RiScreenshotLine as Screenshot } from "react-icons/ri";
 
 export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, selectedDevice }) {
-  let filteredDevices = ["Video", "Screenshot"].includes(deviceType) ? devices.videoDevices : devices.audioDevices;
-  let iconComponent;
+  let filteredDevices = deviceType === 'Video' ? devices.videoDevices : devices.audioDevices;
 
   if (deviceType === 'Video') {
     filteredDevices = filteredDevices.filter(
       (device) => !device.name.toLowerCase().includes('capture screen')
     );
-  } else if (deviceType === "Screenshot") {
-    const screenDevice = filteredDevices.find(device =>
-      device.name.toLowerCase().includes("capture screen")
-    );
-
-    filteredDevices = []
-
-    filteredDevices.push({
-      name: "Full-screen",
-      id: screenDevice?.id || 1
-    })
-
-    filteredDevices.push({
-      name: "Select An Area",
-      id: screenDevice?.id ? -1 * screenDevice?.id : -1
-    })
-  }
-
-
-  switch (deviceType.toLowerCase()) {
-    case 'video':
-      iconComponent = <Camera size={20} className="shrink-0" />
-      break
-    case 'audio':
-      iconComponent = <Mic size={20} className="shrink-0" />
-      break;
-    case 'screenshot':
-      iconComponent = <Screenshot size={20} className='shrink-0' />
   }
 
   const handleDeviceClick = (device) => {
@@ -74,7 +44,13 @@ export function DeviceSelector({ devices, deviceType, onBack, onSelectDevice, se
               onClick={() => handleDeviceClick(device)}
             >
               <span className="inline-flex items-center justify-start whitespace-nowrap scroll-container">
-                <span> {iconComponent} </span>
+                <span>
+                  {deviceType.toLowerCase() === 'video' ? (
+                    <Camera size={20} className="shrink-0" />
+                  ) : (
+                    <Mic size={20} className="shrink-0" />
+                  )}
+                </span>
                 <span className="pl-2 text-left pr-5">{device.name}</span>
               </span>
             </button>
