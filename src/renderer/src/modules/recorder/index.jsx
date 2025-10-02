@@ -24,6 +24,7 @@ export default function Page() {
   const dimensions = useWindowSize();
 
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [systemAudio, setSystemAudio] = useState(false);
   const [selectionMode, setSelectionMode] = useState(null);
   const [deviceSelectionMode, setDeviceSelectionMode] = useState(null);
   const [selectedVideoDevice, setSelectedVideoDevice] = useState(null);
@@ -41,9 +42,11 @@ export default function Page() {
 
         const savedVideoId = config?.videoDeviceId;
         const savedAudioId = config?.audioDeviceId;
+        const savedSystemAudio = config?.systemAudio;
 
         setSelectedVideoDevice(deviceList.videoDevices.find(d => d.id === savedVideoId));
         setSelectedAudioDevice(deviceList.audioDevices.find(d => d.id === savedAudioId));
+        setSystemAudio(savedSystemAudio)
 
         if (!savedVideoId && selectedVideoDevice) {
           await window.api.core.updateConfig({ videoDeviceId: selectedVideoDevice.id });
@@ -114,7 +117,7 @@ export default function Page() {
       label: !isRecording ? 'Start Recording' : (isPaused ? 'Resume Recording' : 'Pause Recording'),
       action: () => {
         if (!isRecording) {
-          startRecording({ videoDevice: selectedVideoDevice?.id, audioDevice: selectedAudioDevice?.id });
+          startRecording({ videoDevice: selectedVideoDevice?.id, audioDevice: selectedAudioDevice?.id, systemAudio });
         } else {
           togglePause();
         }
@@ -123,7 +126,12 @@ export default function Page() {
     },
     {
       icon: <SystemAudioIcon size={30} />,
-      action: () => { },
+      action: () => {
+        setSystemAudio((prev) => {
+          window.api.core.updateConfig({ systemAudio: !prev });
+          return !prev
+        })
+      },
       label: 'System Audio',
       isDisabled: false
     },
@@ -166,6 +174,7 @@ export default function Page() {
               hoveredIndex={hoveredIndex}
               onHover={handleHover}
               onLeave={handleLeave}
+              systemAudio={systemAudio}
               selectedVideoDevice={selectedVideoDevice}
               selectedAudioDevice={selectedAudioDevice}
             />
