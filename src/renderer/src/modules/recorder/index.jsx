@@ -14,7 +14,7 @@ import { CentralDisplay } from './components/center-display';
 import { AnnotateIcon } from './components/icons';
 import dslrSound from '../../assets/dslr.wav';
 import tickSound from '../../assets/click.wav';
-import { playSound } from '../../shared/utils';
+import { cn, playSound } from '../../shared/utils';
 import { DeviceSelector } from './components/device-selector';
 
 const hoverSound = new Audio(tickSound);
@@ -71,6 +71,7 @@ export default function Page() {
       setDevices({ videoDevices: [], audioDevices: [] });
       setDeviceSelectionMode(mode);
     }
+    handleLeave()
   };
 
   const handleSelectDevice = async (type, device) => {
@@ -145,7 +146,7 @@ export default function Page() {
   return (
     <div className="font-sans w-full h-screen select-none">
       <div
-        className="no-drag w-full h-full bg-base-100 flex justify-center items-center origin-center overflow-hidden shadow-xl transition-[border-radius] duration-300"
+        className={cn("no-drag w-full h-full bg-base-100 origin-center overflow-hidden shadow-xl ", !deviceSelectionMode && "flex justify-center items-center ")}
         style={{ borderRadius: deviceSelectionMode ? '0' : '100%' }}
       >
         {deviceSelectionMode ? (
