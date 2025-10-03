@@ -21,7 +21,8 @@ export function ModeSelector({ onBack, type, devices }) {
 
   const handleArea = async () => {
     try {
-      await window.api.screenshot.openAreaSelection();
+      const id = devices?.videoDevices.find(device => device.name.toLowerCase().includes("capture screen"))?.id || 1;
+      await window.api.screenshot.openAreaSelection({ deviceIndex: id });
       try { screenshotSound.play(); } catch { /* ignore */ }
     } catch (err) {
       console.error('Failed to open area selection:', err);
