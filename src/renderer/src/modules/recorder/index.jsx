@@ -4,30 +4,28 @@ import {
   IoPauseSharp as Pause,
 } from 'react-icons/io5';
 import { RiScreenshotLine as Screenshot } from "react-icons/ri";
-import { TbScreenshot as RecordingArea } from 'react-icons/tb';
 import { BsPlay as Play } from 'react-icons/bs';
 import { useState, useEffect, useCallback } from 'react';
 import { useRecording } from './hooks/use-recording';
 import { useWindowSize } from './hooks/use-window-size';
 import { CircularMenu } from './components/radial-menu';
 import { CentralDisplay } from './components/center-display';
-import { AnnotateIcon } from './components/icons';
-import dslrSound from '../../assets/dslr.wav';
+import { AnnotateIcon, SystemAudioIcon } from './components/icons';
 import tickSound from '../../assets/click.wav';
-import { playSound } from '../../shared/utils';
+import { cn, playSound } from '../../shared/utils';
 import { DeviceSelector } from './components/device-selector';
+import { ModeSelector } from './components/mode-selector';
 
 const hoverSound = new Audio(tickSound);
 hoverSound.volume = 0.05;
-
-const screenshotSound = new Audio(dslrSound);
-screenshotSound.volume = 0.05;
 
 export default function Page() {
   const { startRecording, stopRecording, togglePause, isRecording, isPaused, elapsedTime } = useRecording();
   const dimensions = useWindowSize();
 
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [systemAudio, setSystemAudio] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(null);
   const [deviceSelectionMode, setDeviceSelectionMode] = useState(null);
   const [selectedVideoDevice, setSelectedVideoDevice] = useState(null);
   const [selectedAudioDevice, setSelectedAudioDevice] = useState(null);
@@ -44,16 +42,11 @@ export default function Page() {
 
         const savedVideoId = config?.videoDeviceId;
         const savedAudioId = config?.audioDeviceId;
+        const savedSystemAudio = config?.systemAudio;
 
         setSelectedVideoDevice(deviceList.videoDevices.find(d => d.id === savedVideoId));
         setSelectedAudioDevice(deviceList.audioDevices.find(d => d.id === savedAudioId));
-
-        if (!savedVideoId && selectedVideoDevice) {
-          await window.api.core.updateConfig({ videoDeviceId: selectedVideoDevice.id });
-        }
-        if (!savedAudioId && selectedAudioDevice) {
-          await window.api.core.updateConfig({ audioDeviceId: selectedAudioDevice.id });
-        }
+        setSystemAudio(savedSystemAudio)
       } catch (error) {
         console.error('Error fetching config or devices:', error);
         setDevices({ videoDevices: [], audioDevices: [] });
@@ -61,7 +54,7 @@ export default function Page() {
     })();
   }, []);
 
-  const fetchDevices = async (mode) => {
+  const showDevices = async (mode) => {
     try {
       const deviceList = await window.api?.core?.getIOdevices();
       setDevices(deviceList || { videoDevices: [], audioDevices: [] });
@@ -71,6 +64,7 @@ export default function Page() {
       setDevices({ videoDevices: [], audioDevices: [] });
       setDeviceSelectionMode(mode);
     }
+    handleLeave()
   };
 
   const handleSelectDevice = async (type, device) => {
@@ -80,24 +74,40 @@ export default function Page() {
     } else if (type === 'Audio') {
       setSelectedAudioDevice(device);
       await window.api.core.updateConfig({ audioDeviceId: device?.id });
-    } else if (type === 'Screenshot') {
-      playSound(screenshotSound)
-      if (device.id > 0) window.api.screenshot.create({ deviceIndex: device?.id })
-      else window.api.screenshot.openAreaSelection()
-      setDeviceSelectionMode(null)
     }
   };
+
+  const handleModeSelection = (type) => {
+    setSelectionMode(type);
+    handleLeave();
+  }
+
+  const togglePausePlay = () => {
+    if (!isRecording) {
+      startRecording({ videoDevice: selectedVideoDevice?.id, audioDevice: selectedAudioDevice?.id, systemAudio });
+    } else {
+      togglePause();
+    }
+  }
+
+  const toggleSystemAudio = useCallback(() => {
+    setSystemAudio(prev => {
+      const next = !prev;
+      window.api.core.updateConfig({ systemAudio: next }).catch(console.error);
+      return next;
+    });
+  }, []);
 
   const buttons = [
     {
       icon: <Camera size={30} />,
-      action: () => fetchDevices('Video'),
+      action: () => showDevices('Video'),
       label: 'Camera',
       isDisabled: false
     },
     {
       icon: <Mic size={30} />,
-      action: () => fetchDevices('Audio'),
+      action: () => showDevices('Audio'),
       label: 'Microphone',
       isDisabled: false
     },
@@ -109,27 +119,21 @@ export default function Page() {
     },
     {
       icon: <Screenshot size={26} />,
-      action: () => fetchDevices('Screenshot'),
+      action: () => handleModeSelection('Screenshot'),
       label: 'Screenshot',
       isDisabled: false
     },
     {
       icon: (!isRecording || isPaused) ? <Play size={33} /> : <Pause size={30} />,
+      action: togglePausePlay,
       label: !isRecording ? 'Start Recording' : (isPaused ? 'Resume Recording' : 'Pause Recording'),
-      action: () => {
-        if (!isRecording) {
-          startRecording({ videoDevice: selectedVideoDevice?.id, audioDevice: selectedAudioDevice?.id });
-        } else {
-          togglePause();
-        }
-      },
       isDisabled: false
     },
     {
-      icon: <RecordingArea size={30} />,
-      action: () => { },
-      label: 'Recording Area',
-      isDisabled: true
+      icon: <SystemAudioIcon size={30} />,
+      action: toggleSystemAudio,
+      label: 'System Audio',
+      isDisabled: false
     },
   ];
 
@@ -145,8 +149,8 @@ export default function Page() {
   return (
     <div className="font-sans w-full h-screen select-none">
       <div
-        className="no-drag w-full h-full bg-base-100 flex justify-center items-center origin-center overflow-hidden shadow-xl transition-[border-radius] duration-300"
-        style={{ borderRadius: deviceSelectionMode ? '0' : '100%' }}
+        className={cn("no-drag w-full h-full bg-base-100 origin-center overflow-hidden shadow-xl ", (!deviceSelectionMode || !selectionMode) && "flex justify-center items-center ")}
+        style={{ borderRadius: deviceSelectionMode || selectionMode ? '0' : '100%' }}
       >
         {deviceSelectionMode ? (
           <DeviceSelector
@@ -156,6 +160,12 @@ export default function Page() {
             onSelectDevice={handleSelectDevice}
             selectedDevice={deviceSelectionMode === 'Video' ? selectedVideoDevice : selectedAudioDevice}
           />
+        ) : selectionMode ? (
+          <ModeSelector
+            onBack={() => setSelectionMode(null)}
+            type={selectionMode}
+            devices={devices}
+          />
         ) : (
           <>
             <CircularMenu
@@ -164,6 +174,7 @@ export default function Page() {
               hoveredIndex={hoveredIndex}
               onHover={handleHover}
               onLeave={handleLeave}
+              systemAudio={systemAudio}
               selectedVideoDevice={selectedVideoDevice}
               selectedAudioDevice={selectedAudioDevice}
             />

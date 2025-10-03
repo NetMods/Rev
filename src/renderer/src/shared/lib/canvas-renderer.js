@@ -111,7 +111,13 @@ export class CanvasRenderer {
     const videoX = this.padding.value + (availableWidth - drawWidth) / 2;
     const videoY = this.padding.value + (availableHeight - drawHeight) / 2;
 
-    this.effectsManager.applyEffects(this.ctx, video, currentTime);
+    this.effectsManager.applyEffects(this.ctx, currentTime);
+
+    // Set shadow properties for main video
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 1)';
+    this.ctx.shadowBlur = 40;
+    this.ctx.shadowOffsetX = 0;
+    this.ctx.shadowOffsetY = 0;
 
     this.ctx.filter = `contrast(104%)`;
 
@@ -131,12 +137,20 @@ export class CanvasRenderer {
 
       this.ctx.save();
 
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 1)';
+      this.ctx.shadowBlur = 15;
+      this.ctx.shadowOffsetX = 0;
+      this.ctx.shadowOffsetY = 5;
+      this.ctx.fillStyle = 'black';
+
       this.ctx.beginPath();
       if (typeof this.ctx.roundRect === "function") {
         this.ctx.roundRect(x, y, webcamSize, webcamSize, 15);
       } else {
         this.ctx.arc(x + webcamSize / 2, y + webcamSize / 2, webcamSize / 2, 0, Math.PI * 2);
+        this.ctx.closePath();
       }
+      this.ctx.fill(); // Draw filled shape + shadow
       this.ctx.clip();
 
       const webcamAspect = webcam.videoWidth / webcam.videoHeight;

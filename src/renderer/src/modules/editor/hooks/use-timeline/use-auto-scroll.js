@@ -16,12 +16,14 @@ export function useAutoScroll(timelineContainer, playheadRef, videoWidth, isDrag
     const scrollLeft = container.scrollLeft;
     const padding = 20;
 
+    const edgeThreshold = 5;
+
     const playheadScreenX = playheadPosition - scrollLeft + padding;
 
-    if (playheadScreenX > containerW - 50) {
-      container.scrollLeft = playheadPosition - containerW + 100;
-    } else if (playheadScreenX < 50) {
-      container.scrollLeft = Math.max(0, playheadPosition - 50);
+    if (playheadScreenX > containerW - edgeThreshold) {
+      container.scrollLeft = playheadPosition;
+    } else if (playheadScreenX < edgeThreshold) {
+      container.scrollLeft = Math.max(0, playheadPosition - edgeThreshold);
     }
   }, [currentTime, videoDuration, videoWidth, isDragging, timelineContainer, playheadRef]);
 }

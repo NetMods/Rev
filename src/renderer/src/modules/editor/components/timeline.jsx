@@ -17,7 +17,7 @@ const Timeline = ({ className }) => {
   } = useTimeline();
 
   return (
-    <div className={cn("rounded border-2 border-base-content/10 bg-base-200", className)}>
+    <div className={cn("rounded border-2 border-base-content/10 bg-base-200 select-none", className)}>
       <div
         className="relative flex flex-col gap-3 size-full px-5 pb-2 overflow-x-auto noscrollbar scrollbar-thin scrollbar-track-neutral-800 scrollbar-thumb-neutral-600 hover:scrollbar-thumb-neutral-500"
         ref={timelineContainer}
@@ -26,7 +26,7 @@ const Timeline = ({ className }) => {
         {/* Play head */}
         <div
           ref={playheadRef}
-          className="absolute bottom-0 top-1 z-50 bg-primary w-px rounded-full cursor-ew-resize"
+          className="absolute bottom-0 top-1 z-50 bg-primary w-px rounded-full"
           style={{
             left: "20px",
             willChange: "transform",
@@ -34,11 +34,11 @@ const Timeline = ({ className }) => {
             backfaceVisibility: "hidden",
           }}
         >
-          <div className="absolute -top-1 -left-[0.35rem] w-3 h-3 rounded-full bg-primary border-primary border-2 cursor-ew-resize" />
+          <div className="absolute -top-1 -left-[0.35rem] w-3 h-3 rounded-full bg-primary border-primary border-2" />
         </div>
 
         {/*Time stamps*/}
-        <div className="relative h-8 cursor-grab">
+        <div className="relative h-8 cursor-default">
           {ticks.map((tick, idx) => (
             <div key={idx}>
               <div
