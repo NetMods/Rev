@@ -47,13 +47,6 @@ export default function Page() {
         setSelectedVideoDevice(deviceList.videoDevices.find(d => d.id === savedVideoId));
         setSelectedAudioDevice(deviceList.audioDevices.find(d => d.id === savedAudioId));
         setSystemAudio(savedSystemAudio)
-
-        if (!savedVideoId && selectedVideoDevice) {
-          await window.api.core.updateConfig({ videoDeviceId: selectedVideoDevice.id });
-        }
-        if (!savedAudioId && selectedAudioDevice) {
-          await window.api.core.updateConfig({ audioDeviceId: selectedAudioDevice.id });
-        }
       } catch (error) {
         console.error('Error fetching config or devices:', error);
         setDevices({ videoDevices: [], audioDevices: [] });
@@ -84,6 +77,27 @@ export default function Page() {
     }
   };
 
+  const handleModeSelection = (type) => {
+    setSelectionMode(type);
+    handleLeave();
+  }
+
+  const togglePausePlay = () => {
+    if (!isRecording) {
+      startRecording({ videoDevice: selectedVideoDevice?.id, audioDevice: selectedAudioDevice?.id, systemAudio });
+    } else {
+      togglePause();
+    }
+  }
+
+  const toggleSystemAudio = useCallback(() => {
+    setSystemAudio(prev => {
+      const next = !prev;
+      window.api.core.updateConfig({ systemAudio: next }).catch(console.error);
+      return next;
+    });
+  }, []);
+
   const buttons = [
     {
       icon: <Camera size={30} />,
@@ -105,33 +119,19 @@ export default function Page() {
     },
     {
       icon: <Screenshot size={26} />,
-      action: () => {
-        setSelectionMode('Screenshot');
-        handleLeave();
-      },
+      action: () => handleModeSelection('Screenshot'),
       label: 'Screenshot',
       isDisabled: false
     },
     {
       icon: (!isRecording || isPaused) ? <Play size={33} /> : <Pause size={30} />,
+      action: togglePausePlay,
       label: !isRecording ? 'Start Recording' : (isPaused ? 'Resume Recording' : 'Pause Recording'),
-      action: () => {
-        if (!isRecording) {
-          startRecording({ videoDevice: selectedVideoDevice?.id, audioDevice: selectedAudioDevice?.id, systemAudio });
-        } else {
-          togglePause();
-        }
-      },
       isDisabled: false
     },
     {
       icon: <SystemAudioIcon size={30} />,
-      action: () => {
-        setSystemAudio((prev) => {
-          window.api.core.updateConfig({ systemAudio: !prev });
-          return !prev
-        })
-      },
+      action: toggleSystemAudio,
       label: 'System Audio',
       isDisabled: false
     },
