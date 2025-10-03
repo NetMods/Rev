@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { RxCross2 as Cross, RxCheck as Check } from "react-icons/rx";
+import log from 'electron-log/renderer'
 
 const AreaSelection = () => {
   const canvasRef = useRef(null);
@@ -7,13 +8,27 @@ const AreaSelection = () => {
   const [origin, setOrigin] = useState(null);
   const [endPos, setEndPos] = useState(null);
   const [showButtons, setShowButtons] = useState(false);
+  const [image, setImage] = useState(null)
 
-  const handleDone = () => {
+  const handleDone = async () => {
     if (origin && endPos) {
-      window.api?.screenshot.create({ origin: origin, rectPos: endPos, deviceIndex: -1 });
+      const deviceList = await window.api?.core?.getIOdevices();
+      let filteredDevices = ["Video", "Screenshot"].includes(deviceList) ? deviceList.videoDevices : deviceList.audioDevices;
+      const screenDevice = filteredDevices.find(device =>
+        device.name.toLowerCase().includes("capture screen")
+      );
+      window.api?.screenshot.create({ origin: origin, rectPos: endPos, deviceIndex: screenDevice?.id });
       window.api?.core.closeWindow();
     }
   };
+
+  useEffect(() => {
+    const getImage = async () => {
+      const imageData = await window.api.screenshot.getImageData()
+      setImage(imageData)
+    }
+    getImage()
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -74,8 +89,28 @@ const AreaSelection = () => {
     };
   }, [isDrawing, origin, endPos]);
 
+  useEffect(() => {
+    // const overlay = document.getElementById("screenshot-overlay")
+    const handleKeyPress = (evt) => {
+      if (evt.key === "Escape" || evt.keyCode === 27) {
+        window.api?.core.closeWindow();
+      }
+    }
+    document.addEventListener("keydown", handleKeyPress)
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress)
+    }
+
+  })
+
   return (
-    <div className="h-full w-full no-drag">
+    <div id="screenshot-overlay" tabIndex={0} className="h-full w-full no-drag">
+      {image && (<img
+        src={image}
+        alt="background"
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+      />)
+      }
       <canvas
         ref={canvasRef}
         style={{ position: 'absolute', top: 0, left: 0 }}

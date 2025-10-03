@@ -4,7 +4,8 @@ import { getFFmpegPath } from "./path";
 import { showError } from "./error";
 import { app } from "electron";
 
-export class FFmpegManager {
+
+class FFmpegManager {
   constructor() {
     this.activeProcesses = new Map(); // Map<processId, proc>
     this.id = 1;

@@ -74,7 +74,7 @@ export default function Page() {
     } else if (type === 'Audio') {
       setSelectedAudioDevice(device);
       await window.api.core.updateConfig({ audioDeviceId: device?.id });
-    }
+    } 
   };
 
   const handleModeSelection = (type) => {

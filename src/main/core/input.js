@@ -190,7 +190,6 @@ export const getInputDevices = async () => {
 function runFFmpegCommand(args) {
   return new Promise((resolve, reject) => {
     let output = '';
-
     ffmpegManager.spawn(args, {
       name: "input-devices",
       onData: (data) => { output += data.toString(); },

@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from "path";
 import { getConfig, updateConfig } from "../../core/config";
 import log from "electron-log/main"
+import { spawnScreenshotCapture } from "./ffmpeg";
+import sharp from "sharp";
 
 export const copyImageUrl = (dataUrl) => {
   try {
@@ -89,97 +91,77 @@ export const updateUserPreset = async (...args) => {
 }
 
 
-export const getFFmpegArgs = (tmpFile, screenIndex, ...args) => {
+export const getFFmpegArgs = (tmpFile, screenIndex) => {
   const platform = process.platform;
-  const [{ origin, rectPos }] = args
-  const cropCords = rectPos ? { origin, rectPos } : null
-
-  let x, y, width, height;
-
-  if (cropCords) {
-    const { sx, sy, sw, sh } = getConstraints(cropCords)
-    x = sx;
-    y = sy;
-    width = sw;
-    height = sh
-  }
 
   if (platform === "darwin") {
     const display = `${Math.abs(screenIndex)}:none`
-    if (!cropCords) {
-      return [
-        "-f", "avfoundation",
-        "-framerate", "30",
-        "-pixel_format", "uyvy422",
-        "-i", display,
-        "-frames:v", "1",
-        "-update", "1",
-        tmpFile,
-      ];
-    } else {
-      const crop = `crop=${width}:${height}:${x}:${y}`
-      return [
-        "-f", "avfoundation",
-        "-framerate", "30",
-        "-pixel_format", "uyvy422",
-        "-i", display,
-        "-frames:v", "1",
-        "-vf", crop,
-        "-update", "1",
-        tmpFile,
-      ];
-    }
+    return [
+      "-f", "avfoundation",
+      "-framerate", "30",
+      "-pixel_format", "uyvy422",
+      "-i", display,
+      "-frames:v", "1",
+      "-update", "1",
+      tmpFile,
+    ];
   }
 
   if (platform === "win32") {
-    if (!cropCords) {
-      return [
-        "-f", "gdigrab",
-        "-framerate", "30",
-        "-i", "desktop",
-        "-frames:v", "1",
-        tmpFile,
-      ];
-    } else {
-      return [
-        "-f", "gdigrab",
-        "-framerate", "30",
-        "-video_size", `${width}x${height}`,
-        "-offset_x", `${x}`,
-        "-offset_y", `${y}`,
-        "-i", "desktop",
-        "-frames:v", "1",
-        tmpFile,
-      ];
-    }
+    return [
+      "-f", "gdigrab",
+      "-framerate", "30",
+      "-i", "desktop",
+      "-frames:v", "1",
+      tmpFile,
+    ];
   }
 
   if (platform === "linux") {
     const display = process.env.DISPLAY || ":0.0";
-    if (!cropCords) {
-      return [
-        "-f", "x11grab",
-        "-framerate", "30",
-        "-i", display,
-        "-frames:v", "1",
-        tmpFile,
-      ];
-    } else {
-      return [
-        "-f", "x11grab",
-        "-framerate", "30",
-        "-video_size", `${width}x${height}`,
-        "-i", `${display}+${x},${y}`,
-        "-frames:v", "1",
-        tmpFile,
-      ];
-    }
-
+    return [
+      "-f", "x11grab",
+      "-framerate", "30",
+      "-i", display,
+      "-frames:v", "1",
+      tmpFile,
+    ];
   }
+
   throw new Error("Unsupported platform");
 }
 
-export const openEditorWindow = async (core, mainWindow, imageData) => {
+export const getImageData = async (core, data) => {
+  const mainWindow = core.window.getMainWindow();
+  await mainWindow.hide();
+  const image = await spawnScreenshotCapture(core, data);
+  mainWindow.show()
+  return image
+}
+
+export const getCropedImageData = async (base64Image, cropCoords) => {
+  if (!cropCoords || !cropCoords.origin || !cropCoords.rectPos) {
+    throw new Error('Invalid crop coordinates');
+  }
+  const buffer = Buffer.from(base64Image.split(',')[1], 'base64');
+  let { sx, sy, sw, sh } = getConstraints(cropCoords);
+  const point = { x: sx, y: sy };
+  const displayObj = screen.getDisplayNearestPoint(point);
+  const scaleFactor = displayObj.scaleFactor;
+  const bounds = displayObj.bounds;
+  sx = sx - bounds.x;
+  sy = sy - bounds.y;
+  sx = Math.floor(sx * scaleFactor);
+  sy = Math.floor(sy * scaleFactor);
+  sw = Math.floor(sw * scaleFactor);
+  sh = Math.floor(sh * scaleFactor);
+  const croppedBuffer = await sharp(buffer)
+    .extract({ left: sx, top: sy, width: sw, height: sh })
+    .toBuffer();
+  return `data:image/png;base64,${croppedBuffer.toString('base64')}`;
+}
+
+export const openEditorWindow = async (core, imageData) => {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
 
@@ -209,7 +191,6 @@ export const openEditorWindow = async (core, mainWindow, imageData) => {
 
   screenshotWindow.webContents.on("did-finish-load", () => {
     screenshotWindow.webContents.send("screenshot:image-data", imageData);
-    mainWindow.show();
   });
 
 }
