@@ -9,7 +9,7 @@ import paths from "./path"
 import { handleProtocolRequests, registerProtocolScheme } from './protocol';
 import { initializeLogger, restartApp } from './utils';
 import input from './input';
-import { initErrorHandling, showError } from './error';
+import { initErrorHandling, showError, reportError } from './error';
 import { ffmpegManager } from "./ffmpeg"
 
 const log = initializeLogger()
@@ -64,6 +64,7 @@ app.whenReady().then(async () => {
       'devices:get': async (_, ...args) => input.getInputDevices(...args),
       'app:restart': () => restartApp(),
       'window:error': (_, ...args) => showError(...args),
+      'window:error:report': (_, ...args) => reportError(...args),
       'window:close': (event) => closeWindow(event),
       'window:minimize': (event) => minimizeWindow(event),
       'window:maximize': (event) => toggleMaximizeWindow(event),

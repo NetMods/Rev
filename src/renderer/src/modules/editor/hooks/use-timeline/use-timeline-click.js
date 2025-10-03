@@ -1,6 +1,11 @@
-export function useTimelineClick(timelineContainer, videoDuration, videoWidth, preview, setCurrentTime, isDragging) {
+import { useVideoEditor } from "../use-video-editor";
+
+export function useTimelineClick(timelineContainer, videoWidth, isDragging) {
+  const { videoDuration, setCurrentTime, videoPreviewInstance } = useVideoEditor()
+
   const handleTimelineClick = (e) => {
     if (isDragging) return;
+
     const container = timelineContainer.current;
     if (!container || !videoDuration) return;
 
@@ -13,7 +18,7 @@ export function useTimelineClick(timelineContainer, videoDuration, videoWidth, p
     const clampedTime = Math.max(0, Math.min(clickedTime, videoDuration));
 
     setCurrentTime(clampedTime);
-    if (preview) preview.seekTo(clampedTime);
+    if (videoPreviewInstance) videoPreviewInstance.seekTo(clampedTime);
   };
 
   return handleTimelineClick;

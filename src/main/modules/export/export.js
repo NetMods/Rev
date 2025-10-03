@@ -134,6 +134,7 @@ export class ExportingSession {
       ];
 
       this.core.ffmpegManager.spawn(args, {
+        name: "export-audio-muxing",
         onClose: async (code) => {
           console.log(`Audio muxing finished with code: ${code}`);
           if (code === 0) {
@@ -184,6 +185,7 @@ export class ExportingSession {
         ];
 
         this.core.ffmpegManager.spawn(args, {
+          name: "export-making-video-from-png",
           onClose: (code) => {
             console.log(`FFmpeg video creation closed with code: ${code}`);
             if (code === 0) {

@@ -18,7 +18,7 @@ export class VideoPreview {
     this.resizeObserver = null;
   }
 
-  init(canvasElement, videoPath, webcamPath, onTimeUpdate, onPreviewStateUpdate, effects) {
+  init(canvasElement, videoPath, webcamPath, effects, onTimeUpdate, onPreviewStateUpdate) {
     this.videoManager.init(videoPath);
     if (webcamPath) {
       this.webcamManager = new VideoManager();
@@ -76,10 +76,12 @@ export class VideoPreview {
 
 
     window.addEventListener("keypress", (e) => {
-      if (e.key === ' ') {
-        e.preventDefault();
-        this.togglePlayPause()
-      }
+      if (e.key !== ' ') return;
+      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(e.target.tagName)) return;
+
+      e.preventDefault();
+      e.stopPropagation()
+      this.togglePlayPause()
     })
 
     document.addEventListener("fullscreenchange", () => {
@@ -114,7 +116,17 @@ export class VideoPreview {
     if (this.webcamManager) {
       this.webcamManager.seekTo(time);
     }
-    this.onTimeUpdate(this.videoManager.currentTime, this.videoManager.duration);
+    this.onTimeUpdate(time, this.videoManager.duration);
+
+    const onSeeked = () => {
+      this.canvasRenderer.drawFrame(
+        this.videoManager.video,
+        this.webcamManager?.video,
+        this.videoManager.currentTime
+      );
+      this.videoManager.video.removeEventListener('seeked', onSeeked);
+    };
+    this.videoManager.video.addEventListener('seeked', onSeeked);
   }
 
   toggleFullscreen() {

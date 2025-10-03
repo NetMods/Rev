@@ -3,9 +3,15 @@ import { IoPlay as Play, IoPauseSharp as Pause } from 'react-icons/io5';
 import { LuPlus as Plus, LuMinus as Minus } from "react-icons/lu";
 import { formatTime } from "../utils";
 import { cn } from "../../../shared/utils";
+import { decreaseZoomAtom, increaseZoomAtom } from "../../../store/editor";
+import { useSetAtom } from "jotai";
+import { useVideoEditor } from "../hooks/use-video-editor";
 
-export const Controls = ({ className, data }) => {
-  const { preview, isPlaying, currentTime, videoDuration, increaseZoom, decreaseZoom, onExportModalOpen } = data
+export const Controls = ({ className, onExportModalOpen }) => {
+  const { isPlaying, currentTime, videoDuration, videoPreviewInstance } = useVideoEditor()
+
+  const increaseZoom = useSetAtom(increaseZoomAtom);
+  const decreaseZoom = useSetAtom(decreaseZoomAtom);
 
   return (
     <div className={cn("px-4 border-2 rounded border-base-content/10 bg-base-200", className)}>
@@ -16,7 +22,7 @@ export const Controls = ({ className, data }) => {
       </div>
 
       <button
-        onClick={() => preview.togglePlayPause()}
+        onClick={() => videoPreviewInstance.togglePlayPause()}
         className="z-50 btn btn-circle"
         aria-label={isPlaying ? "Pause video" : "Play video"}
       >

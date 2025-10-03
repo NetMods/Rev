@@ -5,11 +5,14 @@ import { Editor } from './components/editor';
 import { TopBar } from '../../shared/ui/topbar';
 import { createPortal } from "react-dom";
 import Export from '../export';
+import { projectAtom } from '../../store/editor';
+import { useAtom } from 'jotai';
 
 export default function Page() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
-  const [data, setData] = useState(null);
+
+  const [project, setProject] = useAtom(projectAtom);
   const [showExportModal, setShowExportModal] = useState(false)
 
   useEffect(() => {
@@ -19,37 +22,29 @@ export default function Page() {
         if (!projectData) {
           throw new Error('Failed to load project data');
         }
-        setData(projectData);
+        setProject({ id, data: projectData });
       } catch (error) {
         log.error('Error loading project:', error);
+        window.api.core.showError({ error: "Error while loading project", message: error.message })
+        window.api.core.closeWindow()
       }
     })();
   }, [id]);
-
-  const openExportModal = () => setShowExportModal(true)
 
   return (
     <div className="p-2 pt-0 font-sans bg-base-300 text-base-content h-screen overflow-hidden flex flex-col">
       <TopBar title={id} />
 
       <div className="flex-1 relative">
-        {data ? (
-          <Editor id={id} data={data} onExportModalOpen={openExportModal} />
+        {project ? (
+          <Editor onExportModalOpen={() => setShowExportModal(true)} />
         ) : (
           <div className="h-full flex items-center justify-center text-sm opacity-60">Loading…</div>
         )}
       </div>
 
-
       {showExportModal && createPortal(
-        <Export
-          projectId={id}
-          videoPath={data.videoPath}
-          webcamPath={data.webcamPath}
-          audioPath={data.audioPath}
-          effects={data.effects}
-          onClose={() => setShowExportModal(false)}
-        />,
+        <Export onClose={() => setShowExportModal(false)} />,
         document.body
       )}
     </div>

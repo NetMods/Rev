@@ -24,7 +24,7 @@ const getButtonPosition = (index, totalButtons, radius) => {
   return { transform: `translate(${x}px, ${y}px)` };
 };
 
-export const CircularMenu = ({ buttons, dimensions, hoveredIndex, onHover, onLeave, selectedVideoDevice, selectedAudioDevice }) => {
+export const CircularMenu = ({ buttons, dimensions, hoveredIndex, onHover, onLeave, systemAudio, selectedVideoDevice, selectedAudioDevice }) => {
   const size = Math.min(dimensions.width, dimensions.height);
   const center = size / 2;
 
@@ -62,6 +62,8 @@ export const CircularMenu = ({ buttons, dimensions, hoveredIndex, onHover, onLea
           status = selectedVideoDevice ? 'On' : 'Off';
         } else if (i === 1) {
           status = selectedAudioDevice ? 'On' : 'Off';
+        } else if (i == 5) {
+          status = systemAudio ? 'On' : 'Off'
         }
         return (
           <span

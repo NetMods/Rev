@@ -2,13 +2,13 @@ import { spawn as spawnProcess } from "child_process";
 import log from "electron-log/main";
 import { getFFmpegPath } from "./path";
 import { showError } from "./error";
-import { randomUUID as uuid } from "crypto";
 import { app } from "electron";
 
+
 class FFmpegManager {
-  constructor(core) {
-    this.core = core;
+  constructor() {
     this.activeProcesses = new Map(); // Map<processId, proc>
+    this.id = 1;
     app.on('before-quit', this.killAllProcesses.bind(this));
   }
 
@@ -18,13 +18,15 @@ class FFmpegManager {
       onError = () => { },
       onClose = () => { },
       dialogOnError = true,
+      name = "unnamed"
     } = opts;
 
     const ffmpegPath = await getFFmpegPath();
 
     try {
       const proc = spawnProcess(ffmpegPath, args, { stdio: "pipe" });
-      const processId = uuid().slice(0, 8)
+      const processId = `${name}-${this.id}`
+      this.id++
 
       // Store the process
       this.activeProcesses.set(processId, proc);
@@ -105,9 +107,8 @@ class FFmpegManager {
       killPromises.push(this.killProcess(processId));
     }
     await Promise.all(killPromises);
-    log.info(`Killed all FFmpeg processes`);
+    log.info(`Killed all FFmpeg processes if existed`);
   }
 }
-
 
 export const ffmpegManager = new FFmpegManager()
