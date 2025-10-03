@@ -6,7 +6,7 @@ import { useState } from "react";
 
 function NormalControls({ handleMaximize, isMaximized }) {
   return (
-    <div className="ml-auto no-drag flex items-center">
+    <div className="ml-auto no-drag flex items-center absolute right-0">
       <button
         aria-label="Minimize"
         title="Minimize"
@@ -41,7 +41,7 @@ function MacosControls({ handleMaximize, isMaximized }) {
   return (
     <div
       style={{ WebkitAppRegion: "no-drag" }}
-      className="flex items-center gap-2 ml-3"
+      className="flex items-center gap-2 ml-3 absolute right-0"
     >
       <button
         aria-label={isMaximized ? "Restore" : "Maximize"}
@@ -89,7 +89,7 @@ export function TopBar({ title }) {
 
   return (
     <div
-      className="w-full drag h-7 flex items-center bg-base-300 border-b border-base-200 place-content-end shadow-sm select-none relative"
+      className="w-full drag h-7 flex items-center justify-center bg-base-300 border-b border-base-200 shadow-sm select-none relative"
       onDoubleClick={handleMaximize}
     >
       {/* Center Title */}

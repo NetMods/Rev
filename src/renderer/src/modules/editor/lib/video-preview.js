@@ -74,11 +74,8 @@ export class VideoPreview {
       }
     };
 
-
-    window.addEventListener("keypress", (e) => {
-      if (e.key !== ' ') return;
-      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(e.target.tagName)) return;
-
+    window.addEventListener("keydown", (e) => {
+      if (e.code !== 'Space') return;
       e.preventDefault();
       e.stopPropagation()
       this.togglePlayPause()

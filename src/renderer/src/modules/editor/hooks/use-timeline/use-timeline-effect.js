@@ -1,8 +1,11 @@
 import { useEffect } from "react";
+import { useSetAtom } from "jotai/react";
+import { updateEffectsAtom } from "../../../../store/editor";
 import { useVideoEditor } from "../use-video-editor";
 
-export const useTimelineEffects = (effectsRowRef, pixelsPerSecond, onEffectsChange) => {
+export const useTimelineEffects = (effectsRowRef, pixelsPerSecond) => {
   const { effects } = useVideoEditor()
+  const updateEffects = useSetAtom(updateEffectsAtom)
 
   useEffect(() => {
     const effectsRow = effectsRowRef.current;
@@ -11,6 +14,9 @@ export const useTimelineEffects = (effectsRowRef, pixelsPerSecond, onEffectsChan
     effectsRow.innerHTML = "";
 
     effects.forEach((effect) => {
+      console.log(effect)
+      if (effect.isDeleted) return
+
       const { startTime, endTime, id } = effect;
 
       const duration = (endTime - startTime) || 0;
@@ -20,12 +26,12 @@ export const useTimelineEffects = (effectsRowRef, pixelsPerSecond, onEffectsChan
       if (width <= 0) return;
 
       const effectDiv = createEffectDiv(width, xShift, effect, duration, () => {
-        const updatedEffects = effects.filter((e) => e.id !== id);
-        onEffectsChange(updatedEffects);
+        const newEffects = effects.map((effect) => effect.id !== id ? effect : { ...effect, isDeleted: true });
+        updateEffects(newEffects);
       });
       effectsRow.appendChild(effectDiv);
     });
-  }, [effects, pixelsPerSecond, effectsRowRef, onEffectsChange]);
+  }, [effects, pixelsPerSecond]);
 };
 
 

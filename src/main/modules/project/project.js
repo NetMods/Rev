@@ -1,7 +1,6 @@
 import log from 'electron-log/main';
 import { ensureDirSync, writeFileSync, existsSync, mkdirSync, readJsonSync } from 'fs-extra';
 import { join } from "path"
-import { randomUUID as uuid } from "crypto"
 
 export const fileEncoding = "utf-8"
 
@@ -10,7 +9,7 @@ export const createProjectWithData = async (data = {}, core) => {
 
   try {
     ensureDirSync(projectsDirectory)
-    const projectId = uuid()
+    const projectId = `Rev-${new Date().toISOString()}`
     const projectDir = join(projectsDirectory, projectId)
     mkdirSync(projectDir, { recursive: true });
 

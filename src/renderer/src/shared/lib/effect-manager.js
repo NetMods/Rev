@@ -12,7 +12,10 @@ export class EffectsManager {
   }
 
   init(effects) {
-    this.effects = (effects || []).slice().sort((a, b) => parseFloat(a.startTime) - parseFloat(b.startTime));
+    this.effects = (effects || [])
+      .filter((e) => !e?.isDeleted)
+      .sort((a, b) => parseFloat(a.startTime) - parseFloat(b.startTime))
+
     if (getOS() !== "mac") this.dpr = window.devicePixelRatio || 1;
   }
 
@@ -38,6 +41,7 @@ export class EffectsManager {
 
     for (let i = 0; i < this.effects.length; i++) {
       const effect = this.effects[i];
+
       const { startTime: start, endTime: end } = effect;
 
       // Compute base at this effect's start (apply reset if gap from previous).
@@ -75,7 +79,9 @@ export class EffectsManager {
     const prevEnd = this.effects[effectIndex - 1].endTime;
     const gapDuration = currentEffect.startTime - prevEnd;
     if (gapDuration <= 0) return base;
-
+    if (currentEffect.type === 'pan') {
+      return base;
+    }
     // Full reset in gap (since we're past the gap start).
     return { scale: 1, translateX: 0, translateY: 0 };
   }
@@ -212,7 +218,12 @@ export class EffectsManager {
     return processedPath[processedPath.length - 1];
   }
 
-  // Smooth ease (same as before)
+  updateEffects(newEffects) {
+    this.effects = (newEffects || [])
+      .filter((e) => !e?.isDeleted)
+      .sort((a, b) => parseFloat(a.startTime) - parseFloat(b.startTime))
+  }
+
   ease(x) {
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   }

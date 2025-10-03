@@ -33,7 +33,7 @@ export const decreaseZoomAtom = atom(
 
 export const updateEffectsAtom = atom(
   null,
-  async (get, set, { newEffects }) => {
+  async (get, set, newEffects) => {
     set(effectsAtom, newEffects);
     const project = get(projectAtom)
     const preview = get(videoPreviewInstanceAtom);
